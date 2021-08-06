@@ -1,8 +1,8 @@
-# KTV
+# Karaoke
 
 ## 概述
 
-**TUI组件化解决方案**是腾讯云TRTC针对直播、语聊、视频通话、KTV 等推出的低代码解决方案，依托腾讯在音视频&通信领域的技术积累，帮助开发者快速实现相关业务场景，聚焦核心业务，助力业务起飞！
+**TUI组件化解决方案**是腾讯云TRTC针对直播、语聊、视频通话、Karaoke 等推出的低代码解决方案，依托腾讯在音视频&通信领域的技术积累，帮助开发者快速实现相关业务场景，聚焦核心业务，助力业务起飞！
 
 - [语音聊天室-TUIVoiceRoom](https://github.com/tencentyun/TUIVoiceRoom/)
 - [视频互动直播-TUILiveRoom](https://github.com/tencentyun/TUILiveRoom/)
@@ -35,7 +35,7 @@
 
 | iOS                                                          | Android                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [KTV（iOS）](https://cloud.tencent.com/document/product/647/45753)| [KTV（Android）](https://cloud.tencent.com/document/product/647/45737)|
+| [Karaoke（iOS）](https://cloud.tencent.com/document/product/647/45753)| [Karaoke（Android）](https://cloud.tencent.com/document/product/647/45737)|
 ## 其他
 
 ### 交流&反馈

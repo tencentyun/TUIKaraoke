@@ -1,14 +1,14 @@
-本文档主要介绍如何快速集成实时音视频（TRTC）SDK，运行 TRTC 场景化解决方案，实现 KTV。
+本文档主要介绍如何快速集成实时音视频（TRTC）SDK，运行 TRTC 场景化解决方案，实现 Karaoke。
 	
 ## 目录结构
 	
 ```
-TUIKTV
-├─ App		    	// KTV 主页UI代码以及用到的图片及国际化字符串资源文件夹
+TUIKaraoke
+├─ App		    	// Karaoke 主页UI代码以及用到的图片及国际化字符串资源文件夹
 ├─ Debug		    // 工程调试运行所需的关键业务代码文件夹
 ├─ Login    		// 登录UI及业务逻辑代码文件夹
-├─ Resources		// KTV 功能所需的图片、国际化字符串资源文件夹
-├─ Source			// KTV 核心业务逻辑代码文件夹
+├─ Resources		// Karaoke 功能所需的图片、国际化字符串资源文件夹
+├─ Source			// Karaoke 核心业务逻辑代码文件夹
 └─ TXAppBasic		// 工程依赖的基础组件
 ```
 	
@@ -33,8 +33,8 @@ TUIKTV
 2. SDK集成方式默认使用`Cocoapods`，工程目录下`Podfile`文件内已帮您添加了SDK的依赖`pod 'TXLiteAVSDK_TRTC'`，您只需要打开终端进入到工程目录下执行`pod install`，SDK就会自动集成。
 
 ### 配置工程文件
-1. 使用Xcode(11.0及以上)打开源码工程`TUIKTVApp.xcworkspace`。
-2. 工程内找到`TUIKTV/Debug/GenerateTestUserSig.swift`文件 。
+1. 使用Xcode(11.0及以上)打开源码工程`TUIKaraokeApp.xcworkspace`。
+2. 工程内找到`TUIKaraoke/Debug/GenerateTestUserSig.swift`文件 。
 3. 设置`GenerateTestUserSig.swift`文件中的相关参数：
 <ul>
 <li>SDKAPPID：默认为 0 ，请设置为实际申请的SDKAPPID。</li>
@@ -49,7 +49,7 @@ TUIKTV
 
 ### 运行 App
 
-使用 Xcode（11.0及以上的版本）打开源码工程 `TUIKTV/TUIKTVApp.xcworkspace`，单击【运行】即可开始调试本 App。
+使用 Xcode（11.0及以上的版本）打开源码工程 `TUIKaraoke/TUIKaraokeApp.xcworkspace`，单击【运行】即可开始调试本 App。
 
 ### 体验应用（**体验应用至少需要两台设备**）
 #### 用户 A

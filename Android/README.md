@@ -1,9 +1,9 @@
-本文档主要介绍如何快速集成实时音视频（TRTC）SDK，运行 TRTC 场景化解决方案，实现 KTV。
+本文档主要介绍如何快速集成实时音视频（TRTC）SDK，运行 TRTC 场景化解决方案，实现 Karaoke。
 
 ## 目录结构
 
 ```
-TUIKTV
+TUIKaraoke
 ├─ App          // 主面板，各种场景入口
 ├─ Basic        // 基础库
 ├─ Debug        // 调试相关
@@ -28,8 +28,8 @@ TUIKTV
 3. 创建应用完成后，单击【我已下载，下一步】，可以查看 SDKAppID 和密钥信息。
 
 ### 配置工程文件
-1. 使用 Android Studio（3.5及以上的版本）打开源码工程`TUIKTV`。
-2. 找到并打开`TUIKTV/Debug/src/main/java/com/tencent/liteav/debug/GenerateTestUserSig.java`文件。
+1. 使用 Android Studio（3.5及以上的版本）打开源码工程`TUIKaraoke`。
+2. 找到并打开`TUIKaraoke/Debug/src/main/java/com/tencent/liteav/debug/GenerateTestUserSig.java`文件。
 3. 设置`GenerateTestUserSig.java`文件中的相关参数：
 <ul style="margin:0"><li/>SDKAPPID：默认为占位符（PLACEHOLDER），请设置为实际的 SDKAppID。
 <li/>SECRETKEY：默认为占位符（PLACEHOLDER），请设置为实际的密钥信息。</ul>
