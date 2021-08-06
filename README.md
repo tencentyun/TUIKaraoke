@@ -20,8 +20,8 @@
          <th>听众麦位操作</th>  
      </tr>
 <tr>
-<td><img src="https://min-cos-1300507594.cos.ap-beijing.myqcloud.com/tmp/ktv/ktv_demo_owner.gif" width="300px" height="640px"/></td>
-<td><img src="https://min-cos-1300507594.cos.ap-beijing.myqcloud.com/tmp/ktv/ktv_demo_audience.gif" width="300px" height="640px"/></td>
+<td><img src="demo_owner.gif" width="300px" height="640px"/></td>
+<td><img src="demo_audience.gif" width="300px" height="640px"/></td>
 </tr>
 </table>
 
