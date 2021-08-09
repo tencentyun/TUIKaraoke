@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.tencent.liteav.tuikaraoke">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application>
+        <activity
+            android:name="com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomAnchorActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:launchMode="singleTask"
+            android:theme="@style/TRTCKtvRoomChatTheme"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomAudienceActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:launchMode="singleTask"
+            android:theme="@style/TRTCKtvRoomChatTheme"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.tencent.liteav.tuikaraoke.ui.floatwindow.FloatActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:launchMode="standard"
+            android:theme="@style/TRTCKtvRoomChatTheme"
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden"/>
+
+    </application>
+
+</manifest>
