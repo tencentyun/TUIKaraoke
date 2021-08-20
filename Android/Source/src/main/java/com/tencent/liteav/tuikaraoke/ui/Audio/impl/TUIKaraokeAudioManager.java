@@ -1,4 +1,4 @@
-package com.tencent.liteav.tuikaraoke.ui.Audio.impl;
+package com.tencent.liteav.tuikaraoke.ui.audio.impl;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -6,7 +6,7 @@ import android.util.Log;
 
 import com.tencent.liteav.audio.TXAudioEffectManager;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
-import com.tencent.liteav.tuikaraoke.ui.Audio.IAudioEffectPanelDelegate;
+import com.tencent.liteav.tuikaraoke.ui.audio.IAudioEffectPanelDelegate;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 
 /**

@@ -1,4 +1,4 @@
-package com.tencent.liteav.tuikaraoke.ui.Audio;
+package com.tencent.liteav.tuikaraoke.ui.audio;
 
 public interface IAudioEffectPanelDelegate {
 

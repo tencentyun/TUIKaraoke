@@ -34,7 +34,7 @@ import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDelegate;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TXSeatInfo;
-import com.tencent.liteav.tuikaraoke.ui.Audio.impl.TUIKaraokeAudioManager;
+import com.tencent.liteav.tuikaraoke.ui.audio.impl.TUIKaraokeAudioManager;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
 import com.tencent.liteav.tuikaraoke.ui.lrc.LyricsReader;
 import com.tencent.liteav.tuikaraoke.ui.lrc.widget.AbstractLrcView;
