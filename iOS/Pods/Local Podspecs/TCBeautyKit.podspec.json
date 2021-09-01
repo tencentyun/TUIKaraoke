@@ -1,0 +1,40 @@
+{
+  "name": "TCBeautyKit",
+  "version": "1.0.0",
+  "platforms": {
+    "ios": "11.0"
+  },
+  "license": {
+    "type": "Proprietary",
+    "text": " \t  copyright 2017 tencent Ltd. All rights reserved.\n"
+  },
+  "homepage": "https://cloud.tencent.com/document/product/269/3794",
+  "documentation_url": "https://cloud.tencent.com/document/product/269/9147",
+  "authors": "tencent video cloud",
+  "summary": "TCBeautyKit",
+  "xcconfig": {
+    "VALID_ARCHS": "armv7 arm64 x86_64"
+  },
+  "swift_versions": "5.0",
+  "dependencies": {
+    "SSZipArchive": [
+
+    ],
+    "Toast-Swift": [
+
+    ]
+  },
+  "requires_arc": true,
+  "static_framework": true,
+  "source": {
+    "path": "./"
+  },
+  "source_files": "Source/*.{h,m,mm,swift}",
+  "resource_bundles": {
+    "TCBeautyKitBundle": [
+      "Resources/*.{bundle,json,mp4,xcassets}",
+      "Resources/**/*.strings"
+    ]
+  },
+  "swift_version": "5.0"
+}

@@ -1,0 +1,6 @@
+framework module TUIKaraoke {
+  umbrella header "TUIKaraoke-umbrella.h"
+
+  export *
+  module * { export * }
+}
