@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -66,7 +66,7 @@
         </RelativeLayout>
     </LinearLayout>
 
-    <android.support.v7.widget.AppCompatImageButton
+    <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/exit_room"
         style="@style/TRTCKtvRoomButtonStyle"
         android:layout_width="32dp"
@@ -87,7 +87,7 @@
         app:layout_constraintEnd_toStartOf="@+id/exit_room"
         app:layout_constraintTop_toTopOf="@+id/exit_room" />
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_audience"
         android:layout_width="56dp"
         android:layout_height="24dp"
@@ -98,7 +98,7 @@
         app:layout_constraintTop_toTopOf="@+id/iv_audience_move" />
 
 
-    <android.support.constraint.Guideline
+    <androidx.constraintlayout.widget.Guideline
         android:id="@+id/gl_v"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -125,7 +125,7 @@
         android:layout_marginBottom="10dp"
         app:layout_constraintTop_toBottomOf="@+id/ll_anchor_info"/>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_seat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -134,7 +134,7 @@
         android:layout_marginRight="20dp"
         app:layout_constraintTop_toBottomOf="@+id/fl_songtable_container" />
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_im_msg"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -156,7 +156,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
-    <android.support.v7.widget.AppCompatImageButton
+    <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/btn_msg"
         style="@style/TRTCKtvRoomButtonStyle"
         android:layout_marginStart="20dp"
@@ -174,14 +174,14 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintTop_toTopOf="@+id/btn_msg">
 
-        <android.support.v7.widget.AppCompatImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/btn_mic"
             style="@style/TRTCKtvRoomButtonStyle"
             android:layout_marginEnd="20dp"
             android:background="@drawable/trtckaraoke_button_mic"
             android:visibility="gone" />
 
-        <android.support.v7.widget.AppCompatImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/btn_more_gift"
             style="@style/TRTCKtvRoomButtonStyle"
             android:layout_marginEnd="20dp"
@@ -197,4 +197,4 @@
         android:layout_marginBottom="300dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent" />
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

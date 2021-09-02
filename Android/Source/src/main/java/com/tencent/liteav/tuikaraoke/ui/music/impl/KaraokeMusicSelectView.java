@@ -1,8 +1,8 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
 import android.content.Context;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.v7.widget.LinearLayoutManager;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;

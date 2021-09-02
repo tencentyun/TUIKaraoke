@@ -1,7 +1,7 @@
 package com.tencent.liteav.demo.karaokeimpl;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 

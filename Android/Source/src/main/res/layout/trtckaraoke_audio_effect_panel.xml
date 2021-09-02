@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -17,7 +17,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/audio_main_ll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -46,7 +46,7 @@
             app:layout_constraintTop_toTopOf="@+id/music_effect" />
 
 
-        <android.support.constraint.Group
+        <androidx.constraintlayout.widget.Group
             android:id="@+id/group_music"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
             app:constraint_referenced_ids="link_music,cl_listen_test,cl_music_volume_change,cl_music_voice,
                     cl_music_tone_change,tv_reverb,rv_audio_reverb_type" />
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_listen_test"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -84,7 +84,7 @@
                 app:layout_constraintStart_toEndOf="@+id/tv_listen_test"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <android.support.v7.widget.SwitchCompat
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/switch_music_audition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -96,9 +96,9 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:track="@drawable/trtckaraoke_ic_switch_track" />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_music_volume_change"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -124,9 +124,9 @@
                 style="@style/TRTCKtvAudioEffetcNumStyle"
                 app:layout_constraintRight_toRightOf="parent" />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_music_voice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -152,9 +152,9 @@
                 style="@style/TRTCKtvAudioEffetcNumStyle"
                 app:layout_constraintRight_toRightOf="parent" />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_music_tone_change"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -182,7 +182,7 @@
                 android:text="0"
                 app:layout_constraintRight_toRightOf="parent" />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
             android:id="@+id/tv_change"
@@ -191,7 +191,7 @@
             android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@+id/cl_music_tone_change" />
 
-        <android.support.v7.widget.RecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_audio_change_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -204,7 +204,7 @@
             android:text="@string/trtckaraoke_reverb"
             app:layout_constraintTop_toBottomOf="@+id/rv_audio_change_type" />
 
-        <android.support.v7.widget.RecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_audio_reverb_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -219,7 +219,7 @@
             android:background="@color/trtckaraoke_transparent"
             android:visibility="visible"
             app:layout_constraintTop_toBottomOf="@+id/rv_audio_reverb_type" />
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

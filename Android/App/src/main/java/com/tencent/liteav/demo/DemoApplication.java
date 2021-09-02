@@ -5,7 +5,7 @@ import android.app.Application;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 
 import com.tencent.liteav.tuikaraoke.ui.floatwindow.IFloatWindowCallback;
 import com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomAudienceActivity;

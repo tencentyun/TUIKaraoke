@@ -4,13 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
-import android.support.design.widget.BottomSheetBehavior;
-import android.support.design.widget.BottomSheetDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SwitchCompat;
+import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.SwitchCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,7 +23,7 @@ import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.ui.base.EarMonitorInstance;
 
-import android.support.constraint.Group;
+import androidx.constraintlayout.widget.Group;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,7 +125,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
             return mBottomSheetBehavior;
         }
 
-        View view = getWindow().findViewById(android.support.design.R.id.design_bottom_sheet);
+        View view = getWindow().findViewById(R.id.design_bottom_sheet);
         if (view == null) {
             return null;
         }

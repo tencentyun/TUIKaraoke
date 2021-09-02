@@ -1,6 +1,6 @@
 package com.tencent.liteav.tuikaraoke.ui.gift.imp.adapter;
 
-import android.support.v4.view.PagerAdapter;
+import androidx.viewpager.widget.PagerAdapter;
 import android.view.View;
 import android.view.ViewGroup;
 

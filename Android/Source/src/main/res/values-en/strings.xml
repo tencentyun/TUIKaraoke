@@ -104,5 +104,9 @@
     <string name="trtckaraoke_audio_reverb_type_lowdeep">Deep</string>
     <string name="trtckaraoke_audio_reverb_type_heavymetal">Metallic</string>
     <string name="trtckaraoke_audio_reverb_type_hongliang">Resonant</string>
+    <string name="trtckaraoke_gift_give_gift">Give gift</string>
+    <string name="trtckaraoke_gift_charge">charge</string>
+    <string name="trtckaraoke_gift_send">send%s</string>
+    <string name="trtckaraoke_gift_game_currency">Game currency</string>
 
 </resources>

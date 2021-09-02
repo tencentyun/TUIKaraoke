@@ -47,7 +47,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:radius="15dp" />
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/cl_info"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -100,7 +100,7 @@
                 android:textSize="14sp"
                 app:layout_constraintLeft_toRightOf="@+id/tv_seat_name"
                 app:layout_constraintTop_toBottomOf="@id/tv_singer" />
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <ImageButton
             android:id="@+id/btn_nextsong"
