@@ -3,6 +3,7 @@ package com.tencent.liteav.tuikaraoke.ui.room;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.blankj.utilcode.constant.PermissionConstants;
 import com.blankj.utilcode.util.PermissionUtils;
@@ -14,8 +15,8 @@ import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomManager;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
+import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 import com.tencent.liteav.tuikaraoke.ui.base.MemberEntity;
 import com.tencent.liteav.tuikaraoke.ui.music.impl.KaraokeMusicView;
 import com.tencent.liteav.tuikaraoke.ui.widget.CommonBottomDialog;
@@ -33,6 +34,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
     // 用户消息的map
     private Map<String, String> mTakeSeatInvitationMap;
     private boolean             mIsEnterRoom;
+    private boolean             mIsTakeSeat;
 
     /**
      * 创建房间
@@ -116,7 +118,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
      * 主播的逻辑
      */
     private void initAnchor() {
-        UserUtils.setRoomUserId(mSelfUserId);
+        mRoomInfoController.setRoomOwnerId(mSelfUserId);
         mTakeSeatInvitationMap = new HashMap<>();
         mKaraokeRoomSeatAdapter.notifyDataSetChanged();
 
@@ -163,7 +165,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         refreshView();
         mKTVMusicView.setMsgListener(new KaraokeMusicView.KTVMusicMsgDelegate() {
             @Override
-            public void sendOrderMsg(KaraokeMusicModel model) {
+            public void sendOrderMsg(KaraokeMusicInfo model) {
                 updateMsg(model);
             }
         });
@@ -260,6 +262,11 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                                 ToastUtils.showShort(R.string.trtckaraoke_toast_you_are_already_an_anchor);
                                 return;
                             }
+                            //断网后多次占座,重新联网后只执行第一次,后续不在执行
+                            if (mIsTakeSeat) {
+                                return;
+                            }
+                            mIsTakeSeat = true;
                             mTRTCKaraokeRoom.enterSeat(changeSeatIndexToModelIndex(itemPos), new TRTCKaraokeRoomCallback.ActionCallback() {
                                 @Override
                                 public void onCallback(int code, String msg) {
@@ -269,6 +276,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                                     } else {
                                         ToastUtils.showLong(getString(R.string.trtckaraoke_toast_owner_failed_to_occupy_the_seat), code, msg);
                                     }
+                                    mIsTakeSeat = false;
                                 }
                             });
                         } else {
@@ -385,15 +393,23 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         showImMsg(msgEntity);
     }
 
-    private void updateMsg(KaraokeMusicModel entity) {
+    private void updateMsg(KaraokeMusicInfo entity) {
+        if (entity == null || entity.musicId == null || entity.userId == null) {
+            Log.d(TAG, "updateMsg: the entity is not ready");
+            return;
+        }
         MsgEntity msgEntity = new MsgEntity();
         msgEntity.invitedId = TCConstants.CMD_ORDER_SONG;
         msgEntity.type = MsgEntity.TYPE_ORDERED_SONG;
 
         int    seatIndex = 0;
         String userName  = null;
-        for (int i = 0; i < 8; i++) {
-            if (entity.bookUser.equals(mKaraokeRoomSeatEntityList.get(i).userId)) {
+        for (int i = 0; i < mKaraokeRoomSeatEntityList.size(); i++) {
+            KaraokeRoomSeatEntity temp = mKaraokeRoomSeatEntityList.get(i);
+            if (temp == null || temp.userId == null || temp.userName == null) {
+                continue;
+            }
+            if (entity.userId.equals(temp.userId)) {
                 seatIndex = i;
                 userName = mKaraokeRoomSeatEntityList.get(i).userName;
                 break;

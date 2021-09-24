@@ -19,14 +19,14 @@ public interface KaraokeMusicServiceDelegate {
     /**
      * 歌词设置回调
      *
-     * @param musicID 应播放的歌曲
+     * @param model 应播放的歌曲
      */
-    void onShouldSetLyric(String musicID);
+    void onShouldSetLyric(KaraokeMusicModel model);
 
     /**
      * 歌曲播放回调
      *
-     * @param model 应停止播放的歌曲
+     * @param model 事件发生的歌曲
      */
     void onShouldPlay(KaraokeMusicModel model);
 

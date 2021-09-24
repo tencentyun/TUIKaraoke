@@ -10,7 +10,7 @@
         android:layout_gravity="left"
         android:layout_marginStart="8dp"
         android:layout_marginTop="20dp"
-        android:background="@drawable/trtckaraoke_bg_main_show">
+        android:background="@drawable/trtckaraoke_bg_gift_show">
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/iv_send_user_icon"

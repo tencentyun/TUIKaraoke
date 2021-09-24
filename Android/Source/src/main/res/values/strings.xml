@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="trtckaraoke_create_theme">The room of %s</string>
+    <string name="trtckaraoke_create_theme">%s\'s room</string>
     <string name="trtckaraoke_room_theme">Subject</string>
     <string name="trtckaraoke_room_theme_limit">Subject</string>
     <string name="trtckaraoke_tv_the_anchor_name_is_still_looking_up">Getting anchor name</string>
@@ -28,7 +28,7 @@
     <string name="trtckaraoke_tv_offline_no_name">left seat %d</string>
     <string name="trtckaraoke_tv_enter_room">%s entered</string>
     <string name="trtckaraoke_tv_exit_room">%s left the room</string>
-    <string name="trtckaraoke_anchor_leave_room">You want to end the room?</string>
+    <string name="trtckaraoke_anchor_leave_room">The room will close after you leave. Leave?</string>
     <string name="trtckaraoke_request_expired">The request has expired</string>
     <string name="trtckaraoke_agree">Agree</string>
     <string name="trtckaraoke_toast_owner_succeeded_in_occupying_the_seat">Seat taken successfully</string>
@@ -70,7 +70,7 @@
     <string name="trtckaraoke_welcome_visit">"Welcome to Karaoke tryout, To quickly use the feature, visit: "</string>
     <string name="trtckaraoke_welcome_visit_link">"https://cloud.tencent.com/document/product/647/59402"</string>
 
-    <string name="trtckaraoke_start_ktv">Join!</string>
+    <string name="trtckaraoke_start_ktv">Join</string>
     <string name="trtckaraoke_btn_choose_song">Request</string>
     <string name="trtckaraoke_btn_choosed_song">Requested</string>
     <string name="trtckaraoke_manager_ordered_song"> Manage Songs</string>
@@ -84,10 +84,10 @@
 
     <string name="trtckaraoke_bgm_title">Background music</string>
     <string name="trtckaraoke_back">Back</string>
-    <string name="trtckaraoke_sound_effects">Audio Effect</string>
+    <string name="trtckaraoke_sound_effects">Sound effect settings</string>
     <string name="trtckaraoke_sound_audition">Music Preview</string>
     <string name="trtckaraoke_put_on_your_headphones">Use earphones for better experience</string>
-    <string name="trtckaraoke_sounds_adjustment">Pitch</string>
+    <string name="trtckaraoke_sounds_adjustment">Music tone</string>
     <string name="trtckaraoke_music_volume">Music volume</string>
     <string name="trtckaraoke_mic_volume">Voice volume</string>
     <string name="trtckaraoke_changer">Voice changing</string>
@@ -109,4 +109,12 @@
     <string name="trtckaraoke_gift_game_currency">Game currency</string>
     <string name="trtckaraoke_gift_give_gift">Give gift</string>
 
+    <string name="trtckaraoke_search_music_hint">search</string>
+    <string name="trtckaraoke_loading_no_data">No data</string>
+    <string name="trtckaraoke_loading_more_music">Loading</string>
+    <string name="trtckaraoke_loading_no_more_data">No more Data</string>
+    <string name="trtckaraoke_loading_error">Loading failed</string>
+    <string name="trtckaraoke_input_keywords">Please enter your search terms</string>
 </resources>
+
+

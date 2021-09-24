@@ -6,13 +6,14 @@ import androidx.core.content.ContextCompat;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MusicInfoController {
     private static final String TAG = "MusicInfoController";
 
     private       List<KaraokeMusicInfo> mMusicLocalList;
-    private final int                    MUSIC_NUMBER = 10;
+    private final int                    MUSIC_NUMBER = 5;
     private       String                 mPath;
     private       String                 mDefaultUrl  =
             "https://liteav.sdk.qcloud.com/app/res/picture/voiceroom/avatar/user_avatar2.png";
@@ -50,88 +51,57 @@ public class MusicInfoController {
         KaraokeMusicInfo songEntity = new KaraokeMusicInfo();
         if (id == 0) {
             songEntity.musicId = "1001"; //test
-            songEntity.musicName = "后来_伴奏";
-            songEntity.singer = "刘若英";
+            songEntity.musicName = "后来";
+            songEntity.singers = Arrays.asList("刘若英");
             songEntity.coverUrl = mDefaultUrl;
             songEntity.lrcUrl = houlai;
-            songEntity.contentUrl = houlai_bz;
+            songEntity.performId = "1001";
+            songEntity.originUrl = houlai_yc;
+            songEntity.accompanyUrl = houlai_bz;
             return songEntity;
         } else if (id == 1) {
             songEntity.musicId = "1002"; //test
-            songEntity.musicName = "后来_原唱";
-            songEntity.singer = "刘若英";
+            songEntity.musicName = "情非得已";
+            songEntity.singers = Arrays.asList("庾澄庆");
             songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = houlai;
-            songEntity.contentUrl = houlai_yc;
+            songEntity.lrcUrl = qfdy;
+            songEntity.performId = "1002";
+            songEntity.originUrl = qfdy_yc;
+            songEntity.accompanyUrl = qfdy_bz;
             return songEntity;
         } else if (id == 2) {
             songEntity.musicId = "1003"; //test
-            songEntity.musicName = "情非得已_伴奏";
-            songEntity.singer = "庾澄庆";
+            songEntity.musicName = "星晴";
+            songEntity.singers = Arrays.asList("周杰伦");
             songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = qfdy;
-            songEntity.contentUrl = qfdy_bz;
+            songEntity.lrcUrl = xq;
+            songEntity.performId = "1003";
+            songEntity.originUrl = xq_yc;
+            songEntity.accompanyUrl = xq_bz;
             return songEntity;
         } else if (id == 3) {
             songEntity.musicId = "1004"; //test
-            songEntity.musicName = "情非得已_原唱";
-            songEntity.singer = "庾澄庆";
+            songEntity.musicName = "暖暖";
+            songEntity.singers = Arrays.asList("梁静茹");
             songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = qfdy;
-            songEntity.contentUrl = qfdy_yc;
+            songEntity.lrcUrl = nuannuan;
+            songEntity.performId = "1004";
+            songEntity.originUrl = nuannuan_yc;
+            songEntity.accompanyUrl = nuannuan_bz;
             return songEntity;
         } else if (id == 4) {
             songEntity.musicId = "1005"; //test
-            songEntity.musicName = "星晴_伴奏";
-            songEntity.singer = "周杰伦";
-            songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = xq;
-            songEntity.contentUrl = xq_bz;
-            return songEntity;
-        } else if (id == 5) {
-            songEntity.musicId = "1006"; //test
-            songEntity.musicName = "星晴_原唱";
-            songEntity.singer = "周杰伦";
-            songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = xq;
-            songEntity.contentUrl = xq_yc;
-            return songEntity;
-        } else if (id == 6) {
-            songEntity.musicId = "1007"; //test
-            songEntity.musicName = "暖暖_伴奏";
-            songEntity.singer = "梁静茹";
-            songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = nuannuan;
-            songEntity.contentUrl = nuannuan_bz;
-            return songEntity;
-        } else if (id == 7) {
-            songEntity.musicId = "1008"; //test
-            songEntity.musicName = "暖暖_原唱";
-            songEntity.singer = "梁静茹";
-            songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = nuannuan;
-            songEntity.contentUrl = nuannuan_yc;
-            return songEntity;
-        } else if (id == 8) {
-            songEntity.musicId = "1009"; //test
-            songEntity.musicName = "简单爱_伴奏";
-            songEntity.singer = "周杰伦";
+            songEntity.musicName = "简单爱";
+            songEntity.singers = Arrays.asList("周杰伦");
             songEntity.coverUrl = mDefaultUrl;
             songEntity.lrcUrl = jda;
-            songEntity.contentUrl = jda_bz;
-            return songEntity;
-        } else if (id == 9) {
-            songEntity.musicId = "1010"; //test
-            songEntity.musicName = "简单爱_原唱";
-            songEntity.singer = "周杰伦";
-            songEntity.coverUrl = mDefaultUrl;
-            songEntity.lrcUrl = jda;
-            songEntity.contentUrl = jda_yc;
+            songEntity.performId = "1005";
+            songEntity.originUrl = jda_yc;
+            songEntity.accompanyUrl = jda_bz;
             return songEntity;
         }
         return null;
     }
-
 
     public List<KaraokeMusicInfo> getLibraryList() {
         if (mMusicLocalList != null) {

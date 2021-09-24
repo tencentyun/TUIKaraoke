@@ -1,13 +1,11 @@
 package com.tencent.liteav.tuikaraoke.ui.audio.impl;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.tencent.liteav.audio.TXAudioEffectManager;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.ui.audio.IAudioEffectPanelDelegate;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
+import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 
 /**
  * 音乐管理
@@ -43,14 +41,15 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
 
     public        int                    mCurrentStatus = -1;
     private       TXAudioEffectManager   mAudioEffectManager;
-    private       int                    mBGMId         = 0;
+    private       int                    mBGMId         = -1;
     private       float                  mPitch;
     private       int                    mBGMVolume     = 100;
     public static TUIKaraokeAudioManager sInstance;
     public        TRTCKaraokeRoom        mTRTCKaraokeRoom;
 
-    private Handler mHandler = new Handler(Looper.getMainLooper());
-    private String  mMusicId;
+    private static final int     TYPE_ORIGIN    = 0;     //原唱
+    private static final int     TYPE_ACCOMPANY = 1;     //伴奏
+    private              boolean mIsOrigin      = true;  //true:原唱;false:伴奏
 
     public synchronized static TUIKaraokeAudioManager getInstance() {
         if (sInstance == null) {
@@ -64,21 +63,48 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
         mAudioEffectManager = mTRTCKaraokeRoom.getAudioEffectManager();
     }
 
-    public void startPlayMusic(final KaraokeMusicModel model) {
-        // 开始播放音乐时，无论是否首次均需重新设置变调和音量，因为音乐id发生了变化
-        mAudioEffectManager.setMusicPitch(0, mPitch);
-        mAudioEffectManager.setMusicPlayoutVolume(0, mBGMVolume);
-        mAudioEffectManager.setMusicPublishVolume(0, mBGMVolume);
+    public void startPlayMusic(final KaraokeMusicInfo model) {
+        mBGMId = isOriginMusic() ? TYPE_ORIGIN : TYPE_ACCOMPANY;
+        resetVolume(mBGMId);
 
         Log.d(TAG, "startPlayMusic: model = " + model + " , status =  " + getCurrentStatus());
-        if (model != null) {
-            mBGMId = Integer.parseInt(model.musicId);
-            mMusicId = model.musicId;
-            mTRTCKaraokeRoom.startPlayMusic(Integer.parseInt(model.musicId), model.contentUrl);
+        if (model != null && model.performId != null) {
+            mTRTCKaraokeRoom.startPlayMusic(Integer.parseInt(model.performId), model.originUrl, model.accompanyUrl);
         }
     }
 
-    public void stopPlayMusic(final KaraokeMusicModel model) {
+    public void switchToOriginalVolume(boolean origin) {
+        mIsOrigin = origin;
+        //如果开启原唱,则调节原唱的音量,否则调节伴奏的音量
+        mBGMId = mIsOrigin ? TYPE_ORIGIN : TYPE_ACCOMPANY;
+        resetVolume(mBGMId);
+//        mTRTCKaraokeRoom.switchToOriginalVolume(origin);
+    }
+
+    public boolean isOriginMusic() {
+        return mIsOrigin;
+    }
+
+    private void resetVolume(int id) {
+        // 开始播放音乐时，无论是否首次均需重新设置变调和音量，因为音乐id发生了变化
+        if (id == TYPE_ORIGIN) {
+            mAudioEffectManager.setMusicPitch(TYPE_ORIGIN, mPitch);
+            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ORIGIN, mBGMVolume);
+            mAudioEffectManager.setMusicPublishVolume(TYPE_ORIGIN, mBGMVolume);
+            mAudioEffectManager.setMusicPitch(TYPE_ACCOMPANY, 0);
+            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ACCOMPANY, 0);
+            mAudioEffectManager.setMusicPublishVolume(TYPE_ACCOMPANY, 0);
+        } else {
+            mAudioEffectManager.setMusicPitch(TYPE_ORIGIN, 0);
+            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ORIGIN, 0);
+            mAudioEffectManager.setMusicPublishVolume(TYPE_ORIGIN, 0);
+            mAudioEffectManager.setMusicPitch(TYPE_ACCOMPANY, mPitch);
+            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ACCOMPANY, mBGMVolume);
+            mAudioEffectManager.setMusicPublishVolume(TYPE_ACCOMPANY, mBGMVolume);
+        }
+    }
+
+    public void stopPlayMusic(final KaraokeMusicInfo model) {
         Log.d(TAG, "stopPlayMusic: model = " + model + " , status =  " + getCurrentStatus());
         if (getCurrentStatus() == MUSIC_PLAYING) {
             mTRTCKaraokeRoom.stopPlayMusic();
@@ -152,9 +178,6 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
 
     public void unInit() {
         mTRTCKaraokeRoom.stopPlayMusic();
-        if (mHandler != null) {
-            mHandler.removeCallbacksAndMessages(null);
-        }
     }
 
     public void reset() {

@@ -50,6 +50,7 @@ public class GiftController {
             public void onItemClick(View view, GiftInfo giftInfo, int position, int index) {
                 mSelectGiftInfo = giftInfo;
                 mSelectGiftPageIndex = index;
+                giftClickListener.onClick(position,giftInfo);
             }
         });
         return recyclerView;

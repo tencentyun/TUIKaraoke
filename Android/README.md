@@ -6,7 +6,7 @@
 TUIKaraoke
 ├─ App          // 主面板，各种场景入口
 ├─ Debug        // 调试相关
-└─ Source       // 视频会议业务逻辑
+└─ Source       // 业务逻辑
 ```
 
 ## 环境准备
@@ -124,11 +124,11 @@ defaultConfig {
 
 步骤1、输入用户名(<font color=red>请确保用户名唯一性，不能与其他用户重复</font>)，如图示：
 
-<img src="https://liteav.sdk.qcloud.com/doc/res/trtc/picture/zh-cn/user_a.png" width="320"/>
+<img src="https://main.qcloudimg.com/raw/26bfd93e86fd16d90348143d64cf2656.png" width="320"/>
 
 步骤2、点击创建房间，如下图示：
 
-<img src="https://min-cos-1300507594.cos.ap-beijing.myqcloud.com/tmp/ktv/ktv_a2.jpg" width="320"/>
+<img src="https://main.qcloudimg.com/raw/36deac97333b5d4daf1254e465d609b6.png" width="320"/>
 
 步骤3、输入房间主题，点击一起嗨歌；
 
@@ -136,15 +136,15 @@ defaultConfig {
 
 步骤1、输入用户名(<font color=red>请确保用户名唯一性，不能与其他用户重复</font>)，如图示：
 
-<img src="https://liteav.sdk.qcloud.com/doc/res/trtc/picture/zh-cn/user_b.png" width="320"/>
+<img src="https://main.qcloudimg.com/raw/26bfd93e86fd16d90348143d64cf2656.png" width="320"/>
 
-步骤2、输入用户 A 创建的房间号，点击加入房间
+步骤2、输入用户 A 创建的房间号，点击进入房间
 
-<img src="https://min-cos-1300507594.cos.ap-beijing.myqcloud.com/tmp/ktv/ktv_b2.jpg" width="320"/>
+<img src="https://main.qcloudimg.com/raw/180f8e85f1ce3359098ab3769e750ca0.png" width="320"/>
 
 <font color=red>请注意，房间号在用户 A 的房间顶部查看，如下图示：</font>
 
-<img src="https://min-cos-1300507594.cos.ap-beijing.myqcloud.com/tmp/ktv/ktv_b3.jpg" width="320"/>
+<img src="https://main.qcloudimg.com/raw/c7ed6e2948de72d1a5928441d5c6a35b.png" width="320"/>
 
 
 ## 常见问题
@@ -172,10 +172,10 @@ TRTC SDK 6.6 版本（2019年08月）开始启用新的签名算法 HMAC-SHA256�
 
 #### 2. 两台手机同时运行工程，为什么看不到彼此的画面？
 请确保两台手机在运行工程时使用的是不同的 UserID，TRTC 不支持同一个 UserID （除非 SDKAppID 不同）在两个终端同时使用。
-<img src="https://liteav.sdk.qcloud.com/doc/res/trtc/picture/zh-cn/login_userid.png" width="720" height="790"/>
+<img src="https://main.qcloudimg.com/raw/662dcd613626717c1fdf461e3f8c0295.png" width="320" />
 
 #### 3. 防火墙有什么限制？
 由于 SDK 使用 UDP 协议进行音视频传输，所以在对 UDP 有拦截的办公网络下无法使用。如遇到类似问题，请参考 [应对公司防火墙限制](https://cloud.tencent.com/document/product/647/34399) 排查并解决。
 
-#### 4. Android Support 和 AndroidX 兼容问题如何处理？
-App 源码中引用的依赖为 Android Support 库，若您的项目中使用的 AndroidX，则会出现无法兼容的问题，这个时候可以将 App 中的依赖转换为 AndroidX，转换方法请参考 [Android Support 迁移 AndroidX 指南](https://github.com/tencentyun/TUIKaraoke/blob/main/Android/AndroidSupport迁移AndroidX指南.md)。
+#### 4. 相同歌曲无法置顶
+歌曲的musicId不具备唯一性，不同用户可以点击相同的歌曲，因此需要传入唯一的performId区分不同用户点击的相同歌曲。

@@ -63,7 +63,7 @@
 
     <string name="trtckaraoke_accept_failed">接受请求失败</string>
     <string name="trtckaraoke_msg_close_room">房主已解散房间</string>
-    <string name="trtckaraoke_audience_leave_room">确定离开？</string>
+    <string name="trtckaraoke_audience_leave_room">确认离开房间吗？</string>
     <string name="trtckaraoke_toast_you_have_turned_on_the_microphone">您已开启麦克风</string>
     <string name="trtckaraoke_toast_you_have_turned_off_the_microphone">您已关闭麦克风</string>
     <string name="trtckaraoke_toast_anchor_can_only_operate_it">主播才能操作哦</string>
@@ -108,7 +108,7 @@
     <string name="trtckaraoke_music_volume">音乐音量</string>
     <string name="trtckaraoke_mic_volume">人声音量</string>
     <string name="trtckaraoke_changer">变声</string>
-    <string name="trtckaraoke_reverb">混响效果</string>
+    <string name="trtckaraoke_reverb">混响</string>
     <string name="trtckaraoke_bg_music_positive_happy">欢快</string>
     <string name="trtckaraoke_bg_music_sad_cinematic_piano">忧郁</string>
     <string name="trtckaraoke_bg_music_wonder_world">神奇世界</string>
@@ -121,5 +121,12 @@
     <string name="trtckaraoke_audio_reverb_type_lowdeep">低沉</string>
     <string name="trtckaraoke_audio_reverb_type_heavymetal">金属声</string>
     <string name="trtckaraoke_audio_reverb_type_hongliang">洪亮</string>
+
+    <string name="trtckaraoke_search_music_hint">搜索你想唱的歌曲</string>
+    <string name="trtckaraoke_loading_no_data">抱歉，没有找到你想唱的歌曲</string>
+    <string name="trtckaraoke_loading_more_music">正在加载更多的数据</string>
+    <string name="trtckaraoke_loading_no_more_data">没有更多数据了</string>
+    <string name="trtckaraoke_loading_error">加载失败</string>
+    <string name="trtckaraoke_input_keywords">请输入搜索关键字</string>
 
 </resources>

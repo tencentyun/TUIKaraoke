@@ -12,10 +12,10 @@ import android.widget.TextView;
 
 import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.tuikaraoke.R;
+import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicUtils;
-import com.tencent.liteav.tuikaraoke.ui.room.UserUtils;
+import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import com.tencent.liteav.tuikaraoke.ui.widget.RoundCornerImageView;
 import com.tencent.liteav.basic.ImageLoader;
 
@@ -28,9 +28,11 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
     protected OnUpdateItemClickListener mOnUpdateItemClickListener;
     private   OnDeleteClickLister       mDeleteClickListener;
     private   OnItemClickListener       mListener;
+    private   RoomInfoController        mRoomInfoController;
 
-    public KaraokeMusicSelectedAdapter(Context context, List<KaraokeMusicModel> selectedList, OnUpdateItemClickListener listener) {
+    public KaraokeMusicSelectedAdapter(Context context, RoomInfoController roomInfoController, List<KaraokeMusicModel> selectedList, OnUpdateItemClickListener listener) {
         this.mContext = context;
+        this.mRoomInfoController = roomInfoController;
         this.mSelectedList = selectedList;
         this.mOnUpdateItemClickListener = listener;
     }
@@ -46,7 +48,7 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        KaraokeMusicModel item = mSelectedList.get(holder.getAdapterPosition());
+        KaraokeMusicInfo item = mSelectedList.get(holder.getAdapterPosition());
         holder.bind(mContext, position, item, mOnUpdateItemClickListener);
     }
 
@@ -85,31 +87,25 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
             mTvSeatName = (TextView) itemView.findViewById(R.id.tv_seat_name);
         }
 
-        public void bind(Context context, final int position, final KaraokeMusicModel model,
+        public void bind(Context context, final int position, final KaraokeMusicInfo model,
                          final OnUpdateItemClickListener listener) {
 
             //共有信息
             mTvSongName.setText(model.musicName);
-            mTvSinger.setText(mContext.getString(R.string.trtckaraoke_singer, model.singer));
+            mTvSinger.setText(mContext.getString(R.string.trtckaraoke_singer, model.singers));
             //根据用户Id,从麦位表获取当前歌曲的用户名和座位Id
-            KaraokeRoomSeatEntity seatEntity = null;
-            if (KaraokeMusicUtils.getSeatEntityList() != null) {
-                for (KaraokeRoomSeatEntity temp : KaraokeMusicUtils.getSeatEntityList()) {
-                    if (temp.userId != null && temp.userId.equals(model.bookUser)) {
-                        seatEntity = temp;
-                        break;
-                    }
+            if (mRoomInfoController != null) {
+                KaraokeRoomSeatEntity seatEntity = mRoomInfoController.getCurrentSeatEntity(model.userId);
+                if (seatEntity != null) {
+                    mTvUserName.setText(seatEntity.userName);
+                    mTvSeatName.setText(context.getString(R.string.trtckaraoke_tv_seat_id,
+                            String.valueOf(seatEntity.index + 1)));
+                    ImageLoader.loadImage(context, mImageCover, seatEntity.userAvatar, R.drawable.trtckaraoke_ic_cover);
                 }
-            }
-            if (seatEntity != null) {
-                mTvUserName.setText(seatEntity.userName);
-                mTvSeatName.setText(context.getString(R.string.trtckaraoke_tv_seat_id,
-                        String.valueOf(seatEntity.index + 1)));
-                ImageLoader.loadImage(context, mImageCover, seatEntity.userAvatar, R.drawable.trtckaraoke_ic_cover);
             }
 
             //如果当前不是房主,只能查看已点列表
-            if (!UserUtils.isOwner()) {
+            if (mRoomInfoController != null && !mRoomInfoController.isRoomOwner()) {
                 mBtnNext.setVisibility(View.GONE);
                 mBtnSetTop.setVisibility(View.GONE);
 
@@ -125,7 +121,7 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
 
                 //判断是当前用户,可以删除自己的歌
                 String mSelfUserID = UserModelManager.getInstance().getUserModel().userId;
-                if (model.bookUser != null && model.bookUser.equals(mSelfUserID)) {
+                if (model.userId != null && model.userId.equals(mSelfUserID)) {
                     mTvDelete.setVisibility(View.VISIBLE);
                     if (!mTvDelete.hasOnClickListeners()) {
                         mTvDelete.setOnClickListener(new View.OnClickListener() {
@@ -181,14 +177,14 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
                 mBtnNext.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        listener.onNextSongClick(model.musicId);
+                        listener.onNextSongClick(model);
                     }
                 });
                 mBtnSetTop.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if (position != 1) {
-                            listener.onSetTopClick(model.musicId);
+                            listener.onSetTopClick(model);
                         }
                     }
                 });
@@ -197,9 +193,9 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
     }
 
     public interface OnUpdateItemClickListener {
-        void onNextSongClick(String id);
+        void onNextSongClick(KaraokeMusicInfo musicInfo);
 
-        void onSetTopClick(String musicId);
+        void onSetTopClick(KaraokeMusicInfo musicInfo);
     }
 
     //左滑删除监听接口

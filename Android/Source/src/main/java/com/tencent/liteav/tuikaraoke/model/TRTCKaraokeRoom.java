@@ -355,10 +355,11 @@ public abstract class TRTCKaraokeRoom {
     /**
      * 开始播放音乐
      *
-     * @param musicID 音乐的ID
-     * @param url     音乐的绝对路径
+     * @param musicID      音乐的表演ID
+     * @param originalUrl  音乐的原唱
+     * @param accompanyUrl 音乐的伴奏
      */
-    public abstract void startPlayMusic(int musicID, String url);
+    public abstract void startPlayMusic(int musicID, String originalUrl, String accompanyUrl);
 
     /**
      * 停止播放音乐
@@ -374,5 +375,12 @@ public abstract class TRTCKaraokeRoom {
      * 恢复播放音乐
      */
     public abstract void resumePlayMusic();
+
+    /**
+     * 切换原声/伴奏
+     *
+     * @param isOriginal true : 原声, false : 伴奏
+     */
+    public abstract void switchToOriginalVolume(boolean isOriginal);
 
 }

@@ -3,14 +3,19 @@ package com.tencent.liteav.tuikaraoke.ui.gift.imp;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import androidx.viewpager.widget.ViewPager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.ui.gift.GiftPanelDelegate;
@@ -20,6 +25,8 @@ import com.tencent.liteav.tuikaraoke.ui.gift.imp.adapter.GiftViewPagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.tencent.liteav.tuikaraoke.ui.gift.Constant.GIFT_PANEL_TYPE_SINGLEROW;
 
 public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelView {
     private static final String TAG = "GiftPanelViewImp";
@@ -35,6 +42,7 @@ public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelVie
     private ViewPager           mViewpager;
     private GiftPanelDelegate   mGiftPanelDelegate;
     private GiftInfoDataHandler mGiftInfoDataHandler;
+    private String              mDefalutPanelType = GIFT_PANEL_TYPE_SINGLEROW;
 
     public GiftPanelViewImp(Context context) {
         super(context, R.style.TRTCKTVRoomDialogTheme);
@@ -48,6 +56,20 @@ public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelVie
         mInflater = LayoutInflater.from(mContext);
         mViewpager = findViewById(R.id.gift_panel_view_pager);
         mDotsLayout = findViewById(R.id.dots_container);
+        if (GIFT_PANEL_TYPE_SINGLEROW.equals(mDefalutPanelType)) {
+            COLUMNS = 5;
+            ROWS = 1;
+            findViewById(R.id.btn_send_gift).setVisibility(View.GONE);
+            findViewById(R.id.separate_line).setVisibility(View.GONE);
+            TextView textView = findViewById(R.id.tv_gift_panel_title);
+            textView.setTextSize(24);
+            textView.setPadding(20, 32, 0, 0);
+            mDotsLayout.setVisibility(View.GONE);
+            LinearLayout linearLayout = findViewById(R.id.giftLayout);
+            FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) linearLayout.getLayoutParams();
+            layoutParams.height *= 0.6;
+            linearLayout.setLayoutParams(layoutParams);
+        }
         findViewById(R.id.btn_charge).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -80,6 +102,18 @@ public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelVie
         if (mGiftController == null) {
             mGiftController = new GiftController();
         }
+        mGiftController.setGiftClickListener(new GiftController.GiftClickListener() {
+            @Override
+            public void onClick(int position, GiftInfo giftInfo) {
+                if (mGiftController == null) {
+                    return;
+                }
+                if (giftInfo != null && mGiftPanelDelegate != null) {
+                    Log.d(TAG, "onGiftItemClick: " + giftInfo);
+                    mGiftPanelDelegate.onGiftItemClick(giftInfo);
+                }
+            }
+        });
         int pageSize = mGiftController.getPagerCount(giftInfoList.size(), COLUMNS, ROWS);
         // 获取页数
         for (int i = 0; i < pageSize; i++) {
@@ -90,7 +124,7 @@ public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelVie
                 mDotsLayout.addView(dotsItem(i), params);
             }
         }
-        if (pageSize > 1) {
+        if (GIFT_PANEL_TYPE_SINGLEROW.equals(mDefalutPanelType) && pageSize > 1) {
             mDotsLayout.setVisibility(View.VISIBLE);
         } else {
             mDotsLayout.setVisibility(View.GONE);
@@ -111,8 +145,8 @@ public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelVie
      * @return
      */
     private ImageView dotsItem(int position) {
-        View      layout = mInflater.inflate(R.layout.trtckaraoke_layout_gift_dot, null);
-        ImageView iv     = (ImageView) layout.findViewById(R.id.face_dot);
+        View layout = mInflater.inflate(R.layout.trtckaraoke_layout_gift_dot, null);
+        ImageView iv = (ImageView) layout.findViewById(R.id.face_dot);
         iv.setId(position);
         return iv;
     }
@@ -133,7 +167,7 @@ public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelVie
             }
             mDotsLayout.getChildAt(position).setSelected(true);
             for (int i = 0; i < mGiftViews.size(); i++) {//清除选中，当礼物页面切换到另一个礼物页面
-                RecyclerView     view    = (RecyclerView) mGiftViews.get(i);
+                RecyclerView view = (RecyclerView) mGiftViews.get(i);
                 GiftPanelAdapter adapter = (GiftPanelAdapter) view.getAdapter();
                 if (mGiftController != null) {
                     int selectPageIndex = mGiftController.getSelectPageIndex();

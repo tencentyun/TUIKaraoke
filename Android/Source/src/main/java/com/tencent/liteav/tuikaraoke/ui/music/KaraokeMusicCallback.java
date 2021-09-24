@@ -2,6 +2,7 @@ package com.tencent.liteav.tuikaraoke.ui.music;
 
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
+import com.tencent.liteav.tuikaraoke.ui.base.KaraokePopularInfo;
 
 import java.util.List;
 
@@ -11,6 +12,13 @@ public class KaraokeMusicCallback {
      */
     public interface ActionCallback {
         void onCallback(int code, String msg);
+    }
+
+    /**
+     * 热门推荐分类列表回调
+     */
+    public interface PopularMusicListCallback {
+        void onCallBack(List<KaraokePopularInfo> list);
     }
 
     /**
@@ -30,7 +38,11 @@ public class KaraokeMusicCallback {
     /**
      * 下载进度回调
      */
-    public interface ProgressCallback {
-        void onCallback(double progress);
+    public interface MusicLoadingCallback {
+        void onStart(KaraokeMusicInfo musicInfo);
+
+        void onProgress(KaraokeMusicInfo musicInfo, float progress);
+
+        void onFinish(KaraokeMusicInfo musicInfo, int errorCode, String errorMessage);
     }
 }

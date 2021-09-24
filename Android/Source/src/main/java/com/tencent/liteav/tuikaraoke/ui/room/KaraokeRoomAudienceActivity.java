@@ -328,7 +328,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     public void onRoomInfoChange(TRTCKaraokeRoomDef.RoomInfo roomInfo) {
         super.onRoomInfoChange(roomInfo);
         mOwnerId = roomInfo.ownerId;
-        UserUtils.setRoomUserId(roomInfo.ownerId);
+        mRoomInfoController.setRoomOwnerId(roomInfo.ownerId);
         //进入房间后,将roominfo先传递给KTVMusic实现类,再传递实现类给布局
         mKaraokeMusicService.setRoomInfo(roomInfo);
         ktvMusicImplComplete();

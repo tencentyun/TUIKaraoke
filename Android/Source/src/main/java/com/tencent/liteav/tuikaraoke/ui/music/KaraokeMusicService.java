@@ -1,6 +1,7 @@
 package com.tencent.liteav.tuikaraoke.ui.music;
 
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
+import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 
 public abstract class KaraokeMusicService {
 
@@ -9,12 +10,27 @@ public abstract class KaraokeMusicService {
     //////////////////////////////////////////////////////////
 
     /**
-     * 获取歌曲列表
-     *
-     * @param page     页码
-     * @param pageSize 每页大小
+     * 热门推荐歌单列表
      */
-    public abstract void ktvGetMusicPage(int page, int pageSize, KaraokeMusicCallback.MusicListCallback callback);
+    public abstract void ktvGetPopularMusic(KaraokeMusicCallback.PopularMusicListCallback callback);
+
+    /**
+     * * 获取歌曲列表
+     *
+     * @param playlistId 分类详情
+     * @param page       页码
+     * @param pageSize   每页大小
+     */
+    public abstract void ktvGetMusicPage(String playlistId, int page, int pageSize, KaraokeMusicCallback.MusicListCallback callback);
+
+    /**
+     * 获取搜索歌曲列表
+     *
+     * @param offset   分页游标
+     * @param pageSize 分页大小
+     * @param keyWords 搜索词
+     */
+    public abstract void ktvSearchMusicByKeyWords(int offset, int pageSize, String keyWords, KaraokeMusicCallback.MusicListCallback callback);
 
     /**
      * 获取已点歌曲列表
@@ -24,40 +40,38 @@ public abstract class KaraokeMusicService {
     /**
      * 选择歌曲
      *
-     * @param musicID 歌曲ID
+     * @param musicInfo 歌曲信息
      */
-    public abstract void pickMusic(String musicID, KaraokeMusicCallback.ActionCallback callback);
+    public abstract void pickMusic(KaraokeMusicInfo musicInfo, KaraokeMusicCallback.ActionCallback callback);
 
     /**
      * 删除歌曲
      *
-     * @param musicID  歌曲ID
-     * @param callback
+     * @param musicInfo 歌曲信息
      */
-    public abstract void deleteMusic(String musicID, KaraokeMusicCallback.ActionCallback callback);
+    public abstract void deleteMusic(KaraokeMusicInfo musicInfo, KaraokeMusicCallback.ActionCallback callback);
 
     /**
      * 删除某个用户全部已点歌曲
      *
-     * @param userID   用户ID
-     * @param callback
+     * @param userID 用户ID
      */
     public abstract void deleteAllMusic(String userID, KaraokeMusicCallback.ActionCallback callback);
 
     /**
      * 置顶歌曲
      *
-     * @param musicID  歌曲ID
-     * @param callback
+     * @param musicInfo 歌曲信息
      */
-    public abstract void topMusic(String musicID, KaraokeMusicCallback.ActionCallback callback);
+
+    public abstract void topMusic(KaraokeMusicInfo musicInfo, KaraokeMusicCallback.ActionCallback callback);
 
     /**
      * 切歌
      *
-     * @param callback
+     * @param musicInfo 歌曲信息
      */
-    public abstract void nextMusic(KaraokeMusicCallback.ActionCallback callback);
+    public abstract void nextMusic(KaraokeMusicInfo musicInfo, KaraokeMusicCallback.ActionCallback callback);
 
     /**
      * 歌曲即将播放
@@ -85,18 +99,24 @@ public abstract class KaraokeMusicService {
     /**
      * 下载歌曲
      *
-     * @param musicID  歌曲ID
-     * @param callback
+     * @param musicInfo 歌曲信息
      */
-    public abstract void downLoadMusic(String musicID, KaraokeMusicCallback.ActionCallback callback);
+    public abstract void downLoadMusic(KaraokeMusicInfo musicInfo, KaraokeMusicCallback.MusicLoadingCallback callback);
 
     /**
-     * 下载歌词
+     * 生成歌曲URL,客户端播放的时候调用,传给trtc进行播放,与preloadMusic--对应
      *
-     * @param musicID  歌曲ID
-     * @param callback
+     * @param musicId 歌曲Id
+     * @param type    类型
      */
-    public abstract void downLoadLrc(String musicID, KaraokeMusicCallback.ActionCallback callback);
+    public abstract String genMusicURI(String musicId, int type);
+
+    /**
+     * 检测是否已经加载音乐数据
+     *
+     * @param musicId 歌曲Id
+     */
+    public abstract boolean isMusicPreloaded(String musicId);
 
     //////////////////////////////////////////////////////////
     //                 房间信息传递

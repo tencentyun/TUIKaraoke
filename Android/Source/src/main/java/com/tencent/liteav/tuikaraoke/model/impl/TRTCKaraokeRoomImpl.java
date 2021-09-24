@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServiceDelegate, TRTCKtvRoomServiceDelegate {
-    private static final String TAG = TRTCKaraokeRoomImpl.class.getName();
+    private static final String TAG = "TRTCKaraokeRoomImpl";
 
     private static TRTCKaraokeRoomImpl     sInstance;
     private final  Context                 mContext;
@@ -59,7 +59,14 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     //歌曲管理
     private TXAudioEffectManager mAudioEffectManager;
     private MusicListener        mMusicPlayListenr;
-    private int                  mCurPlayMusicId;
+    private int                  mOriginId    = -1; //原唱Id
+    private int                  mAccompanyId = -1; //伴奏Id
+    private String               mCurPerformId;
+    private boolean              mIsOriginReady;
+    private boolean              mIsAccompanyReady;
+
+    private static final int TYPE_ORIGIN    = 0; //原唱
+    private static final int TYPE_ACCOMPANY = 1; //伴奏
 
     public static synchronized TRTCKaraokeRoom sharedInstance(Context context) {
         if (sInstance == null) {
@@ -1382,39 +1389,73 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
 
     @Override
-    public void startPlayMusic(int id, String url) {
-        mCurPlayMusicId = id;
+    public void startPlayMusic(int musicID, String originalUrl, String accompanyUrl) {
+        mCurPerformId = String.valueOf(musicID);
+        mOriginId = 0;
+        mAccompanyId = 1;
         enableBlackStream(true);
-        final TXAudioEffectManager.AudioMusicParam audioMusicParam = new TXAudioEffectManager.AudioMusicParam(mCurPlayMusicId, url);
+        mMusicPlayListenr = new MusicListener();
+        //原唱
+        final TXAudioEffectManager.AudioMusicParam audioMusicParam = new TXAudioEffectManager.AudioMusicParam(mOriginId, originalUrl);
         audioMusicParam.publish = true; //上行
         mAudioEffectManager.startPlayMusic(audioMusicParam);
-        mMusicPlayListenr = new MusicListener();
-        mAudioEffectManager.setMusicObserver(mCurPlayMusicId, mMusicPlayListenr);
+        mAudioEffectManager.setMusicObserver(mOriginId, mMusicPlayListenr);
+        //伴奏
+        final TXAudioEffectManager.AudioMusicParam audioMusicParam2 = new TXAudioEffectManager.AudioMusicParam(mAccompanyId, accompanyUrl);
+        audioMusicParam2.publish = true; //上行
+        mAudioEffectManager.startPlayMusic(audioMusicParam2);
+        mAudioEffectManager.setMusicObserver(mAccompanyId, mMusicPlayListenr);
+    }
+
+    public void setMusicVolume(int id, int volume) {
+        if (volume < 0) {
+            volume = 0;
+        }
+        if (volume > 100) {
+            volume = 100;
+        }
+        mAudioEffectManager.setMusicPlayoutVolume(id, volume);
+        mAudioEffectManager.setMusicPublishVolume(id, volume);
+    }
+
+    @Override
+    public void switchToOriginalVolume(boolean isOriginal) {
+        //如果是原唱,原唱音量为100,伴奏音量为0;
+        //反之,如果是伴奏,伴奏音量为100,原唱为0;
+        if (isOriginal) {
+            setMusicVolume(mOriginId, 100);
+            setMusicVolume(mAccompanyId, 0);
+        } else {
+            setMusicVolume(mOriginId, 0);
+            setMusicVolume(mAccompanyId, 100);
+        }
     }
 
     @Override
     public void stopPlayMusic() {
         enableBlackStream(false);
-        mAudioEffectManager.stopPlayMusic(mCurPlayMusicId);
+        mAudioEffectManager.stopPlayMusic(mOriginId);
+        mAudioEffectManager.stopPlayMusic(mAccompanyId);
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
                 if (mDelegate != null) {
-                    mDelegate.onMusicCompletePlaying(mCurPlayMusicId);
+                    mDelegate.onMusicCompletePlaying(mCurPerformId);
                 }
             }
-
         });
     }
 
     @Override
     public void pausePlayMusic() {
-        mAudioEffectManager.pausePlayMusic(mCurPlayMusicId);
+        mAudioEffectManager.pausePlayMusic(mOriginId);
+        mAudioEffectManager.pausePlayMusic(mAccompanyId);
     }
 
     @Override
     public void resumePlayMusic() {
-        mAudioEffectManager.resumePlayMusic(mCurPlayMusicId);
+        mAudioEffectManager.resumePlayMusic(mOriginId);
+        mAudioEffectManager.resumePlayMusic(mAccompanyId);
     }
 
     private class MusicListener implements TXAudioEffectManager.TXMusicPlayObserver {
@@ -1422,11 +1463,20 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         @Override
         public void onStart(int id, int errCode) {
             Log.d(TAG, "onMusicPlay Start: id = " + id + " , errCode = " + errCode);
+            if (id == TYPE_ORIGIN) {
+                mIsOriginReady = true;
+            } else if (id == TYPE_ACCOMPANY) {
+                mIsAccompanyReady = true;
+            }
+            //原唱和伴奏都准备好后才去回调
+            if (!mIsOriginReady || !mIsAccompanyReady) {
+                return;
+            }
             runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
                     if (mDelegate != null) {
-                        mDelegate.onMusicPrepareToPlay(mCurPlayMusicId);
+                        mDelegate.onMusicPrepareToPlay(mCurPerformId);
                     }
                 }
             });
@@ -1434,26 +1484,40 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
         @Override
         public void onPlayProgress(final int id, final long curPtsMS, final long durationMS) {
-            sendSEIMsg(String.valueOf(mCurPlayMusicId), curPtsMS, durationMS);
-            mMainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    runOnDelegateThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mDelegate != null) {
-                                mDelegate.onMusicProgressUpdate(mCurPlayMusicId, curPtsMS, durationMS);
+            //只根据一个进度去同步歌词
+            if (id == TYPE_ORIGIN) {
+                sendSEIMsg(mCurPerformId, curPtsMS, durationMS);
+                mMainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        runOnDelegateThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mDelegate != null) {
+                                    mDelegate.onMusicProgressUpdate(mCurPerformId, curPtsMS, durationMS);
+                                }
                             }
-                        }
 
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            }
         }
 
         @Override
         public void onComplete(final int id, final int errCode) {
-            Log.d(TAG, "onMusicPlayFinish id " + id + " , status = " + errCode);
+            Log.d(TAG, "onMusicPlayComplete id " + id + " , status = " + errCode);
+            //原唱和伴奏都准备好后才去回调完成
+            if (id == TYPE_ORIGIN) {
+                mIsOriginReady = false;
+            } else if (id == TYPE_ACCOMPANY) {
+                mIsAccompanyReady = false;
+            }
+
+            if (mIsOriginReady || mIsAccompanyReady) {
+                return;
+            }
+
             mMainHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -1462,19 +1526,16 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
                         @Override
                         public void run() {
                             if (mDelegate != null) {
-                                mDelegate.onMusicCompletePlaying(mCurPlayMusicId);
+                                mDelegate.onMusicCompletePlaying(mCurPerformId);
                             }
                         }
-
                     });
-
                 }
             });
         }
     }
 
     public void sendSEIMsg(String musicId, long curTime, long duration) {
-        Log.d(TAG, "sendSEIMsg: musicId = " + musicId);
         KaraokeSEIJsonData jsonData = new KaraokeSEIJsonData();
         jsonData.setCurrentTime(curTime);
         jsonData.setMusicId(musicId);
@@ -1495,12 +1556,13 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         KaraokeSEIJsonData jsonData  = gson.fromJson(result, KaraokeSEIJsonData.class);
         final long         curTime   = jsonData.getCurrentTime();
         final long         totalTime = jsonData.getTotalTime();
+        final String       musicId   = jsonData.getMusicId();
 
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
                 if (mDelegate != null && data != null) {
-                    mDelegate.onMusicProgressUpdate(mCurPlayMusicId, curTime, totalTime);
+                    mDelegate.onMusicProgressUpdate(musicId, curTime, totalTime);
                 }
             }
         });

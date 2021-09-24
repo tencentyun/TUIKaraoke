@@ -1,6 +1,9 @@
 package com.tencent.liteav.tuikaraoke.ui.lrc.utils;
 
 public class Utils {
+    //默认歌词文件后缀类型
+    private static final String LRC_TYPE = "vtt";
+
     /**
      * 判断字符是不是中文，中文字符标点都可以判断
      *
@@ -23,7 +26,7 @@ public class Utils {
     public static String getFileExt(String fileName) {
         int pos = fileName.lastIndexOf(".");
         if (pos == -1)
-            return "";
+            return LRC_TYPE;
         return fileName.substring(pos + 1).toLowerCase();
     }
 

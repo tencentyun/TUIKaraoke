@@ -1,7 +1,9 @@
 package com.tencent.liteav.tuikaraoke.ui.gift.imp.adapter;
 
 import android.content.Context;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,9 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static com.tencent.liteav.tuikaraoke.ui.gift.Constant.GIFT_PANEL_TYPE_MULTIROW;
+import static com.tencent.liteav.tuikaraoke.ui.gift.Constant.GIFT_PANEL_TYPE_SINGLEROW;
+
 public class GiftPanelAdapter extends RecyclerView.Adapter<GiftPanelAdapter.ViewHolder> {
     private Context                mContext;
     private RecyclerView           mRecyclerView;
@@ -25,6 +30,7 @@ public class GiftPanelAdapter extends RecyclerView.Adapter<GiftPanelAdapter.View
     private List<GiftInfo>         mSelectGiftInfoList;
     private List<GiftInfo>         mGiftInfoList;
     private OnItemClickListener    mOnItemClickListener;
+    private String                 mDefalutPanelType = GIFT_PANEL_TYPE_SINGLEROW;
 
     public GiftPanelAdapter(RecyclerView recyclerView, int pageIndex, List<GiftInfo> list,
                             Context context, List<GiftInfo> selectGiftInfoList) {
@@ -72,7 +78,7 @@ public class GiftPanelAdapter extends RecyclerView.Adapter<GiftPanelAdapter.View
         ImageLoader.loadImage(mContext, holder.mImageGift, giftInfo.giftPicUrl);
         holder.mTextGiftName.setText(giftInfo.title);
         holder.mTextGiftPrice.setText(String.format(mContext.getString(R.string.trtckaraoke_gift_game_currency), giftInfo.price));
-        if (giftInfo.isSelected) {
+        if (GIFT_PANEL_TYPE_MULTIROW.equals(mDefalutPanelType) && giftInfo.isSelected) {
             holder.mLayoutRootView.setBackgroundResource(R.drawable.trtckaraoke_gift_shape_normal);
             holder.mTextGiftName.setVisibility(View.GONE);
         } else {
@@ -104,8 +110,12 @@ public class GiftPanelAdapter extends RecyclerView.Adapter<GiftPanelAdapter.View
             mImageGift = (CircleImageView) view.findViewById(R.id.iv_gift_icon);
             mTextGiftName = (TextView) view.findViewById(R.id.tv_gift_name);
             mTextGiftPrice = (TextView) view.findViewById(R.id.tv_gift_price);
+            if (GIFT_PANEL_TYPE_SINGLEROW.equals(mDefalutPanelType)) {
+                mTextGiftPrice.setVisibility(View.GONE);
+            }
         }
     }
+
 
     public interface OnItemClickListener {
         void onItemClick(View view, GiftInfo giftInfo, int position, int pageIndex);

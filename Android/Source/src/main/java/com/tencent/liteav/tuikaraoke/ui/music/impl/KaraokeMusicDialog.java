@@ -19,6 +19,7 @@ import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.ui.music.CustomViewPager;
 import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicService;
+import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,16 +29,16 @@ public class KaraokeMusicDialog extends Dialog {
 
     private static String                  TAG = "KaraokeMusicDialog";
     private final  Context                 mContext;
+    private final  RoomInfoController      mRoomInfoController;
     private        TabLayout               mTopTl;
     private        CustomViewPager         mContentVp;
-    private final  KaraokeMusicService     mMusicService;
     private        KaraokeMusicLibraryView mKTVLibraryView;
     private        KaraokeMusicSelectView  mKTVSelectView;
 
-    public KaraokeMusicDialog(Context context, KaraokeMusicService musicService) {
+    public KaraokeMusicDialog(Context context, RoomInfoController roomInfoController) {
         super(context, R.style.TRTCKTVRoomDialogTheme);
         mContext = context;
-        mMusicService = musicService;
+        mRoomInfoController = roomInfoController;
         setContentView(R.layout.trtckaraoke_fragment_base_tab_choose);
         initView(mContext);
         initData(mContext);
@@ -52,8 +53,8 @@ public class KaraokeMusicDialog extends Dialog {
     private void initView(Context context) {
         mTopTl = (TabLayout) findViewById(R.id.tl_top);
         mContentVp = (CustomViewPager) findViewById(R.id.vp_content);
-        mKTVLibraryView = new KaraokeMusicLibraryView(context, mMusicService);
-        mKTVSelectView = new KaraokeMusicSelectView(context, mMusicService);
+        mKTVLibraryView = new KaraokeMusicLibraryView(context, mRoomInfoController);
+        mKTVSelectView = new KaraokeMusicSelectView(context, mRoomInfoController);
         mContentVp.setNoScroll(true);
     }
 

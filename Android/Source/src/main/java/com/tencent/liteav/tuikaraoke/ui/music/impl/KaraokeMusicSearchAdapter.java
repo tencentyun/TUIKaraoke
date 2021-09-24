@@ -1,6 +1,7 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,11 +20,10 @@ import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import com.tencent.liteav.tuikaraoke.ui.widget.RoundCornerImageView;
 
 import java.util.List;
-import java.util.Random;
 
-public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusicLibraryAdapter.ViewHolder> {
+public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     protected Context                 mContext;
-    protected List<KaraokeMusicModel> mLibraryList;
+    protected List<KaraokeMusicModel> mSearchList;
     protected OnPickItemClickListener onPickItemClickListener;
     private   RoomInfoController      mRoomInfoController;
 
@@ -33,43 +33,62 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
             R.drawable.trtckaraoke_changetype_dashu_normal,
             R.drawable.trtckaraoke_changetype_luoli_normal
     };
+    private final int   NORMAL_TYPE      = 0;    //列表布局
+    private final int   FOOT_TYPE        = 1111; //底部布局
+    private       int   mFootStatus      = KaraokeSearchMusicActivity.STATE_NONE; //底部布局状态
 
-    public KaraokeMusicLibraryAdapter(Context context, RoomInfoController roomInfoController,
-                                      List<KaraokeMusicModel> libraryList,
-                                      OnPickItemClickListener onPickItemClickListener) {
+    public KaraokeMusicSearchAdapter(Context context, RoomInfoController roomInfoController, List<KaraokeMusicModel> searchList, OnPickItemClickListener onPickItemClickListener) {
         this.mContext = context;
-        this.mLibraryList = libraryList;
+        this.mSearchList = searchList;
         this.mRoomInfoController = roomInfoController;
         this.onPickItemClickListener = onPickItemClickListener;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context        context  = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-        View           view     = inflater.inflate(R.layout.trtckaraoke_fragment_library_itemview, parent, false);
-        return new ViewHolder(view);
+        if (NORMAL_TYPE == viewType) {
+            View view = inflater.inflate(R.layout.trtckaraoke_fragment_library_itemview, parent, false);
+            return new ViewHolder(view);
+        } else if (FOOT_TYPE == viewType) {
+            View footView = inflater.inflate(R.layout.trtckaraoke_fragment_load_more_item, parent, false);
+            return new FootViewHolder(footView);
+        }
+        return null;
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        KaraokeMusicModel item = mLibraryList.get(position);
-        holder.setIsRecyclable(false);
-        holder.bind(mContext, item, onPickItemClickListener);
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof ViewHolder) {
+            holder.setIsRecyclable(false);
+            KaraokeMusicModel item = mSearchList.get(position);
+            ((ViewHolder) holder).bind(mContext, item, onPickItemClickListener);
+        } else if (holder instanceof FootViewHolder) {
+            ((FootViewHolder) holder).updateLoadMoreView(position);
+        }
     }
 
     @Override
     public int getItemCount() {
-        if (mLibraryList == null) {
+        if (mSearchList == null) {
             return 0;
         }
-        return mLibraryList.size();
+        return mSearchList.size() + 1;
     }
 
     @Override
     public int getItemViewType(int position) {
-        return position;
+        if (position == (getItemCount() - 1)) {
+            return FOOT_TYPE;
+        } else {
+            return NORMAL_TYPE;
+        }
+    }
+
+    public void setFooterViewState(int status) {
+        mFootStatus = status;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -103,7 +122,7 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
                         ToastUtils.showLong(R.string.trtckaraoke_toast_anchor_can_only_operate_it);
                         return;
                     }
-                    listener.onPickSongItemClick(model, getAdapterPosition());
+                    listener.onPickSongItemClick(model, getLayoutPosition());
                 }
             });
             updateChooseButton(model.isSelected);
@@ -113,6 +132,8 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
                 buffer.append(str);
             }
             mTvSinger.setText(buffer);
+            int index = getAdapterPosition() % 3;
+            mImageCover.setImageResource(MUSIC_ICON_ARRAY[index]);
             if (model.isSelected && model.lrcUrl != null && mProgressBarChoose.getProgress() != 100) {
                 mProgressBarChoose.setProgress(100);
             }
@@ -138,4 +159,35 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
         void onPickSongItemClick(KaraokeMusicInfo info, int layoutPosition);
     }
 
+    public class FootViewHolder extends RecyclerView.ViewHolder {
+
+        private final TextView mTextLoadMore;
+
+        public FootViewHolder(View itemView) {
+            super(itemView);
+            mTextLoadMore = itemView.findViewById(R.id.tv_loadmore);
+        }
+
+        public void updateLoadMoreView(int postion) {
+            //没有数据时会隐藏
+            mTextLoadMore.setVisibility(View.VISIBLE);
+            if (postion == 0) {
+                if (mFootStatus == KaraokeSearchMusicActivity.STATE_NONE) {
+                    mTextLoadMore.setText("");
+                } else if (mFootStatus == KaraokeSearchMusicActivity.STATE_LASTED) {
+                    mTextLoadMore.setText(R.string.trtckaraoke_loading_no_data);
+                }
+            } else {
+                if (mFootStatus == KaraokeSearchMusicActivity.STATE_LOADING) {
+                    mTextLoadMore.setText(R.string.trtckaraoke_loading_more_music);
+                } else if (mFootStatus == KaraokeSearchMusicActivity.STATE_LASTED) {
+                    mTextLoadMore.setText(R.string.trtckaraoke_loading_no_more_data);
+                } else if (mFootStatus == KaraokeSearchMusicActivity.STATE_ERROR) {
+                    mTextLoadMore.setText(R.string.trtckaraoke_loading_error);
+                } else {
+                    mTextLoadMore.setText("");
+                }
+            }
+        }
+    }
 }

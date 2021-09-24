@@ -8,25 +8,30 @@
 
     <application>
         <activity
-            android:name="com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomAnchorActivity"
+            android:name=".ui.room.KaraokeRoomAnchorActivity"
             android:configChanges="orientation|keyboardHidden"
             android:launchMode="singleTask"
-            android:theme="@style/TRTCKtvRoomChatTheme"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/TRTCKtvRoomChatTheme" />
         <activity
-            android:name="com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomAudienceActivity"
+            android:name=".ui.room.KaraokeRoomAudienceActivity"
             android:configChanges="orientation|keyboardHidden"
             android:launchMode="singleTask"
-            android:theme="@style/TRTCKtvRoomChatTheme"
-            android:screenOrientation="portrait" />
-
+            android:screenOrientation="portrait"
+            android:theme="@style/TRTCKtvRoomChatTheme" />
         <activity
-            android:name="com.tencent.liteav.tuikaraoke.ui.floatwindow.FloatActivity"
+            android:name=".ui.floatwindow.FloatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:launchMode="standard"
             android:theme="@style/TRTCKtvRoomChatTheme"
-            android:windowSoftInputMode="stateHidden|stateAlwaysHidden"/>
+            android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
 
+        <activity
+            android:name=".ui.music.impl.KaraokeSearchMusicActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/TRTCKtvRoomChatTheme" />
     </application>
 
 </manifest>

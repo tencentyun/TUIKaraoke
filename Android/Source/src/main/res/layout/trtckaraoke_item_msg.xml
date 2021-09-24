@@ -20,7 +20,7 @@
             android:layout_toLeftOf="@+id/btn_msg_func"
             android:background="@drawable/trtckaraoke_bg_msg_item"
             android:ellipsize="end"
-            android:gravity="center_horizontal"
+            android:gravity="left"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:paddingBottom="4dp"

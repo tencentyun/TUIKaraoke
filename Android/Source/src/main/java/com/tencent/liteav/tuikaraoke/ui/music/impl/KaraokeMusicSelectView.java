@@ -8,29 +8,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import com.tencent.liteav.tuikaraoke.R;
+import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicCallback;
 import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicService;
 import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicServiceDelegate;
+import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import com.tencent.liteav.tuikaraoke.ui.widget.SlideRecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class KaraokeMusicSelectView extends CoordinatorLayout implements KaraokeMusicServiceDelegate {
-    private final String                      TAG = "KaraokeMusicSelectView";
-    private final Context                     mContext;
-    private       SlideRecyclerView           mRvList;
-    private       KaraokeMusicSelectedAdapter mSelectedAdapter;
-    private       List<KaraokeMusicModel>     mSelectedList;
-    private final KaraokeMusicService         mKtvMusicImpl;
+    private final String  TAG = "KaraokeMusicSelectView";
+    private final Context mContext;
 
-    private long lastCLickTime = -1;
+    private KaraokeMusicSelectedAdapter mSelectedAdapter;
+    private List<KaraokeMusicModel>     mSelectedList;
+    private KaraokeMusicService         mKtvMusicImpl;
+    private RoomInfoController          mRoomInfoController;
+    private SlideRecyclerView           mRvList;
+    private long                        lastClickTime = -1;
 
-    public KaraokeMusicSelectView(Context context, KaraokeMusicService musicService) {
+    public KaraokeMusicSelectView(Context context, RoomInfoController roomInfoController) {
         super(context);
         mContext = context;
-        mKtvMusicImpl = musicService;
+        mRoomInfoController = roomInfoController;
+        mKtvMusicImpl = roomInfoController.getMusicServiceImpl();
         mKtvMusicImpl.setServiceDelegate(this);
         mSelectedList = new ArrayList<>();
         mKtvMusicImpl.ktvGetSelectedMusicList(new KaraokeMusicCallback.MusicSelectedListCallback() {
@@ -46,31 +50,32 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
 
     private void initView(View rootView) {
         mRvList = (SlideRecyclerView) rootView.findViewById(R.id.rl_select);
-        mSelectedAdapter = new KaraokeMusicSelectedAdapter(mContext, mSelectedList, new KaraokeMusicSelectedAdapter.OnUpdateItemClickListener() {
+        mSelectedAdapter = new KaraokeMusicSelectedAdapter(mContext, mRoomInfoController, mSelectedList, new KaraokeMusicSelectedAdapter.OnUpdateItemClickListener() {
             @Override
-            public void onNextSongClick(String id) {
-                if (lastCLickTime > 0) {
+            public void onNextSongClick(KaraokeMusicInfo musicInfo) {
+                if (lastClickTime > 0) {
                     long current = System.currentTimeMillis();
-                    if (current - lastCLickTime < 300) {
+                    if (current - lastClickTime < 300) {
                         return;
                     }
                 }
-                lastCLickTime = System.currentTimeMillis();
-                mKtvMusicImpl.nextMusic(new KaraokeMusicCallback.ActionCallback() {
+                lastClickTime = System.currentTimeMillis();
+                mKtvMusicImpl.nextMusic(musicInfo, new KaraokeMusicCallback.ActionCallback() {
                     @Override
                     public void onCallback(int code, String msg) {
-                        Log.d(TAG, "nextMusic: code = " + code);
+                        Log.d(TAG, "nextMusic onProgress: code = " + code);
                     }
                 });
             }
 
             @Override
-            public void onSetTopClick(String musicId) {
-                mKtvMusicImpl.topMusic(musicId, new KaraokeMusicCallback.ActionCallback() {
+            public void onSetTopClick(KaraokeMusicInfo musicInfo) {
+                mKtvMusicImpl.topMusic(musicInfo, new KaraokeMusicCallback.ActionCallback() {
                     @Override
                     public void onCallback(int code, String msg) {
                         Log.d(TAG, "topMusic: code = " + code);
                     }
+
                 });
             }
         });
@@ -78,7 +83,7 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
             @Override
             public void onDeleteClick(View view, int position) {
                 if (mSelectedList.size() > 1) {
-                    mKtvMusicImpl.deleteMusic(mSelectedList.get(position).musicId, new KaraokeMusicCallback.ActionCallback() {
+                    mKtvMusicImpl.deleteMusic(mSelectedList.get(position), new KaraokeMusicCallback.ActionCallback() {
                         @Override
                         public void onCallback(int code, String msg) {
                             Log.d(TAG, "deleteMusic: code = " + code);
@@ -100,7 +105,7 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
     }
 
     @Override
-    public void onShouldSetLyric(String musicID) {
+    public void onShouldSetLyric(KaraokeMusicModel model) {
 
     }
 

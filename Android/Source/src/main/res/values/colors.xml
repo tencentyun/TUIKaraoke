@@ -39,4 +39,7 @@
 
     <!-- 礼物 -->
     <color name="trtckaraoke_gift_dark_orange">#FF8C00</color>
+
+    <color name="trtckaraoke_color_progress_alpha">#08B0A1CE</color>
+    <color name="trtckaraoke_color_progress">#B0A1CE</color>
 </resources>

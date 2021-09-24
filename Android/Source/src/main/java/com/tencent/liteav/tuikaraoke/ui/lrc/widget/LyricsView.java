@@ -18,19 +18,19 @@ import com.tencent.liteav.tuikaraoke.ui.lrc.utils.LyricsUtils;
 import java.util.List;
 import java.util.TreeMap;
 
-public class FloatLyricsView extends AbstractLrcView {
+public class LyricsView extends AbstractLrcView {
 
     public static final int ORIENTATION_LEFT   = 0;      // 歌词靠左
     public static final int ORIENTATION_CENTER = 1;      // 歌词居中
 
     private int mOrientation = ORIENTATION_LEFT;
 
-    public FloatLyricsView(Context context) {
+    public LyricsView(Context context) {
         super(context);
         init(context);
     }
 
-    public FloatLyricsView(Context context, AttributeSet attrs) {
+    public LyricsView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
     }
@@ -73,17 +73,25 @@ public class FloatLyricsView extends AbstractLrcView {
         // 当行歌词
         String curLyrics       = lyricsLineInfo.getLineLyrics();
         float  curLrcTextWidth = LyricsUtils.getTextWidth(paint, curLyrics);
-        // 当前歌词行的x坐标
+        // 当前歌词行的x坐标,y坐标
         float textX = 0;
-        // 当前歌词行的y坐标
-        float textY                  = 0;
+        float textY = 0;
+
         int   splitLyricsRealLineNum = LyricsUtils.getSplitLyricsRealLineNum(lrcLineInfos, lyricsLineNum, splitLyricsLineNum);
         float topPadding             = (getHeight() - spaceLineHeight - 2 * LyricsUtils.getTextHeight(paint)) / 2;
         if (splitLyricsRealLineNum % 2 == 0) {
             textY = topPadding + LyricsUtils.getTextHeight(paint);
             float nextLrcTextY = textY + spaceLineHeight + LyricsUtils.getTextHeight(paint);
-            if (lyricsLineNum + 1 < lrcLineInfos.size()) {
+            if (lyricsLineNum + 1 <= lrcLineInfos.size()) {
+                //画出右边的歌词
+                textX = paddingLeftOrRight;
+                LyricsUtils.drawOutline(canvas, paintOutline, curLyrics, textX, textY);
+                LyricsUtils.drawDynamicText(canvas, paint, paintHL, paintColors, paintHLColors, curLyrics,
+                        lineLyricsHLWidth, textX, textY);
                 // 画下一句的歌词，该下一句不在该行分割歌词里面，需要从原始下一行的歌词里面找
+                if ((lyricsLineNum + 1) == lrcLineInfos.size()) {
+                    return;
+                }
                 List<LyricsLineInfo> nextSplitLyricsLineInfos = lrcLineInfos.get(lyricsLineNum + 1).getSplitLyricsLineInfos();
                 String               lrcRightText             = nextSplitLyricsLineInfos.get(0).getLineLyrics();
                 float                lrcRightTextWidth        = LyricsUtils.getTextWidth(paint, lrcRightText);
@@ -91,23 +99,17 @@ public class FloatLyricsView extends AbstractLrcView {
 
                 textRightX = getWidth() - lrcRightTextWidth - paddingLeftOrRight;
 
+                //当最后一句歌词在右边时,不再画出左边;否则画出右边歌词
                 LyricsUtils.drawOutline(canvas, paintOutline, lrcRightText, textRightX, nextLrcTextY);
                 LyricsUtils.drawText(canvas, paint, paintColors, lrcRightText, textRightX, nextLrcTextY);
-
-                textX = paddingLeftOrRight;
-                //画歌词
-                LyricsUtils.drawOutline(canvas, paintOutline, curLyrics, textX, textY);
-                LyricsUtils.drawDynamicText(canvas, paint, paintHL, paintColors, paintHLColors, curLyrics,
-                        lineLyricsHLWidth, textX, textY);
             }
-
-
         } else {
             float preLrcTextY = topPadding + LyricsUtils.getTextHeight(paint);
             textY = preLrcTextY + spaceLineHeight + LyricsUtils.getTextHeight(paint);
-            if (lyricsLineNum + 1 < lrcLineInfos.size()) {
-                // 画下一句的歌词，该下一句不在该行分割歌词里面，需要从原始下一行的歌词里面找
-                List<LyricsLineInfo> nextSplitLyricsLineInfos = lrcLineInfos.get(lyricsLineNum - 1).getSplitLyricsLineInfos();
+            if (lyricsLineNum + 1 <= lrcLineInfos.size()) {
+                int tempNum = (lyricsLineNum - 1) < 0 ? 0 : (lyricsLineNum - 1) ;
+                // 画下一句的歌词，该下一句不在该行分割歌词里面，需要从原始上一行的歌词里面找
+                List<LyricsLineInfo> nextSplitLyricsLineInfos = lrcLineInfos.get(tempNum).getSplitLyricsLineInfos();
                 String               lrcLeftText              = nextSplitLyricsLineInfos.get(0).getLineLyrics();
                 float                lrcLeftTextWidth         = LyricsUtils.getTextWidth(paint, lrcLeftText);
 

@@ -165,19 +165,19 @@ public interface TRTCKaraokeRoomDelegate {
      * @param progress 当前播放时间 / ms
      * @param total    总时间 / ms
      */
-    void onMusicProgressUpdate(int musicID, long progress, long total);
+    void onMusicProgressUpdate(String musicID, long progress, long total);
 
     /**
      * 准备播放音乐的回调
      *
      * @param musicID 播放时传入的 music ID
      */
-    void onMusicPrepareToPlay(int musicID);
+    void onMusicPrepareToPlay(String musicID);
 
     /**
      * 播放完成音乐的回调
      *
      * @param musicID 播放时传入的 music ID
      */
-    void onMusicCompletePlaying(int musicID);
+    void onMusicCompletePlaying(String musicID);
 }

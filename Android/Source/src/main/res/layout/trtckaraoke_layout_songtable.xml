@@ -10,8 +10,9 @@
         android:id="@+id/ll_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="12dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:orientation="horizontal">
 
         <TextView
@@ -25,35 +26,44 @@
             android:id="@+id/tv_user_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:textColor="@color/trtckaraoke_white"
             android:textSize="12sp"
             tools:text="Jessica" />
 
         <Button
+            android:id="@+id/btn_switch_music"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/trtckaraoke_ic_origin_music"
+            android:visibility="gone" />
+
+        <Button
             android:id="@+id/btn_effect"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_gravity="center"
-            android:layout_marginRight="10dp"
-            android:background="@drawable/trtckaraoke_btn_bg_music"
-            android:visibility="visible" />
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/trtckaraoke_changetype_kongling_normal"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btn_change_voice"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_gravity="center"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
             android:background="@drawable/trtckaraoke_btn_change_voice"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btn_choose_song"
             android:layout_width="76dp"
             android:layout_height="38dp"
-            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/trtckaraoke_button_border"
             android:text="@string/trtckaraoke_btn_choose_song"
             android:textAllCaps="false"
@@ -66,7 +76,7 @@
         android:id="@+id/ll_song_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="12dp"
+        android:layout_marginStart="24dp"
         android:orientation="horizontal">
 
         <ImageView
@@ -79,7 +89,7 @@
             android:id="@+id/tv_song_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="4dp"
+            android:layout_marginStart="4dp"
             android:textColor="@color/trtckaraoke_white"
             android:textSize="12sp" />
     </LinearLayout>
