@@ -38,61 +38,45 @@ public class KaraokeMusicImplement: NSObject {
     
     private var currentLrc: String? = nil
     
-    private var ktvMusicList: [KaraokeMusicInfo] = []
-    private func loadKaraokeMusicList() {
-        let t1 = KaraokeBundle().path(forResource: "后来_伴奏", ofType: "mp3") ?? ""
-        let l1 = KaraokeBundle().path(forResource: "后来_歌词", ofType: "vtt") ?? ""
-        let model1 = KaraokeMusicInfo(title: "后来_伴奏", coverUrl: "", author: "刘若英", path: t1, lrcPath: l1, musicID: 1001)
+
+    private lazy var ktvMusicList: [KaraokeMusicInfo] = {
+        let model1 = KaraokeMusicInfo(musicId: "1001", musicName: "后来", singers: ["刘若英"], userId: "", performId: "1001", status: .wait)
+        model1.lrcLocalPath = KaraokeBundle().path(forResource: "后来_歌词", ofType: "vtt") ?? ""
+        model1.muscicLocalPath = KaraokeBundle().path(forResource: "后来_原唱", ofType: "mp3") ?? ""
+        model1.accompanyLocalPath = KaraokeBundle().path(forResource: "后来_伴奏", ofType: "mp3") ?? "";
         
-        let t2 = KaraokeBundle().path(forResource: "后来_原唱", ofType: "mp3") ?? ""
-        let l2 = KaraokeBundle().path(forResource: "后来_歌词", ofType: "vtt") ?? ""
-        let model2 = KaraokeMusicInfo(title: "后来_原唱", coverUrl: "", author: "刘若英", path: t2, lrcPath: l2, musicID: 1002)
         
-        let t3 = KaraokeBundle().path(forResource: "情非得已_伴奏", ofType: "mp3") ?? ""
-        let l3 = KaraokeBundle().path(forResource: "情非得已_歌词", ofType: "vtt") ?? ""
-        let model3 = KaraokeMusicInfo(title: "情非得已_伴奏", coverUrl: "", author: "庾澄庆", path: t3, lrcPath: l3, musicID: 1003)
+        let model2 = KaraokeMusicInfo(musicId: "1002", musicName: "情非得已", singers: ["庾澄庆"], userId: "", performId: "1002", status: .wait)
+        model2.lrcLocalPath = KaraokeBundle().path(forResource: "情非得已_歌词", ofType: "vtt") ?? ""
+        model2.muscicLocalPath = KaraokeBundle().path(forResource: "情非得已_原唱", ofType: "mp3") ?? ""
+        model2.accompanyLocalPath = KaraokeBundle().path(forResource: "情非得已_伴奏", ofType: "mp3") ?? "";
+
         
-        let t4 = KaraokeBundle().path(forResource: "情非得已_原唱", ofType: "mp3") ?? ""
-        let l4 = KaraokeBundle().path(forResource: "情非得已_歌词", ofType: "vtt") ?? ""
-        let model4 = KaraokeMusicInfo(title: "情非得已_原唱", coverUrl: "", author: "庾澄庆", path: t4, lrcPath: l4, musicID: 1004)
+        let model3 = KaraokeMusicInfo(musicId: "1003", musicName: "星晴", singers: ["周杰伦"], userId: "", performId: "1003", status: .wait)
+        model3.lrcLocalPath = KaraokeBundle().path(forResource: "星晴_歌词", ofType: "vtt") ?? ""
+        model3.muscicLocalPath = KaraokeBundle().path(forResource: "星晴_原唱", ofType: "mp3") ?? ""
+        model3.accompanyLocalPath = KaraokeBundle().path(forResource: "星晴_伴奏", ofType: "mp3") ?? "";
+  
         
-        let t5 = KaraokeBundle().path(forResource: "星晴_伴奏", ofType: "mp3") ?? ""
-        let l5 = KaraokeBundle().path(forResource: "星晴_歌词", ofType: "vtt") ?? ""
-        let model5 = KaraokeMusicInfo(title: "星晴_伴奏", coverUrl: "", author: "周杰伦", path: t5, lrcPath: l5, musicID: 1005)
+        let model4 = KaraokeMusicInfo(musicId: "1004", musicName: "暖暖", singers: ["梁静茹"], userId: "", performId: "1004", status: .wait)
+        model4.lrcLocalPath = KaraokeBundle().path(forResource: "暖暖_歌词", ofType: "vtt") ?? ""
+        model4.muscicLocalPath = KaraokeBundle().path(forResource: "暖暖_原唱", ofType: "mp3") ?? ""
+        model4.accompanyLocalPath = KaraokeBundle().path(forResource: "暖暖_伴奏", ofType: "mp3") ?? "";
         
-        let t6 = KaraokeBundle().path(forResource: "星晴_原唱", ofType: "mp3") ?? ""
-        let l6 = KaraokeBundle().path(forResource: "星晴_歌词", ofType: "vtt") ?? ""
-        let model6 = KaraokeMusicInfo(title: "星晴_原唱", coverUrl: "", author: "周杰伦", path: t6, lrcPath: l6, musicID: 1006)
         
-        let t7 = KaraokeBundle().path(forResource: "暖暖_伴奏", ofType: "mp3") ?? ""
-        let l7 = KaraokeBundle().path(forResource: "暖暖_歌词", ofType: "vtt") ?? ""
-        let model7 = KaraokeMusicInfo(title: "暖暖_伴奏", coverUrl: "", author: "梁静茹", path: t7, lrcPath: l7, musicID: 1007)
-        
-        let t8 = KaraokeBundle().path(forResource: "暖暖_原唱", ofType: "mp3") ?? ""
-        let l8 = KaraokeBundle().path(forResource: "暖暖_歌词", ofType: "vtt") ?? ""
-        let model8 = KaraokeMusicInfo(title: "暖暖_原唱", coverUrl: "", author: "梁静茹", path: t8, lrcPath: l8, musicID: 1008)
-        
-        let t9 = KaraokeBundle().path(forResource: "简单爱_伴奏", ofType: "mp3") ?? ""
-        let l9 = KaraokeBundle().path(forResource: "简单爱_歌词", ofType: "vtt") ?? ""
-        let model9 = KaraokeMusicInfo(title: "简单爱_伴奏", coverUrl: "", author: "周杰伦", path: t9, lrcPath: l9, musicID: 1009)
-        
-        let t10 = KaraokeBundle().path(forResource: "简单爱_原唱", ofType: "mp3") ?? ""
-        let l10 = KaraokeBundle().path(forResource: "简单爱_歌词", ofType: "vtt") ?? ""
-        let model10 = KaraokeMusicInfo(title: "简单爱_原唱", coverUrl: "", author: "周杰伦", path: t10, lrcPath: l10, musicID: 1010)
-        
-        ktvMusicList.removeAll()
-        
+        let model5 = KaraokeMusicInfo(musicId: "1005", musicName: "简单爱", singers: ["梁静茹"], userId: "", performId: "1005", status: .wait)
+        model5.lrcLocalPath = KaraokeBundle().path(forResource: "简单爱_歌词", ofType: "vtt") ?? ""
+        model5.muscicLocalPath = KaraokeBundle().path(forResource: "简单爱_原唱", ofType: "mp3") ?? ""
+        model5.accompanyLocalPath = KaraokeBundle().path(forResource: "简单爱_伴奏", ofType: "mp3") ?? "";
+        var ktvMusicList: [KaraokeMusicInfo] = []
         ktvMusicList.append(model1)
         ktvMusicList.append(model2)
         ktvMusicList.append(model3)
         ktvMusicList.append(model4)
         ktvMusicList.append(model5)
-        ktvMusicList.append(model6)
-        ktvMusicList.append(model7)
-        ktvMusicList.append(model8)
-        ktvMusicList.append(model9)
-        ktvMusicList.append(model10)
-    }
+        return ktvMusicList
+    }()
+
     
     private let mlock: NSLock = NSLock()
     
@@ -238,8 +222,8 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             guard isOwner else { return }
             var music: KaraokeMusicModel?
             for m in ktvMusicList {
-                if m.musicID == Int32(musicID) {
-                    let model = KaraokeMusicModel(sourceModel: m)
+                if m.performId == musicID {
+                    let model = KaraokeMusicModel(sourceModel: KaraokeMusicInfo.copyMusic(m))
                     music = model
                     break
                 }
@@ -258,10 +242,10 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
                     }
                 }
                 if !haved {
-                    music.bookUserID = info.userID
+                    music.userId = info.userID
                     music.bookUserName = info.nickName
                     music.isSelected = true
-                    
+                    music.music.userId = info.userID;
                     lockSelectedList()
                     ktvMusicSelectedList.append(music)
                     unlockSelectedList()
@@ -269,7 +253,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
                 notiListChange()
                 serviceDelegate?.onShouldShowMessage(music)
                 if shouldPlay {
-                    sendShouldPlay(userID: music.bookUserID, musicID: String(music.musicID))
+                    sendShouldPlay(userID: music.userId, musicID: String(music.musicID))
                 }
             }
             else {
@@ -288,7 +272,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             }
             if model == nil {
                 for music in ktvMusicList {
-                    if music.musicID == Int32(musicID) {
+                    if music.performId == musicID {
                         model = KaraokeMusicModel(sourceModel: music)
                         break
                     }
@@ -297,6 +281,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             if let playModel = model {
                 debugPrint("___ start play \(playModel.musicName)")
                 serviceDelegate?.onShouldPlay(playModel)
+                serviceDelegate?.onShouldSetLyric(musicID: String(playModel.musicID))
             }
             else {
                 debugPrint("___ not found music")
@@ -307,7 +292,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             let list = ktvMusicSelectedList
             unlockSelectedList()
             if let action = getSelectedListCallback {
-                action(list)
+                action(0,"",list)
             }
             else {
                 notiListChange()
@@ -345,7 +330,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             var index = IndexSet()
             lockSelectedList()
             for (i, music) in ktvMusicSelectedList.enumerated() {
-                if music.bookUserID == info.userID {
+                if music.userId == info.userID {
                     music.reset()
                     index.insert(i)
                 }
@@ -386,15 +371,17 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             }
             var selectedList: [KaraokeMusicModel] = []
             for json in list {
+                guard let musicID = json["musicId"] as? String else { break }
                 if let model = KaraokeMusicModel.json(json) {
                     for info in ktvMusicList {
-                        if model.musicID == info.musicID {
-                            model.music.contentUrl = info.contentUrl
-                            model.music.lrcUrl = info.lrcUrl
-                            break
+                        if musicID == info.getMusicId() {
+                            model.music.lrcLocalPath = info.lrcLocalPath
+                            model.music.accompanyLocalPath = info.accompanyLocalPath
+                            model.music.lrcLocalPath = info.lrcLocalPath
+                            selectedList.append(model)
+                            break;
                         }
                     }
-                    selectedList.append(model)
                 }
             }
             lockSelectedList()
@@ -429,11 +416,12 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
                 let newList = ktvMusicSelectedList
                 unlockSelectedList()
                 if let next = newList.first {
-                    if next.bookUserID == ownerID {
+                    if next.userId == ownerID {
                         serviceDelegate?.onShouldPlay(next)
+                        serviceDelegate?.onShouldSetLyric(musicID: String(next.musicID))
                     }
                     else {
-                        sendShouldPlay(userID: next.bookUserID, musicID: String(next.musicID))
+                        sendShouldPlay(userID: next.userId, musicID: String(next.musicID))
                     }
                 }
             }
@@ -469,18 +457,48 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
 }
 
 extension KaraokeMusicImplement: KaraokeMusicService {
-    
-    public func ktvGetMusicPage(page: Int, pageSize: Int, callback: @escaping MusicListCallback) {
-        loadKaraokeMusicList()
-        callback(ktvMusicList)
+    public func ktvGetPopularMusic(callback: @escaping PopularMusicListCallback) {
+        callback(0,"",[KaraokePopularInfo(playlistId: "", topic: "", musicNum: 0, description: "")])
     }
     
-    public func ktvGetSelectedMusicList(_ callback: @escaping ([KaraokeMusicModel]) -> ()) {
+    public func ktvSearchMusicByKeyWords(offset: Int, pageSize:Int, keyWords: String, callback: @escaping MusicListCallback) {
+        callback(0,"",[])
+    }
+    
+    public func downloadMusic(_ musicInfo: KaraokeMusicInfo, progress: @escaping MusicProgressCallback, complete: @escaping MusicFinishCallback) {
+        progress(musicInfo.getMusicId(),1.0)
+        complete(musicInfo.getMusicId(),0,"")
+    }
+    
+    public func isMusicPreloaded(musicId: String) -> Bool {
+        return true
+    }
+    
+    public func genMusicURI(musicId: String, bgmType: Int32) -> String {
+        for tmpInfo in ktvMusicList {//0：原唱，1：伴奏  2:  歌词
+            if tmpInfo.performId == musicId {
+                if bgmType == 0 {
+                    return tmpInfo.muscicLocalPath
+                }else if bgmType == 1 {
+                    return tmpInfo.accompanyLocalPath
+                }else if bgmType == 2 {
+                    return tmpInfo.lrcLocalPath
+                }
+            }
+        }
+        return ""
+    }
+    
+    public func ktvGetMusicPage(playlistId: String, offset: Int, pageSize:Int, callback: @escaping MusicListCallback){
+        callback(0,"",ktvMusicList)
+    }
+    
+    public func ktvGetSelectedMusicList(_ callback: @escaping MusicSelectedListCallback) {
         if isOwner {
             lockSelectedList()
             let list = ktvMusicSelectedList
             unlockSelectedList()
-            callback(list)
+            callback(0,"",list)
             if let first = list.first {
                 serviceDelegate?.onShouldSetLyric(musicID: String(first.musicID))
             }
@@ -491,11 +509,12 @@ extension KaraokeMusicImplement: KaraokeMusicService {
         }
     }
     
-    public func pickMusic(musicID: String, callback: (Int32, String) -> Void) {
+    public func pickMusic(musicInfo: KaraokeMusicInfo, callback: @escaping ActionCallback) {
+        let  musicID = musicInfo.getMusicId()
         if isOwner {
             var minfo: KaraokeMusicInfo?
             for tmpInfo in ktvMusicList {
-                if tmpInfo.musicID == Int32(musicID) {
+                if tmpInfo.performId == musicID {
                     minfo = tmpInfo
                     break
                 }
@@ -503,9 +522,11 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             guard let info = minfo else {
                 return
             }
-            let music = KaraokeMusicModel(sourceModel: info, isSelected: true)
+            let music = KaraokeMusicModel(sourceModel: KaraokeMusicInfo.copyMusic(info))
+            music.isSelected = true
             music.bookUserName = TRTCKaraokeIMManager.shared.curUserName
-            music.bookUserID = TRTCKaraokeIMManager.shared.curUserID
+            music.userId = TRTCKaraokeIMManager.shared.curUserID
+            music.music.userId = TRTCKaraokeIMManager.shared.curUserID
             music.seatIndex = TRTCKaraokeIMManager.shared.seatIndex
             lockSelectedList()
             let shouldPlay = ktvMusicSelectedList.count == 0
@@ -515,14 +536,19 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             serviceDelegate?.onShouldShowMessage(music)
             if shouldPlay {
                 serviceDelegate?.onShouldPlay(music)
+                serviceDelegate?.onShouldSetLyric(musicID: String(music.musicID))
             }
+            callback(0,"")
         }
         else {
             sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MPICK, userID: ownerID, musicID: musicID)
+            callback(0,"")
         }
     }
     
-    public func deleteMusic(musicID: String, callback: (Int32, String) -> Void) {
+    
+    public func deleteMusic(musicInfo: KaraokeMusicInfo, callback: @escaping ActionCallback) {
+        let musicID: String = musicInfo.getMusicId()
         if isOwner {
             lockSelectedList()
             let list = ktvMusicSelectedList
@@ -536,13 +562,14 @@ extension KaraokeMusicImplement: KaraokeMusicService {
                     break
                 }
             }
+            callback(0,"")
         }
         else {
             sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MDELETE, userID: ownerID, musicID: musicID)
         }
     }
-    
-    public func topMusic(musicID: String, callback: (Int32, String) -> Void) {
+    public func topMusic(musicInfo: KaraokeMusicInfo, callback: @escaping ActionCallback) {
+        let musicID: String = musicInfo.getMusicId()
         guard isOwner else { return }
         lockSelectedList()
         let list = ktvMusicSelectedList
@@ -558,20 +585,22 @@ extension KaraokeMusicImplement: KaraokeMusicService {
                 break
             }
         }
+        callback(0,"")
     }
     
-    public func nextMusic(callback: (Int32, String) -> Void) {
+    public func nextMusic(musicInfo: KaraokeMusicInfo, callback: @escaping ActionCallback) {
         guard isOwner else { return }
         lockSelectedList()
         let list = ktvMusicSelectedList
         unlockSelectedList()
         guard list.count > 0 else { return }
         guard let current = list.first else { return }
-        if current.bookUserID == ownerID {
+        if current.userId == ownerID {
             serviceDelegate?.onShouldStopPlay(current)
+            callback(0,"")
         }
         else {
-            sendShouldStop(userID: current.bookUserID, musicID: String(current.musicID))
+            sendShouldStop(userID: current.userId, musicID: String(current.musicID))
         }
     }
     
@@ -580,7 +609,7 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             lockSelectedList()
             var index = IndexSet()
             for (i, music) in ktvMusicSelectedList.enumerated() {
-                if music.bookUserID == ownerID {
+                if music.userId == ownerID {
                     music.reset()
                     index.insert(i)
                 }
@@ -588,6 +617,7 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             ktvMusicSelectedList.remove(atOffsets: index)
             unlockSelectedList()
             notiListChange()
+            callback(0,"")
         }
         else {
             sendDeleteAll()
@@ -620,11 +650,12 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             let newList = ktvMusicSelectedList
             unlockSelectedList()
             if let next = newList.first {
-                if next.bookUserID == ownerID {
+                if next.userId == ownerID {
                     serviceDelegate?.onShouldPlay(next)
+                    serviceDelegate?.onShouldSetLyric(musicID: String(next.musicID))
                 }
                 else {
-                    sendShouldPlay(userID: next.bookUserID, musicID: String(next.musicID))
+                    sendShouldPlay(userID: next.userId, musicID: String(next.musicID))
                 }
             }
         }
@@ -632,14 +663,7 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             notiComplete(musicID: musicID)
         }
     }
-    
-    public func downloadMusic(musicID: String, progress: (Double) -> (), complete: (Int32, String) -> Void) {
-        
-    }
-    
-    public func downloadLRC(musicID: String, callback: (Int32, String) -> Void) {
-        
-    }
+
     
     public func setRoomInfo(roomInfo: RoomInfo) {
         self.roomInfo = roomInfo

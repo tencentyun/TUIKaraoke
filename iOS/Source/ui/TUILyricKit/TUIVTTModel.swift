@@ -62,11 +62,15 @@ public class TUIVttParser: NSObject {
                         let line = lineStr.replacingOccurrences(of: ",0>", with: ",")
                         let characterArray = line.components(separatedBy: ",")
                         guard characterArray.count == 3 else { continue }
-                        guard let startTime = Int(characterArray[0]), let duration = Int(characterArray[1]) else {
+                        guard let startTime = Int(characterArray[0]), var duration = Int(characterArray[1]) else {
                             continue
                         }
                         let characterStr = characterArray[2]
                         if isVtt {
+                            if duration == 0 {
+                                // 歌词解析时 可能出现duration为0的情况 此时需要给一个默认值：100(ms)
+                                duration = 10
+                            }
                             lineVttModel.charStrArray.append(TUIVttCharacterModel.init(startTime: startTime, duration: duration, characterStr: characterStr))
                         }
                     }

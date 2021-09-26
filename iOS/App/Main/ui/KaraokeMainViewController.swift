@@ -96,7 +96,7 @@ extension KaraokeMainViewController {
     }
     
     @objc func connectWeb() {
-        if let url = URL(string: "https://cloud.tencent.com/document/product/647/35429") {
+        if let url = URL(string: "https://cloud.tencent.com/document/product/647/59402") {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }

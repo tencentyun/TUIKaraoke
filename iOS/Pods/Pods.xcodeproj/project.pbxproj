@@ -265,6 +265,7 @@
 		BFA80A1E31D318DB3EC499DEFBBFD7E8 /* TRTCKaraokeEnteryControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D64C5CF169C9CFAF04C077576D5F785 /* TRTCKaraokeEnteryControl.swift */; };
 		C0C8961B2EAF90DA7244B427C569FCFD /* NSObject+MJProperty.h in Headers */ = {isa = PBXBuildFile; fileRef = F48036C3695DCFEEF6997BE6A463ACB1 /* NSObject+MJProperty.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C1C5B050B55C15103ABC81769551A283 /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13B14828A8DFE3E1E95FC149264AA50 /* Response.swift */; };
+		C1E675DC26CE0C13003789BD /* TRTCKaraokeSearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E675DB26CE0C13003789BD /* TRTCKaraokeSearchViewController.swift */; };
 		C1F1DB6A9CBDE584D09BA1613AAD4F9D /* Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC28951366471101E43E63B14C390C4 /* Alamofire.swift */; };
 		C21331A484C9CD854C6928AB7868187D /* TXKaraokeIMJsonHandle.m in Sources */ = {isa = PBXBuildFile; fileRef = F287AAF32A07EE2FBA61CD1D4C37C971 /* TXKaraokeIMJsonHandle.m */; };
 		C25EE22499EF8292FBCBD11CFFB626EF /* TRTCKaraokeSongSelectorTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9139C51831EC4674D4FBD7472F7596A /* TRTCKaraokeSongSelectorTableView.swift */; };
@@ -823,6 +824,7 @@
 		BE6513BB74B6E48BAADD79D4FF400809 /* TIMErrorCode.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = TIMErrorCode.h; path = ImSDK_Plus.framework/Headers/TIMErrorCode.h; sourceTree = "<group>"; };
 		BF66A5EE8E14A27D57379C4A5088396C /* Delegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Delegate.swift; path = Sources/Utility/Delegate.swift; sourceTree = "<group>"; };
 		BFF53DEB71865059DD8F90AA794545C2 /* ConstraintViewDSL.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConstraintViewDSL.swift; path = Source/ConstraintViewDSL.swift; sourceTree = "<group>"; };
+		C1E675DB26CE0C13003789BD /* TRTCKaraokeSearchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TRTCKaraokeSearchViewController.swift; sourceTree = "<group>"; };
 		C222BBCD0C2B7A531F6335DA2ABD271E /* TUIGiftAnimator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TUIGiftAnimator.swift; sourceTree = "<group>"; };
 		C26D3A4BAE01C355793F3BB182C4F7B0 /* TXLiteAVBuffer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = TXLiteAVBuffer.h; path = TXLiteAVSDK_TRTC/TXLiteAVSDK_TRTC.framework/Headers/TXLiteAVBuffer.h; sourceTree = "<group>"; };
 		C2D0A53CC0C2029D022F8280BDAF0CA9 /* NSObject+MJKeyValue.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSObject+MJKeyValue.m"; path = "MJExtension/NSObject+MJKeyValue.m"; sourceTree = "<group>"; };
@@ -1760,6 +1762,7 @@
 		C57577A4E32C36BCE3B3775D509D50FC /* TRTCCreateKTVViewController */ = {
 			isa = PBXGroup;
 			children = (
+				C1E675DB26CE0C13003789BD /* TRTCKaraokeSearchViewController.swift */,
 				1BA6C515AE3D16D1B5DDE6854985AB26 /* TRTCCreateKaraokeRootView.swift */,
 				08B243E57BAAE1BC927F6BE4D998E964 /* TRTCCreateKaraokeViewController.swift */,
 				929357A121214AD71D2CE34EC98903A4 /* TRTCCreateKaraokeViewModel.swift */,
@@ -2589,6 +2592,7 @@
 				53AA643320339D9FD1B1A321A74079E3 /* TRTCKaraokeAlertContentView.swift in Sources */,
 				8AF72D30F7DD92BBB4CDCFEA5F141BDA /* TRTCKaraokeAudienceListView.swift in Sources */,
 				DA2126921C5B3451691E4AC1BE0B6195 /* TRTCKaraokeAudienceTableViewCell.swift in Sources */,
+				C1E675DC26CE0C13003789BD /* TRTCKaraokeSearchViewController.swift in Sources */,
 				BFA80A1E31D318DB3EC499DEFBBFD7E8 /* TRTCKaraokeEnteryControl.swift in Sources */,
 				C4C8A2139B7D522A6A23180C60BAFB5B /* TRTCKaraokeFloatingWindow.swift in Sources */,
 				BB4D84F1ABB3D4E710B30D1ED60EE190 /* TRTCKaraokeIMManager.swift in Sources */,

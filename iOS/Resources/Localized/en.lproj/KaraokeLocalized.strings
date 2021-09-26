@@ -144,3 +144,6 @@
 "Demo.TRTC.Karaoke.xxissinging" = "xxx singing.";
 "Demo.TRTC.Karaoke.join" = "Join";
 "Demo.TRTC.Karaoke.xxmicyyselectzz" = "yyy from mic No. xxx requested zzz.";
+"Demo.TRTC.Karaoke.searchlike" = "Search for a song";
+"Demo.TRTC.LiveRoom.searchback" = "Cancel";
+"Demo.TRTC.LiveRoom.searchnoresult" = "No results";

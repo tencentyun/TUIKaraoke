@@ -42,7 +42,12 @@
 
 @property (nonatomic, assign) BOOL isSelfMute;
 
-@property (nonatomic, assign) int32_t currentPlayingMusicID;
+@property (nonatomic, assign) int32_t currentPlayingOriginalMusicID;
+@property (nonatomic, assign) int32_t currentPlayingAccompanyMusicID;
+@property (nonatomic, assign) BOOL isOriginalMusic;
+//@property (nonatomic, strong) dispatch_semaphore_t startPlayMusicSem;
+//@property (nonatomic, strong) dispatch_semaphore_t completePlayMusicSem;
+//@property (nonatomic, strong) dispatch_queue_t musicCheckStatusQ;
 @end
 
 @implementation TRTCKaraokeRoom
@@ -62,7 +67,9 @@ static dispatch_once_t onceToken;
         self.roomService.delegate = self;
         self.roomTRTCService.delegate =self;
         self.isSelfMute = NO;
-        self.currentPlayingMusicID = 0;
+        self.currentPlayingOriginalMusicID = 0;
+        self.currentPlayingAccompanyMusicID = 0;
+        self.isOriginalMusic = YES;
     }
     return self;
 }
@@ -116,7 +123,8 @@ static dispatch_once_t onceToken;
     [self.audienceList removeAllObjects];
     self.isSelfMute = NO;
     [self stopPlayMusic];
-    self.currentPlayingMusicID = 0;
+    self.currentPlayingOriginalMusicID = 0;
+    self.currentPlayingAccompanyMusicID = 0;
 }
 
 - (void)exitRoomInternal:(ActionCallback _Nullable)callback {
@@ -935,6 +943,9 @@ static dispatch_once_t onceToken;
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 }
 
+#pragma mark - Music
+
+
 - (void)sendSEIMsg:(NSDictionary *)json {
     NSError *err = nil;
     NSData *data = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&err];
@@ -943,43 +954,69 @@ static dispatch_once_t onceToken;
     }
 }
 
-- (void)startPlayMusic:(int32_t)musicID url:(NSString *)url {
+- (void)switchToOriginalVolume:(BOOL)isOriginal {
+    if (self.currentPlayingOriginalMusicID * self.currentPlayingAccompanyMusicID == 0) {
+        TRTCLog(@"ktv: Music playing status error");
+        return;
+    }
+    TRTCLog(@"ktv: switch to %@", isOriginal ? @"original" : @"accompany");
+    _isOriginalMusic = isOriginal;
+    [self setMusicVolume:self.currentPlayingOriginalMusicID volume:isOriginal ? 100 : 0];
+    [self setMusicVolume:self.currentPlayingAccompanyMusicID volume:isOriginal ? 0 : 100];
+}
+
+- (void)setMusicVolume:(int32_t)musicID volume:(NSInteger)volume {
+    
+    if (musicID == 0) return;
+    
+    if (volume < 0) {
+        volume = 0;
+    }
+    else if (volume > 100) {
+        volume = 100;
+    }
+    [[self getAudioEffectManager] setMusicPlayoutVolume:musicID volume:volume];
+    [[self getAudioEffectManager] setMusicPublishVolume:musicID volume:volume];
+}
+
+- (void)startPlayMusic:(int32_t)musicID originalUrl:(nonnull NSString *)originalUrl accompanyUrl:(nonnull NSString *)accompanyUrl {
     @weakify(self)
     [self runMainQueue:^{
         @strongify(self)
-        if (self.currentPlayingMusicID != 0) {
-            if (self.currentPlayingMusicID == musicID) {
+        if (self.currentPlayingOriginalMusicID * self.currentPlayingAccompanyMusicID != 0) {
+            if (self.currentPlayingOriginalMusicID == musicID) {
                 [self resumePlayMusic];
                 return;
             }
             else {
                 [self stopPlayMusic];
             }
-            self.currentPlayingMusicID = 0;
+            self.currentPlayingOriginalMusicID = 0;
+            self.currentPlayingAccompanyMusicID = 0;
         }
-        self.currentPlayingMusicID = musicID;
-        TXAudioMusicParam *param = [[TXAudioMusicParam alloc] init];
-        param.ID = musicID;
-        param.path = url;
-        param.loopCount = 0;
-        param.publish = YES;
-        int32_t musicID = self.currentPlayingMusicID;
-        TRTCLog(@"___ ktv: start play: %d", musicID);
+        self.currentPlayingOriginalMusicID = musicID;
+        self.currentPlayingAccompanyMusicID = musicID + 1;
+        
+        TXAudioMusicParam *originParam = [[TXAudioMusicParam alloc] init];
+        originParam.ID = self.currentPlayingOriginalMusicID;
+        originParam.path = originalUrl;
+        originParam.loopCount = 0;
+        originParam.publish = YES;
+        
+        TXAudioMusicParam *accompanyParam = [[TXAudioMusicParam alloc] init];
+        accompanyParam.ID = self.currentPlayingAccompanyMusicID;
+        accompanyParam.path = accompanyUrl;
+        accompanyParam.loopCount = 0;
+        accompanyParam.publish = YES;
+        
+        TRTCLog(@"ktv: start play: %d", self.currentPlayingOriginalMusicID);
         
         [self.roomTRTCService enableBlackStream:YES size:CGSizeMake(60, 60)];
         
-        [[self getAudioEffectManager] startPlayMusic:param onStart:^(NSInteger errCode) {
+        [[self getAudioEffectManager] startPlayMusic:originParam onStart:^(NSInteger errCode) {
             @strongify(self)
-            TRTCLog(@"___ ktv: on prepare");
-            [self runMainQueue:^{
-                @strongify(self)
-                [self runOnDelegateQueue:^{
-                    @strongify(self)
-                    if ([self canDelegateResponseMethod:@selector(onMusicPrepareToPlay:)]) {
-                        [self.delegate onMusicPrepareToPlay:musicID];
-                    }
-                }];
-            }];
+            TRTCLog(@"ktv: on prepare origin");
+            [self playStart:musicID];
         } onProgress:^(NSInteger progressMs, NSInteger durationMs) {
             @strongify(self)
             [self runMainQueue:^{
@@ -1001,38 +1038,61 @@ static dispatch_once_t onceToken;
             }];
         } onComplete:^(NSInteger errCode) {
             @strongify(self)
-            TRTCLog(@"___ ktv: on complete: %ld", errCode);
-            [self runMainQueue:^{
-                @strongify(self)
-                self.currentPlayingMusicID = 0;
-                [self.roomTRTCService enableBlackStream:NO size:CGSizeMake(60, 60)];
-                if ([self canDelegateResponseMethod:@selector(onMusicCompletePlaying:)]) {
-                    [self runOnDelegateQueue:^{
-                        @strongify(self)
-                        [self.delegate onMusicCompletePlaying:musicID];
-                    }];
-                }
-            }];
+            [self playComplete:musicID];
         }];
+        
+        [[self getAudioEffectManager] startPlayMusic:accompanyParam onStart:^(NSInteger errCode) {
+        } onProgress:^(NSInteger progressMs, NSInteger durationMs) {
+        } onComplete:^(NSInteger errCode) {
+        }];
+        // TODO: 这里可根据需要修改：如果记录原唱/伴奏；则不需要修改，反之则需要修改
+        [self switchToOriginalVolume:self.isOriginalMusic];
     }];
 }
 
-- (void)stopPlayMusic {
+
+-(void)playComplete:(int32_t)musicID{
     @weakify(self)
     [self runMainQueue:^{
         @strongify(self)
+        self.currentPlayingOriginalMusicID = 0;
+        self.currentPlayingAccompanyMusicID = 0;
         [self.roomTRTCService enableBlackStream:NO size:CGSizeMake(60, 60)];
-        if (self.currentPlayingMusicID != 0) {
-            int32_t musicID = self.currentPlayingMusicID;
-            TRTCLog(@"___ stop %d", musicID);
-            [[self getAudioEffectManager] stopPlayMusic:musicID];
-            self.currentPlayingMusicID = 0;
-            if ([self canDelegateResponseMethod:@selector(onMusicCompletePlaying:)]) {
-                [self runOnDelegateQueue:^{
-                    @strongify(self)
+        if ([self canDelegateResponseMethod:@selector(onMusicCompletePlaying:)]) {
+            [self runOnDelegateQueue:^{
+                @strongify(self)
+                [self.delegate onMusicCompletePlaying:musicID];
+            }];
+        }
+    }];
+}
+
+-(void)playStart:(int32_t)musicID{
+    @weakify(self)
+    [self runOnDelegateQueue:^{
+        @strongify(self)
+        if ([self canDelegateResponseMethod:@selector(onMusicPrepareToPlay:)]) {
+            [self.delegate onMusicPrepareToPlay:musicID];
+        }
+    }];
+}
+- (void)stopPlayMusic {
+    @weakify(self)
+    int32_t musicID = self.currentPlayingOriginalMusicID;
+    self.currentPlayingOriginalMusicID = 0;
+    self.currentPlayingAccompanyMusicID = 0;
+    [self runMainQueue:^{
+        @strongify(self)
+        [self.roomTRTCService enableBlackStream:NO size:CGSizeMake(60, 60)];
+        [[self getAudioEffectManager] stopPlayMusic:musicID];
+        [[self getAudioEffectManager] stopPlayMusic:musicID+1];
+        if ([self canDelegateResponseMethod:@selector(onMusicCompletePlaying:)]) {
+            [self runOnDelegateQueue:^{
+                @strongify(self)
+                if(musicID > 0){
                     [self.delegate onMusicCompletePlaying:musicID];
-                }];
-            }
+                }
+            }];
         }
     }];
 }
@@ -1041,9 +1101,9 @@ static dispatch_once_t onceToken;
     @weakify(self)
     [self runMainQueue:^{
         @strongify(self)
-        if (self.currentPlayingMusicID != 0) {
-            [[self getAudioEffectManager] pausePlayMusic:self.currentPlayingMusicID];
-            
+        if (self.currentPlayingOriginalMusicID * self.currentPlayingAccompanyMusicID != 0) {
+            [[self getAudioEffectManager] pausePlayMusic:self.currentPlayingOriginalMusicID];
+            [[self getAudioEffectManager] pausePlayMusic:self.currentPlayingAccompanyMusicID];
         }
     }];
 }
@@ -1052,9 +1112,9 @@ static dispatch_once_t onceToken;
     @weakify(self)
     [self runMainQueue:^{
         @strongify(self)
-        if (self.currentPlayingMusicID != 0) {
-            [[self getAudioEffectManager] resumePlayMusic:self.currentPlayingMusicID];
-            
+        if (self.currentPlayingOriginalMusicID * self.currentPlayingAccompanyMusicID != 0) {
+            [[self getAudioEffectManager] resumePlayMusic:self.currentPlayingOriginalMusicID];
+            [[self getAudioEffectManager] resumePlayMusic:self.currentPlayingAccompanyMusicID];
         }
     }];
 }
@@ -1132,7 +1192,7 @@ static dispatch_once_t onceToken;
     NSError *err = nil;
     NSDictionary *dic = [NSJSONSerialization JSONObjectWithData:message options:NSJSONReadingMutableContainers error:&err];
     if (err || ![dic isKindOfClass:[NSDictionary class]]) {
-        TRTCLog(@"___ recv SEI class failed");
+        TRTCLog(@"ktv: recv SEI class failed");
         return;
     }
     if ([dic.allKeys containsObject:@"music_id"] && [dic.allKeys containsObject:@"current_time"] && [dic.allKeys containsObject:@"total_time"]) {

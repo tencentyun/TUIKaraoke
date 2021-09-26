@@ -7,19 +7,19 @@
 //
 
 import Foundation
-
+public typealias cellClickCallback = (_ errorCode: Int32, _ errorMessage: String) -> Void
 class TRTCAudioEffectCellModel: NSObject {
     var actionID: Int = 0
     var title: String = ""
     var icon: UIImage?
     var selectIcon: UIImage?
     var selected: Bool = false
-    var action: (()->())?
+    var action: (() -> Void)?
 }
 
-protocol TRTCKaraokeSoundEffectViewResponder: class {
-    func bgmOnPrepareToPlay(musicID: Int32)
-    func bgmOnPlaying(musicID:Int32, current: Double, total: Double)
+protocol TRTCKaraokeSoundEffectViewResponder: AnyObject {
+    func bgmOnPrepareToPlay(performId: Int32)
+    func bgmOnPlaying(performId: Int32, current: Double, total: Double)
     func bgmOnCompletePlaying()
     func onSelectedMusicListChanged()
     func onMusicListChanged()
@@ -27,28 +27,27 @@ protocol TRTCKaraokeSoundEffectViewResponder: class {
 }
 
 class TRTCKaraokeSoundEffectViewModel: NSObject {
-    
     weak var viewResponder: TRTCKaraokeSoundEffectViewResponder?
-    
-    weak var viewModel : TRTCKaraokeViewModel?
-    
+
+    weak var viewModel: TRTCKaraokeViewModel?
+
     init(_ model: TRTCKaraokeViewModel) {
-        self.viewModel = model
+        viewModel = model
         super.init()
         reloadMusicList()
-        reloadSelectedMusicList()
+        reloadSelectedMusicList(nil)
     }
-    
-    lazy var manager : TXAudioEffectManager? = {
-        return viewModel?.Karaoke.getAudioEffectManager()
+
+    lazy var manager: TXAudioEffectManager? = {
+        viewModel?.Karaoke.getAudioEffectManager()
     }()
-    
+
     var currentMusicVolum: Int = 100
     var currentVocalVolume: Int = 100
     var currentPitchVolum: Double = 0
-    
-    var bgmID : Int32 = 0
-    
+    var currentEarMonitor: Bool = false
+    var bgmID: Int32 = 0
+
     public func setVolume(music: Int) {
         currentMusicVolum = music
         guard let manager = manager else {
@@ -59,14 +58,15 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             manager.setMusicPublishVolume(bgmID, volume: music)
         }
     }
-    
+
     public func setEarMonitor(_ enable: Bool) {
         guard let manager = manager else {
             return
         }
+        currentEarMonitor = enable
         manager.enableVoiceEarMonitor(enable)
     }
-    
+
     public func setVolume(person: Int) {
         currentVocalVolume = person
         guard let manager = manager else {
@@ -74,7 +74,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
         }
         manager.setVoiceVolume(person)
     }
-    
+
     public func setPitch(person: Double) {
         currentPitchVolum = person
         guard let manager = manager else {
@@ -84,99 +84,126 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             manager.setMusicPitch(bgmID, pitch: person)
         }
     }
-    
+
     // MARK: - Music
+
     let loadPageSize = 10
     var currentPlayingModel: KaraokeMusicModel?
-    
+
+    lazy var popularMusic: [KaraokePopularInfo] = []
     lazy var musicList: [KaraokeMusicModel] = []
     lazy var musicSelectedList: [KaraokeMusicModel] = []
-    
-    lazy var listAction: ((_ model: KaraokeMusicModel) -> (Bool)) = { [weak self] model in
-        guard let `self` = self else { return false }
-        switch self.viewModel?.userType {
-        case .anchor:
-            self.viewModel?.musicDataSource?.pickMusic(musicID: String(model.musicID), callback: { (code, msg) in
-                
+
+    lazy var userSelectedSong: [String: Bool] = [:]
+    lazy var listAction: ((_ v: KaraokeMusicModel, _ callBack: @escaping cellClickCallback) -> Void) = { [weak self] model, callBack in
+        guard let `self` = self else { return }
+        if self.viewModel?.userType == .anchor {
+            self.viewModel?.cacheSelectd.setObject("1", forKey: model.music.getMusicId() as NSString)
+            self.viewModel?.musicDataSource?.pickMusic(musicInfo: model.music, callback: { [weak self] code, msg in
+                guard let self = self else { return }
+                self.viewModel?.cacheSelectd.removeObject(forKey: model.music.getMusicId() as NSString)
+                callBack(code, msg)
             })
-            return true
-        default:
-            self.viewModel?.viewResponder?.showToast(message: .notInSeatText)
-            return false
+        } else {
+            callBack(-1, .notInSeatText)
         }
     }
-    
-    lazy var selectedAction: ((_ model: KaraokeMusicModel) -> (Bool)) = { [weak self] model in
-        guard let `self` = self else { return false }
+
+    lazy var downloadAction: ((_ musicInfo: KaraokeMusicInfo, _ progress: @escaping MusicProgressCallback, _ complete: @escaping MusicFinishCallback) -> Void) = { [weak self] musicInfo, progress, complete in
+        guard let `self` = self else { return }
+        self.viewModel?.musicDataSource?.downloadMusic(musicInfo, progress: progress, complete: complete)
+    }
+
+    lazy var selectedAction: ((_ v: KaraokeMusicModel, _ callBack: @escaping cellClickCallback) -> Void) = { [weak self] model, callBack in
+        guard let `self` = self else { return }
         guard let index = self.musicSelectedList.firstIndex(of: model) else {
-            return false
+            return
         }
         if index == 0 {
-            self.viewModel?.musicDataSource?.nextMusic(callback: { (code, msg) in
-                
+            self.viewModel?.musicDataSource?.nextMusic(musicInfo: model.music, callback: { code, msg in
+                callBack(code, msg)
+            })
+        } else {
+            self.viewModel?.musicDataSource?.topMusic(musicInfo: model.music, callback: { code, msg in
+                callBack(code, msg)
             })
         }
-        else {
-            self.viewModel?.musicDataSource?.topMusic(musicID: String(model.musicID), callback: { (code, msg) in
-                
-            })
-        }
-        return false
     }
-    
-    func resetToNormalState(_ model: KaraokeMusicModel) {
-        model.isSelected = false
-        model.seatIndex = -1
-        model.bookUserName = ""
-        model.bookUserID = ""
-        model.action = listAction
-    }
-    
+
     func reloadMusicList() {
-        viewModel?.musicDataSource?.ktvGetMusicPage(page: 0, pageSize: loadPageSize, callback: { [weak self] (list) in
+        viewModel?.musicDataSource?.ktvGetPopularMusic(callback: { [weak self] _, _, list in
             guard let `self` = self else { return }
-            self.musicList.removeAll()
-            for sourceModel in list {
-                let model = KaraokeMusicModel(sourceModel: sourceModel, action: self.listAction)
-                self.musicList.append(model)
+            self.popularMusic = list
+            if let playlistId = self.popularMusic.first?.playlistId {
+                self.loadMoreListDataByOffset(playlistId: playlistId, offset: 0)
             }
-            self.viewResponder?.onMusicListChanged()
         })
     }
-    func loadNextPageList() {
-        
-    }
-    func reloadSelectedMusicList() {
-        viewModel?.musicDataSource?.ktvGetSelectedMusicList({ [weak self] (list) in
+
+    func loadMoreListDataByOffset(playlistId: String, offset: Int) {
+        viewModel?.musicDataSource?.ktvGetMusicPage(playlistId: playlistId, offset: offset, pageSize: 50, callback: { [weak self] errorCode, _, list in
             guard let `self` = self else { return }
-            self.musicSelectedList = list
-            self.musicSelectedList.forEach { (music) in
-                music.action = self.selectedAction
+            if errorCode == 0 {
+                for sourceModel in list {
+                    let model = KaraokeMusicModel(sourceModel: sourceModel)
+                    self.musicList.append(model)
+                }
+                self.viewResponder?.onMusicListChanged()
             }
-            self.viewResponder?.onSelectedMusicListChanged()
         })
     }
-    
+
+    func reloadSelectedMusicList(_ callback: MusicSelectedListCallback?) {
+        viewModel?.musicDataSource?.ktvGetSelectedMusicList({ [weak self] errorCode, _, list in
+            guard let `self` = self else { return }
+            if errorCode == 0 {
+                self.musicSelectedList = list
+                self.viewResponder?.onSelectedMusicListChanged()
+            }
+            callback?(0, "", list)
+        })
+    }
+
     func playMusic(_ model: KaraokeMusicModel) {
-        currentPlayingModel = model
-        bgmID = model.musicID
-        viewModel?.Karaoke.startPlayMusic(musicID: model.musicID, url: model.contentUrl)
+        if currentPlayingModel?.music.performId != model.music.performId {
+            currentPlayingModel = model
+            model.seatIndex = viewModel?.getSeatIndexByUserId(userId: model.music.userId) ?? 0
+            let seatUser = viewModel?.getSeatUserByUserId(userId: model.music.userId)
+            model.bookUserName = seatUser?.userName ?? ""
+            model.bookUserAvatar = seatUser?.userAvatar ?? ""
+            bgmID = model.musicID
+            viewModel?.Karaoke.startPlayMusic(musicID: model.musicID, originalUrl: model.music.muscicLocalPath, accompanyUrl: model.music.accompanyLocalPath)
+            resetMusicSeting()
+        }
     }
-    
+
+    func resetMusicSeting() {
+        guard let manager = manager else {
+            return
+        }
+        manager.setVoiceVolume(currentVocalVolume)
+        manager.setVoiceReverbType(currentReverb)
+        manager.setVoiceChangerType(currentChangerType)
+        setVolume(music: currentMusicVolum)
+        setVolume(person: currentVocalVolume)
+        setPitch(person: currentPitchVolum)
+        setEarMonitor(currentEarMonitor)
+    }
+
     func stopPlay() {
         currentPlayingModel = nil
         bgmID = 0
         viewModel?.Karaoke.stopPlayMusic()
     }
-    
+
     func pausePlay() {
         viewModel?.Karaoke.pausePlayMusic()
     }
-    
+
     func resumePlay() {
         viewModel?.Karaoke.resumePlayMusic()
     }
-    
+
     func clearStatus() {
         currentPlayingModel = nil
         if bgmID != 0 {
@@ -186,14 +213,13 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
         }
         setVolume(music: 100)
         setVolume(person: 100)
-        
     }
-    
-    
+
     // MARK: - Voice change and reverb
-    var currentChangerType : TXVoiceChangeType = ._0
-    var currentReverb : TXVoiceReverbType = ._0
-    
+
+    var currentChangerType: TXVoiceChangeType = ._0
+    var currentReverb: TXVoiceReverbType = ._0
+
     lazy var reverbDataSource: [TRTCAudioEffectCellModel] = {
         var res: [TRTCAudioEffectCellModel] = []
         let titleArray = [
@@ -202,7 +228,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             KaraokeLocalize("ASKit.MenuItem.Metallic"),
             KaraokeLocalize("ASKit.MenuItem.Deep"),
             KaraokeLocalize("ASKit.MenuItem.Resonant"),
-            ]
+        ]
         let iconNameArray = [
             "originState_nor",
             "Reverb_Karaoke_nor",
@@ -217,11 +243,11 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             "Reverb_dichen_sel",
             "Reverb_hongliang_sel",
         ]
-        for index in 0..<titleArray.count {
+        for index in 0 ..< titleArray.count {
             let title = titleArray[index]
             let normalIconName = iconNameArray[index]
             let selectIconName = iconSelectedNameArray[index]
-            
+
             let model = TRTCAudioEffectCellModel()
             model.actionID = index
             model.title = title
@@ -240,18 +266,18 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
         }
         return res
     }()
-    
+
     lazy var voiceChangeDataSource: [TRTCAudioEffectCellModel] = {
         var res: [TRTCAudioEffectCellModel] = []
-        
+
         let titleArray =
             [KaraokeLocalize("ASKit.MenuItem.Original"),
              KaraokeLocalize("ASKit.MenuItem.Naughty boy"),
              KaraokeLocalize("ASKit.MenuItem.Little girl"),
              KaraokeLocalize("ASKit.MenuItem.Middle-aged man"),
              KaraokeLocalize("ASKit.MenuItem.Ethereal voice"),
-             ]
-        
+            ]
+
         let iconNameArray = [
             "originState_nor",
             "voiceChange_xionghaizi_nor",
@@ -259,16 +285,16 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             "voiceChange_dashu_nor",
             "voiceChange_kongling_nor",
         ]
-        
+
         let iconSelectedNameArray = [
             "originState_sel",
             "voiceChange_xionghaizi_sel",
             "voiceChange_loli_sel",
             "voiceChange_dashu_sel",
             "voiceChange_kongling_sel",
-            ]
-        
-        for index in 0..<titleArray.count {
+        ]
+
+        for index in 0 ..< titleArray.count {
             let title = titleArray[index]
             let normalIconName = iconNameArray[index]
             let selectedIconName = iconSelectedNameArray[index]
@@ -290,7 +316,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
         }
         return res
     }()
-    
+
     func switch2VoiceChangeType(_ index: Int) -> TXVoiceChangeType {
         switch index {
         case 0:
@@ -307,7 +333,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             return ._0
         }
     }
-    
+
     func switch2ReverbType(_ index: Int) -> TXVoiceReverbType {
         switch index {
         case 0:
@@ -326,7 +352,8 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
     }
 }
 
-/// MARK: - internationalization string
+// MARK: - internationalization string
+
 fileprivate extension String {
     static let musicTitle1Text = KaraokeLocalize("Demo.TRTC.Karaoke.musicname1")
     static let musicTitle2Text = KaraokeLocalize("Demo.TRTC.Karaoke.musicname2")

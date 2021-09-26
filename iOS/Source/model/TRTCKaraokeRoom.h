@@ -330,9 +330,10 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * 开始播放音乐
 * - parameter musicID   音乐的ID
-* - parameter url       音乐的绝对路径
+* - parameter originalUrl       原唱音乐的绝对路径
+* - parameter accompanyUrl       伴奏音乐的绝对路径
  */
-- (void)startPlayMusic:(int32_t)musicID url:(NSString *)url NS_SWIFT_NAME(startPlayMusic(musicID:url:));
+- (void)startPlayMusic:(int32_t)musicID originalUrl:(NSString *)originalUrl accompanyUrl:(NSString *)backingUrl NS_SWIFT_NAME(startPlayMusic(musicID:originalUrl:accompanyUrl:));
 
 /**
  * 停止播放音乐
@@ -348,6 +349,13 @@ NS_ASSUME_NONNULL_BEGIN
  * 恢复播放音乐
  */
 - (void)resumePlayMusic NS_SWIFT_NAME(resumePlayMusic());
+
+/**
+* 切换原声/伴奏
+* - parameter isOriginal 传入 true 为原声，false 为伴奏
+ */
+- (void)switchToOriginalVolume:(BOOL)isOriginal
+NS_SWIFT_NAME(switchToOriginalVolume(isOriginal:));
 
 @end
 

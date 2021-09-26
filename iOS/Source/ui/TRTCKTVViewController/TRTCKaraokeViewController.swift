@@ -27,6 +27,7 @@ public class TRTCKaraokeViewController: UIViewController {
         self.role = role
         self.toneQuality = toneQuality
         self.musicDataSource = musicDataSource
+        KaraokeMusicCacheDelegate.musicDataSource = musicDataSource
         super.init(nibName: nil, bundle: nil)
     }
     

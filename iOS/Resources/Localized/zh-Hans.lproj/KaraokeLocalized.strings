@@ -145,3 +145,6 @@
 "Demo.TRTC.Karaoke.xxissinging" = "xxx人正在嗨歌";
 "Demo.TRTC.Karaoke.join" = "一起嗨歌";
 "Demo.TRTC.Karaoke.xxmicyyselectzz" = "xxx号麦位 yyy 点歌 《zzz》";
+"Demo.TRTC.Karaoke.searchlike" = "搜索你想唱的歌曲";
+"Demo.TRTC.LiveRoom.searchback" = "取消";
+"Demo.TRTC.LiveRoom.searchnoresult" = "抱歉，没有找到你想唱的歌曲";

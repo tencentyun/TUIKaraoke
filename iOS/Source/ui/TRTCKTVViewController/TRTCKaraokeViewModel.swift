@@ -10,11 +10,11 @@ import Foundation
 import ImSDK_Plus
 
 public enum RoomUserType {
-    case anchor
-    case audience
+    case anchor//主播
+    case audience//观众
 }
 
-protocol TRTCKaraokeViewResponder: class {
+protocol TRTCKaraokeViewResponder: AnyObject {
     func showToast(message: String)
     func popToPrevious()
     func switchView(type: RoomUserType)
@@ -35,6 +35,7 @@ protocol TRTCKaraokeViewResponder: class {
 }
 
 class TRTCKaraokeViewModel: NSObject {
+    public var cacheSelectd: NSCache<NSString,NSString> = NSCache<NSString,NSString>()
     private let kSendGiftCmd = "0"
     private let dependencyContainer: TRTCKaraokeEnteryControl
     private let giftManager = TUIGiftManager.sharedManager()
@@ -56,6 +57,8 @@ class TRTCKaraokeViewModel: NSObject {
     private(set) var isSelfMute: Bool = false
     // 防止多次退房
     private var isExitingRoom: Bool = false
+    
+    private var isTakeSeat: Bool = false
     
     private(set) var roomInfo: RoomInfo
     private(set) var isSeatInitSuccess: Bool = false
@@ -109,6 +112,27 @@ class TRTCKaraokeViewModel: NSObject {
     
     public var Karaoke: TRTCKaraokeRoom {
         return dependencyContainer.getKaraoke()
+    }
+    
+    public func getSeatIndexByUserId(userId:String) -> NSInteger {
+        // 修改座位列表的user信息
+        for index in 0..<self.anchorSeatList.count {
+            let seatInfo = anchorSeatList[index]
+            if seatInfo.seatInfo?.userId == userId {
+                return seatInfo.seatIndex
+            }
+        }
+        return 0
+    }
+    public func getSeatUserByUserId(userId:String) -> UserInfo? {
+        // 修改座位列表的user信息
+        for index in 0..<self.anchorSeatList.count {
+            let seatInfo = anchorSeatList[index]
+            if seatInfo.seatInfo?.userId == userId {
+                return seatInfo.seatUser
+            }
+        }
+        return nil
     }
     
     lazy var effectViewModel: TRTCKaraokeSoundEffectViewModel = {
@@ -511,6 +535,10 @@ extension TRTCKaraokeViewModel {
     private func startTakeSeat(seatIndex: Int) {
         if isOwner {
             // 不需要的情况下自动上麦
+            if self.isTakeSeat {
+                return
+            }
+            self.isTakeSeat = true
             Karaoke.enterSeat(seatIndex: seatIndex) { [weak self] (code, message) in
                 guard let `self` = self else { return }
                 if code == 0 {
@@ -518,6 +546,7 @@ extension TRTCKaraokeViewModel {
                 } else {
                     self.viewResponder?.showToast(message: .handsupFailedText)
                 }
+                self.isTakeSeat = false
             }
         }
         else {
@@ -958,12 +987,12 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
     }
     
     func onMusicPrepareToPlay(musicID: Int32) {
-        effectViewModel.viewResponder?.bgmOnPrepareToPlay(musicID: musicID)
+        effectViewModel.viewResponder?.bgmOnPrepareToPlay(performId: musicID)
         musicDataSource?.prepareToPlay(musicID: String(musicID))
     }
     
     func onMusicProgressUpdate(musicID: Int32, progress: Int, total: Int) {
-        effectViewModel.viewResponder?.bgmOnPlaying(musicID: musicID, current: Double(progress) / 1000.0, total: Double(total) / 1000.0)
+        effectViewModel.viewResponder?.bgmOnPlaying(performId: musicID, current: Double(progress) / 1000.0, total: Double(total) / 1000.0)
     }
     
     func onMusicCompletePlaying(musicID: Int32) {
@@ -974,54 +1003,40 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
 extension TRTCKaraokeViewModel: KaraokeMusicServiceDelegate {
     func onMusicListChange(musicInfoList: [KaraokeMusicModel], reason: Int) {
         effectViewModel.musicSelectedList = musicInfoList
-        effectViewModel.musicList.forEach { (model) in
-            model.isSelected = false
-            model.action = effectViewModel.listAction
-            for (i, info) in musicInfoList.enumerated() {
-                if info.musicID == model.musicID {
-                    model.isSelected = true
-                    model.action = effectViewModel.selectedAction
-                    let smodel = effectViewModel.musicSelectedList[i]
-                    smodel.isSelected = true
-                    smodel.action = effectViewModel.selectedAction
-                    for seat in anchorSeatList {
-                        if let user = seat.seatUser {
-                            if user.userId == smodel.bookUserID {
-                                smodel.seatIndex = seat.seatIndex
-                                smodel.bookUserName = user.userName
-                                smodel.bookUserAvatar = user.userAvatar
-                                break
-                            }
-                        }
-                    }
-                    break
-                }
+        var userSelectedSong: [String:Bool] = [:]
+        for musicModel in musicInfoList {
+            if musicModel.music.userId == TRTCKaraokeIMManager.shared.curUserID {
+                userSelectedSong[musicModel.music.getMusicId()] = true
             }
         }
+        effectViewModel.userSelectedSong = userSelectedSong;
         effectViewModel.viewResponder?.onSelectedMusicListChanged()
         effectViewModel.viewResponder?.onMusicListChanged()
     }
     
     func onShouldSetLyric(musicID: String) {
-        effectViewModel.viewResponder?.bgmOnPrepareToPlay(musicID: Int32(musicID) ?? 0)
+        effectViewModel.viewResponder?.bgmOnPrepareToPlay(performId: Int32(musicID) ?? 0)
     }
     
-    func onShouldPlay(_ music: KaraokeMusicModel) {
+    func onShouldPlay(_ music: KaraokeMusicModel) -> Bool{
         if mSelfSeatIndex >= 0 {
             effectViewModel.playMusic(music)
+            return true
         }
+        return false
     }
     
-    func onShouldStopPlay(_ music: KaraokeMusicModel) {
+    func onShouldStopPlay(_ music: KaraokeMusicModel?) {
         effectViewModel.stopPlay()
     }
     
     func onShouldShowMessage(_ music: KaraokeMusicModel) {
         for seat in anchorSeatList {
-            if let user = seat.seatUser, user.userId == music.bookUserID {
+            if let user = seat.seatUser, user.userId == music.music.userId {
                 music.seatIndex = seat.seatIndex
                 music.bookUserName = user.userName
                 music.bookUserAvatar = user.userAvatar
+                break
             }
         }
         showSelectedMusic(music: music)

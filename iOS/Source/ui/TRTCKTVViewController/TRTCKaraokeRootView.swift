@@ -150,7 +150,6 @@ class TRTCKaraokeRootView: UIView {
             make.top.equalTo(topView.snp.bottom)
             make.leading.equalToSuperview().offset(20)
             make.trailing.equalToSuperview().offset(-20)
-            make.height.equalTo(189.0/812*ScreenHeight)
         }
         activateConstraintsOfCustomSeatArea()
         activateConstraintsOfTipsView()

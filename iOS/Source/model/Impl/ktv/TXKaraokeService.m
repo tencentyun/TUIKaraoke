@@ -728,8 +728,17 @@
     if (!data) {
         return;
     }
+    
     NSString* jsonString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     NSDictionary* dic = [jsonString mj_JSONObject];
+    
+    NSDictionary *dicData = dic[@"data"];
+    if (![dicData isKindOfClass:[NSDictionary class]]) {
+        dicData = @{};
+    }
+    if ([dicData.allKeys containsObject:@"instruction"] || [dic.allKeys containsObject:@"instruction"]) {
+        return;
+    }
     NSString *version = [dic objectForKey:Karaoke_KEY_ATTR_VERSION];
     if (!version || ![version isEqualToString:Karaoke_VALUE_ATTR_VERSION]) {
         TRTCLog(@"protocol version is not match, ignore msg");

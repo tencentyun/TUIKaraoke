@@ -27,6 +27,8 @@ Pod::Spec.new do |spec|
  
 #  OC第三方库
   spec.dependency 'MJExtension'
+  spec.dependency 'MJRefresh'
+  
   
   spec.requires_arc = true
   spec.static_framework = true
