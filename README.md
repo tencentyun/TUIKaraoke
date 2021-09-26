@@ -9,6 +9,7 @@
 - [实时语音/视频通话-TUICalling](https://github.com/tencentyun/TUICalling/)
 - [多人视频会议-TUIMeeting](https://github.com/tencentyun/TUIMeeting/)
 - [语音沙龙-TUIChatSalon](https://github.com/tencentyun/TUIChatSalon/)
+- [一起合唱-TUIChorus](https://github.com/tencentyun/TUIChorus/)
 
 更多组件化方案，敬请期待，也欢迎加入我们的QQ交流群：592465424，期待一起交流&学习！
 
