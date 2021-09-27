@@ -2,18 +2,15 @@ PODS:
   - Alamofire (5.4.3)
   - Kingfisher (6.3.0)
   - MJExtension (3.2.4)
+  - MJRefresh (3.7.2)
   - SnapKit (5.0.1)
-  - SSZipArchive (2.2.3)
-  - TCBeautyKit (1.0.0):
-    - SSZipArchive
-    - Toast-Swift
   - Toast-Swift (5.0.1)
   - TUIKaraoke/TRTC (1.0.0):
     - Alamofire
     - Kingfisher
     - MJExtension
+    - MJRefresh
     - SnapKit
-    - TCBeautyKit
     - Toast-Swift
     - TXAppBasic
     - TXIMSDK_Plus_iOS
@@ -24,9 +21,8 @@ PODS:
 
 DEPENDENCIES:
   - SnapKit
-  - TCBeautyKit (from `../TCBeautyKit/`)
   - TUIKaraoke/TRTC (from `./`)
-  - TXAppBasic (from `../TXAppBasic/`)
+  - TXAppBasic (from `TXAppBasic/`)
   - TXLiteAVSDK_TRTC
 
 SPEC REPOS:
@@ -34,33 +30,30 @@ SPEC REPOS:
     - Alamofire
     - Kingfisher
     - MJExtension
+    - MJRefresh
     - SnapKit
-    - SSZipArchive
     - Toast-Swift
     - TXIMSDK_Plus_iOS
     - TXLiteAVSDK_TRTC
 
 EXTERNAL SOURCES:
-  TCBeautyKit:
-    :path: "../TCBeautyKit/"
   TUIKaraoke:
     :path: "./"
   TXAppBasic:
-    :path: "../TXAppBasic/"
+    :path: TXAppBasic/
 
 SPEC CHECKSUMS:
   Alamofire: e447a2774a40c996748296fa2c55112fdbbc42f9
   Kingfisher: 6c3df386db71d82c0817a429d2c9421a77396529
   MJExtension: 88e0900751b6cac8de1cf724ca9838a0b28d5acb
+  MJRefresh: 30997d30b347c8e9508a4db11e3a690da0c9b85a
   SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
-  SSZipArchive: 62d4947b08730e4cda640473b0066d209ff033c9
-  TCBeautyKit: d7182c484218f88461680fa7dd14706efb660215
   Toast-Swift: 9b6a70f28b3bf0b96c40d46c0c4b9d6639846711
-  TUIKaraoke: 4cac589147a370137fe213f24d2e251a416c5058
+  TUIKaraoke: b1b6f452b2482f19dd7e9234510ad9e7f26c732b
   TXAppBasic: f72fd658cb2cec20f0368158752b82226cb6cdec
   TXIMSDK_Plus_iOS: 4db13c8646d4f58d8ae558488f9523a2efd4ef6a
   TXLiteAVSDK_TRTC: 2ac893645cde6ac353e5374d0b8fb08ec34f2fb8
 
-PODFILE CHECKSUM: 44c5a605adc186b28904cac7d7880a0ed22d1bb5
+PODFILE CHECKSUM: e5a692ce735fb339d524d84922086c1c5d01b985
 
 COCOAPODS: 1.10.1
