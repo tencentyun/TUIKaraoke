@@ -203,9 +203,20 @@
     if (self.mTRTCParms) {
         self.mTRTCCloud.delegate = self;
         [self enableAudioEvalutation:YES];
+        [self setFramework:5];
         [self.mTRTCCloud enterRoom:self.mTRTCParms appScene:TRTCAppSceneVoiceChatRoom];
     }
 }
+
+- (void)setFramework:(int)framework {
+    NSDictionary *jsonDic = @{@"api": @"setFramework",
+                              @"params":@{@"framework": @(framework)}};
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDic options:NSJSONWritingPrettyPrinted error:nil];
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    TRTCLog(@"jsonString = %@",jsonString);
+    [self.mTRTCCloud callExperimentalAPI: jsonString];
+}
+
 
 - (BOOL)canDelegateResponseMethod:(SEL)method {
     return self.delegate && [self.delegate respondsToSelector:method];
