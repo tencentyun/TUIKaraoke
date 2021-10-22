@@ -33,6 +33,7 @@ enum ERROR_CODE {
     ERR_SDK_COMM_FILE_OPEN_FAILED               = 7007,    ///< 文件打开失败，请检查文件是否存在，或者已被独占打开，引起 SDK 打开失败。
     ERR_SDK_COMM_API_CALL_FREQUENCY_LIMIT       = 7008,    ///< API 调用超频
     ERR_SDK_INTERFACE_NOT_SUPPORT               = 7013,    ///< 套餐包不支持该接口的使用，请升级到旗舰版套餐
+    ERR_SDK_INVALID_OPERATION                   = 7014,    ///< 非法请求
     
     // 帐号错误码
 
@@ -331,7 +332,7 @@ enum ERROR_CODE {
     ERR_SVR_GROUP_AVCHATROOM_COUNT_LIMIT        = 10036,  ///< 音视频聊天室创建数量超过了限制，请参考 [价格说明](https://cloud.tencent.com/document/product/269/11673) 购买预付费套餐“IM音视频聊天室”。
     ERR_SVR_GROUP_COUNT_LIMIT                   = 10037,  ///< 单个用户可创建和加入的群组数量超过了限制，请参考 [价格说明](https://cloud.tencent.com/document/product/269/11673) 购买或升级预付费套餐“单人可创建与加入群组数”。
     ERR_SVR_GROUP_MEMBER_COUNT_LIMIT            = 10038,  ///< 群成员数量超过限制，请参考 [价格说明](https://cloud.tencent.com/document/product/269/11673) 购买或升级预付费套餐“扩展群人数上限”。
-
+    ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFILCT      = 10056,  ///< 群属性写冲突，请先拉取最新的群属性后再尝试写操作，IMSDK  5.6 及其以上版本支持。
     /////////////////////////////////////////////////////////////////////////////////
     //
     //                      （三）IM SDK V3 版本的错误码

@@ -22,15 +22,18 @@ typedef enum TXLiteAVError
     //       NOTE: 通过回调函数 TRTCCloudDelegate##onEnterRoom() 和 TRTCCloudDelegate##OnError() 通知
     //
     /////////////////////////////////////////////////////////////////////////////////
-    ERR_ROOM_ENTER_FAIL                             = -3301,    ///< 进入房间失败
-    ERR_ROOM_REQUEST_ENTER_ROOM_TIMEOUT             = -3308,    ///< 请求进房超时，请检查网络
+    ERR_ROOM_ENTER_FAIL                             = -3301,    ///< 进入房间失败，请查看 onError 中的 -3301 对应的 msg 提示确认失败原因
+    ERR_ROOM_REQUEST_IP_TIMEOUT                     = -3307,    ///< 请求 IP 和 sig 超时，请检查网络是否正常，或网络防火墙是否放行 UDP。可尝试访问下列 IP：162.14.22.165:8000 162.14.6.105:8000 和域名：default-query.trtc.tencent-cloud.com:8000
+    ERR_ROOM_REQUEST_ENTER_ROOM_TIMEOUT             = -3308,    ///< 请求进房超时，请检查是否断网或者是否开启vpn，您也可以切换4G进行测试确认
     ERR_ENTER_ROOM_PARAM_NULL                       = -3316,    ///< 进房参数为空，请检查： enterRoom:appScene: 接口调用是否传入有效的 param
-    ERR_SDK_APPID_INVALID                           = -3317,    ///< 进房参数 sdkAppId 错误
-    ERR_ROOM_ID_INVALID                             = -3318,    ///< 进房参数 roomId 错误
-    ERR_USER_ID_INVALID                             = -3319,    ///< 进房参数 userID 不正确
-    ERR_USER_SIG_INVALID                            = -3320,    ///< 进房参数 userSig 不正确
-    ERR_ROOM_REQUEST_ENTER_ROOM_REFUSED             = -3340,    ///< 请求进房拒绝，请检查：是否连续调用 enterRoom 进入相同房间
-    ERR_SERVER_INFO_SERVICE_SUSPENDED               = -100013,  ///< 服务不可用。请检查：套餐包剩余分钟数是否大于0，腾讯云账号是否欠费
+    ERR_SDK_APPID_INVALID                           = -3317,    ///< 进房参数 sdkAppId 错误，请检查 TRTCParams.sdkAppId 是否为空
+    ERR_ROOM_ID_INVALID                             = -3318,    ///< 进房参数 roomId 错误，请检查 TRTCParams.roomId 或 TRTCParams.strRoomId 是否为空，注意 roomId 和 strRoomId 不可混用
+    ERR_USER_ID_INVALID                             = -3319,    ///< 进房参数 userId 不正确，请检查 TRTCParams.userId 是否为空
+    ERR_USER_SIG_INVALID                            = -3320,    ///< 进房参数 userSig 不正确，请检查 TRTCParams.userSig 是否为空
+    ERR_ROOM_REQUEST_ENTER_ROOM_REFUSED             = -3340,    ///< 进房请求被拒绝，请检查是否连续调用 enterRoom 进入相同 Id 的房间
+    ERR_SERVER_INFO_PRIVILEGE_FLAG_ERROR            = -100006,  ///< 您开启了高级权限控制，但参数 TRTCParams.privateMapKey 校验失败，您可参考 https://cloud.tencent.com/document/product/647/32240 进行检查
+    ERR_SERVER_INFO_SERVICE_SUSPENDED               = -100013,  ///< 服务不可用。请检查：套餐包剩余分钟数是否大于0，腾讯云账号是否欠费。您可参考 https://cloud.tencent.com/document/product/647/50492 进行查看与配置
+    ERR_SERVER_INFO_ECDH_GET_TINYID                 = -100018,  ///< UserSig 校验失败，请检查参数 TRTCParams.userSig 是否填写正确，或是否已经过期。您可参考 https://cloud.tencent.com/document/product/647/50686 进行校验
 
     /////////////////////////////////////////////////////////////////////////////////
     //
@@ -180,7 +183,6 @@ typedef enum TXLiteAVError
     ERR_ROOM_CONNECT_FAIL                           = -3304,    ///< 连接接口机服务器失败
     ERR_ROOM_REQUEST_AVSEAT_FAIL                    = -3305,    ///< 请求视频位失败
     ERR_ROOM_REQUEST_TOKEN_HTTPS_TIMEOUT            = -3306,    ///< 请求 token HTTPS 超时，请检查网络是否正常，或网络防火墙是否放行 HTTPS 访问 official.opensso.tencent-cloud.com:443
-    ERR_ROOM_REQUEST_IP_TIMEOUT                     = -3307,    ///< 请求 IP 和 sig 超时，请检查网络是否正常，或网络防火墙是否放行 UDP 访问下列 IP 和域名 query.tencent-cloud.com:8000 162.14.23.140:8000 162.14.7.49:8000
     ERR_ROOM_REQUEST_VIDEO_FLAG_TIMEOUT             = -3309,    ///< 请求视频位超时
     ERR_ROOM_REQUEST_VIDEO_DATA_ROOM_TIMEOUT        = -3310,    ///< 请求视频数据超时
     ERR_ROOM_REQUEST_CHANGE_ABILITY_TIMEOUT         = -3311,    ///< 请求修改视频能力项超时
@@ -188,6 +190,7 @@ typedef enum TXLiteAVError
     ERR_ROOM_REQUEST_CLOSE_VIDEO_TIMEOUT            = -3313,    ///< 请求关闭视频超时
     ERR_ROOM_REQUEST_SET_RECEIVE_TIMEOUT            = -3314,    ///< 请求接收视频项超时
     ERR_ROOM_REQUEST_TOKEN_INVALID_PARAMETER        = -3315,    ///< 请求 token 无效参数，请检查 TRTCParams.userSig 是否填写正确
+    ERR_ROOM_REQUEST_EXIT_ROOM_WHEN_ENTERING_ROOM   = -3341,    ///< 进房尚未成功时，收到了退房请求
 
     ERR_ROOM_REQUEST_AES_TOKEN_RETURN_ERROR         = -3329,    ///< 请求 AES TOKEN 时，server 返回的内容是空的
     ERR_ACCIP_LIST_EMPTY                            = -3331,    ///< 请求接口机 IP 返回的列表为空的
@@ -200,7 +203,6 @@ typedef enum TXLiteAVError
     ERR_SERVER_INFO_GENERATE_SIGN_FAILED            = -100003,  ///< 生成签名错误
     ERR_SERVER_INFO_TOKEN_TIMEOUT                   = -100004,  ///< HTTPS token 超时
     ERR_SERVER_INFO_INVALID_COMMAND                 = -100005,  ///< 无效的命令字
-    ERR_SERVER_INFO_PRIVILEGE_FLAG_ERROR            = -100006,  ///< 权限位校验失败
     ERR_SERVER_INFO_GENERATE_KEN_ERROR              = -100007,  ///< HTTPS 请求时，生成加密 key 错误
     ERR_SERVER_INFO_GENERATE_TOKEN_ERROR            = -100008,  ///< HTTPS 请求时，生成 token 错误
     ERR_SERVER_INFO_DATABASE                        = -100009,  ///< 数据库查询失败（房间相关存储信息）
@@ -211,7 +213,6 @@ typedef enum TXLiteAVError
     ERR_SERVER_INFO_LACK_SDKAPPID                   = -100015,  ///< 非法SDKAppid
     ERR_SERVER_INFO_INVALID                         = -100016,  ///< 无效请求, 分配接口机失败
     ERR_SERVER_INFO_ECDH_GET_KEY                    = -100017,  ///< 生成公钥失败
-    ERR_SERVER_INFO_ECDH_GET_TINYID                 = -100018,  ///< userSig 校验失败，请检查 TRTCParams.userSig 是否填写正确
     
     // Access 接口机
     ERR_SERVER_ACC_TOKEN_TIMEOUT                    = -101000,  ///< token 过期
@@ -406,6 +407,8 @@ typedef enum TXLiteAVEvent
     EVT_MIC_RELEASE_SUCC                            = 2029,     ///<  释放麦克风占用
     EVT_AUDIO_DEVICE_ROUTE_CHANGED                  = 2030,     ///<  音频设备的route发生改变，即当前的输入输出设备发生改变，比如耳机被拔出
     EVT_PLAY_GET_FLVSESSIONKEY                      = 2031,     ///<  TXLivePlayer 接收到http响应头中的 flvSessionKey 信息
+    EVT_AUDIO_SESSION_INTERRUPT                     = 2032,     ///<  Audio Session Interrupt事件
+
 
     EVT_ROOM_ENTER                                  = 1018,     ///<  进入房间成功
     EVT_ROOM_EXIT                                   = 1019,     ///<  退出房间

@@ -30,6 +30,19 @@ typedef NS_ENUM(NSInteger, TX_Enum_Type_LogLevel) {
  */
 - (void)onLog:(NSString*)log LogLevel:(int)level WhichModule:(NSString*)module;
 
+/**
+ * @brief NTP 校时回调，调用 TXLiveBase updateNetworkTime 后会触发
+ * @param errCode 0：表示校时成功且偏差在30ms以内，1：表示校时成功但偏差可能在 30ms 以上，-1：表示校时失败
+ */
+- (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg;
+
+/**
+ @brief  setLicenceURL 接口回调, result = 0 成功，负数失败。
+ @discussion
+ 需在调用 setLicenceURL 前设置 delegate
+ */
+- (void)onLicenceLoaded:(int)result Reason:(NSString *)reason;
+
 @end
 
 @interface TXLiveBase : NSObject
@@ -50,9 +63,9 @@ typedef NS_ENUM(NSInteger, TX_Enum_Type_LogLevel) {
  */
 + (int)setGlobalEnv:(const char *)env_config;
 
-/**  设置log输出级别
+/**
+ *  设置 log 输出级别
  *  @param level 参见 LOGLEVEL
- *
  */
 + (void)setLogLevel:(TX_Enum_Type_LogLevel)level;
 
@@ -66,25 +79,56 @@ typedef NS_ENUM(NSInteger, TX_Enum_Type_LogLevel) {
 
 + (void)setAudioSessionDelegate:(id<TXLiveAudioSessionDelegate>)delegate;
 
-/// 获取SDK版本信息
+/**
+ * @brief 获取 SDK 版本信息
+ * @return SDK 版本信息
+ */
 + (NSString *)getSDKVersionStr;
 
-///　 获取pitu版本信息
+/**
+ * @brief 获取 pitu 版本信息
+ * @return pitu 版本信息
+ */
 + (NSString *)getPituSDKVersion;
 
-/// 设置appID，云控使用
+/**
+ * @brief 设置 appID，云控使用
+ */
 + (void)setAppID:(NSString*)appID;
 
-/// 设置sdk的licence下载url和key
+/**
+ * @brief 设置 sdk 的 Licence 下载 url 和 key
+ */
 + (void)setLicenceURL:(NSString *)url key:(NSString *)key;
 
-/// 设置userId，用于数据上报
+/**
+ * @brief 设置 userId，用于数据上报
+ */
 + (void)setUserId:(NSString *)userId;
 
-/// 获取 Licence 信息
+/**
+ * @brief 获取 Licence 信息
+ * @return Licence 信息
+ */
 + (NSString *)getLicenceInfo;
 
-/// 设置HEVC外部解码器工厂实例
+/**
+ * @brief 设置 HEVC 外部解码器工厂实例
+ */
 + (void)setExternalDecoderFactory:(id)decoderFactory;
+
+/**
+ * 启动 NTP 校时服务
+ *
+ * @return 0：启动成功；< 0：启动失败
+ */
++ (NSInteger)updateNetworkTime;
+
+/**
+ * 获取 NTP 时间戳（毫秒），请在收到 onUpdateNetworkTime 回调后使用
+ *
+ * @return NTP 时间戳（毫秒），若返回 0：未启动 NTP 校时或校时失败，请重启校时
+ */
++ (NSInteger)getNetworkTimestamp;
 
 @end

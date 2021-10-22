@@ -46,7 +46,8 @@ enum EventID
     PUSH_WARNING_SHAKE_FAIL                     = WARNING_RTMP_SHAKE_FAIL,              ///< RTMP服务器握手失败
     PUSH_WARNING_SERVER_DISCONNECT              = WARNING_RTMP_SERVER_BREAK_CONNECT,    ///< RTMP服务器主动断开，请检查推流地址的合法性或防盗链有效期
     PUSH_WARNING_READ_WRITE_FAIL                = WARNING_RTMP_READ_WRITE_FAIL,         ///< RTMP 读/写失败，将会断开连接。
-
+    PUSH_WARNING_HEVC_ENCODE_NOT_SUPPORT        = ERR_HEVC_ENCODE_NOT_SUPPORT,          ///< 265编码判断不支持
+    
     /*内部事件*/INNER_EVT_SET_BITRATE_4_SCREEN_CAPTURE = 100001,                         ///< 动态设置录屏编码码率
     /*内部事件*/INNER_EVT_BGM_PLAY_FINISH              = 100002,                         ///< BGM播放完毕
     
@@ -73,6 +74,8 @@ enum EventID
     PLAY_EVT_STREAM_SWITCH_SUCC                 = EVT_PLAY_LIVE_STREAM_SWITCH_SUCC,     ///< 直播，切流成功（切流可以播放不同画面大小的视频）
     PLAY_EVT_GET_METADATA                       = EVT_PLAY_GET_METADATA,                ///< TXLivePlayer 接收到视频流中的 metadata 头信息（一条视频流仅触发一次）
     PLAY_EVT_GET_FLVSESSIONKEY                  = EVT_PLAY_GET_FLVSESSIONKEY,           ///< TXLivePlayer 接收到http响应头中的 flvSessionKey 信息
+    PLAY_EVT_AUDIO_SESSION_INTERRUPT            = EVT_AUDIO_SESSION_INTERRUPT,          ///< Audio Session Interrupt事件
+
     
     PLAY_ERR_NET_DISCONNECT                     = ERR_PLAY_LIVE_STREAM_NET_DISCONNECT,  ///< 直播，网络断连,且经多次重连抢救无效,可以放弃治疗,更多重试请自行重启播放
 
