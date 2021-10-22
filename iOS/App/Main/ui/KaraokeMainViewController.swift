@@ -9,7 +9,8 @@ import UIKit
 import ImSDK_Plus
 import Toast_Swift
 import TUIKaraoke
-
+import TUICore
+import Foundation
 class KaraokeMainViewController: UIViewController {
     
     let rootView = KaraokeMainRootView.init(frame: .zero)
@@ -22,6 +23,7 @@ class KaraokeMainViewController: UIViewController {
         navigationController?.navigationBar.barTintColor = .white
         setupViewHierarchy()
         initNavigationItemTitleView()
+        debugPrint("*********** Congratulations! You have completed Lab Experiment Step 2！***********")
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -67,7 +69,9 @@ extension KaraokeMainViewController {
         navigationItem.rightBarButtonItems = [rightItem, rightCDN]
         
         let backBtn = UIButton(type: .custom)
-        backBtn.setImage(UIImage.init(named: "liveroom_back"), for: .normal)
+        backBtn.setTitle(TRTCKaraokeLocalize("Demo.TRTC.Portal.Home.logout"), for: .normal)
+        backBtn.setTitleColor(UIColor.black, for: .normal)
+        backBtn.titleLabel?.font = UIFont.init(name: "PingFangSC-Regular", size: 16)
         backBtn.addTarget(self, action: #selector(backBtnClick), for: .touchUpInside)
         backBtn.sizeToFit()
         let backItem = UIBarButtonItem(customView: backBtn)
@@ -82,13 +86,12 @@ extension KaraokeMainViewController {
         let alertVC = UIAlertController.init(title: TRTCKaraokeLocalize("App.PortalViewController.areyousureloginout"), message: nil, preferredStyle: .alert)
         let cancelAction = UIAlertAction.init(title: TRTCKaraokeLocalize("App.PortalViewController.cancel"), style: .cancel, handler: nil)
         let sureAction = UIAlertAction.init(title: TRTCKaraokeLocalize("App.PortalViewController.determine"), style: .default) { (action) in
-            ProfileManager.shared.removeLoginCache()
-            V2TIMManager.sharedInstance()?.logout({
-                TRTCKaraokeRoom.shared().logout()
-                AppUtils.shared.appDelegate.showLoginViewController()
-            }, fail: { (errCode, errMsg) in
-                debugPrint("errCode = \(errCode), errMsg = \(errMsg ?? "")")
-            })
+            ProfileManager.sharedManager().removeLoginCache()
+            TRTCKaraokeRoom.shared().logout(callback: nil)
+            AppUtils.shared.appDelegate.showLoginViewController()
+            TUILogin.logout {
+            } fail: { _, _ in
+            }
         }
         alertVC.addAction(cancelAction)
         alertVC.addAction(sureAction)

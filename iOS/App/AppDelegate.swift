@@ -12,8 +12,8 @@ import ImSDK_Plus
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
-    let LICENCEURL = ""
-    let LICENCEKEY = ""
+    let LICENCEURL = "https://liteav.sdk.qcloud.com/app/res/licence/liteav/ios/TXLiveSDK_Enterprise_trtc.licence"
+    let LICENCEKEY = "9bc74ac7bfd07ea392e8fdff2ba5678a"
     
     func setLicence() {
         TXLiveBase.setLicenceURL(LICENCEURL, key: LICENCEKEY)
@@ -22,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
         setLicence()
-        
+        debugPrint("*********** Congratulations! You have completed Lab Experiment Step 1！***********")
         return true
     }
 
@@ -40,14 +40,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
 
-    func showMainViewController() {
-        guard let userId = ProfileManager.shared.curUserID() else {
-            debugPrint("not login")
-            return
+    @objc public func showLoginViewController() {
+        let loginVC = TRTCLoginViewController()
+        let nav = UINavigationController(rootViewController: loginVC)
+        if let keyWindow = AppUtils.getCurrentWindow() {
+            keyWindow.rootViewController = nav
+            keyWindow.makeKeyAndVisible()
+        } else {
+            debugPrint("window error")
         }
-        TRTCKaraokeRoom.shared().login(sdkAppID: Int32(SDKAPPID), userId: userId, userSig: ProfileManager.shared.curUserSig()) { code, message in
+    }
+    
+    @objc public func showMainViewController() {
+        TRTCKaraokeRoom.shared().login(sdkAppID: HttpLogicRequest.sdkAppId, userId: ProfileManager.sharedManager().getUserID() ?? "", userSig: ProfileManager.sharedManager().getUserSig()) {  [weak self] code, message in
+            guard let self = self else{ return}
             if code == 0 {
-                TRTCKaraokeIMManager.shared.SDKAPPID = Int32(SDKAPPID)
+                TRTCKaraokeIMManager.shared.SDKAPPID = HttpLogicRequest.sdkAppId
                 TRTCKaraokeIMManager.shared.loadData()
                 let listVC = KaraokeMainViewController.init()
                 let rootVC = UINavigationController.init(rootViewController: listVC)
@@ -56,21 +64,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     keyWindow.makeKeyAndVisible()
                 }
             } else {
-                debugPrint("im login error, code = \(code), message = \(message)")
+                self.showLoginViewController()
             }
         }
-    }
-    
-    func showLoginViewController() {
-        let loginVC = TRTCLoginViewController.init()
-        let nav = UINavigationController(rootViewController: loginVC)
-        if let keyWindow = SceneDelegate.getCurrentWindow() {
-            keyWindow.rootViewController = nav
-            keyWindow.makeKeyAndVisible()
-        }
-        else {
-            debugPrint("window error")
-        }
+        
     }
 }
 

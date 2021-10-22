@@ -44,6 +44,7 @@ public class TRTCKaraokeViewController: UIViewController {
         } else {
             model.enterRoom()
         }
+        debugPrint("*********** Congratulations! You have completed Lab Experiment！***********")
     }
     
     public override func viewWillAppear(_ animated: Bool) {

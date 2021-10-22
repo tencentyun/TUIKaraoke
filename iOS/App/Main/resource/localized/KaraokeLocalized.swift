@@ -8,6 +8,7 @@
 import Foundation
 
 let KaraokeLocalizeTableName = "KaraokeLocalized"
+
 func TRTCKaraokeLocalize(_ key: String) -> String {
     return localizeFromTable(key: key, table: KaraokeLocalizeTableName)
 }

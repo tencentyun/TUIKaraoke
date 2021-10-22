@@ -217,7 +217,6 @@
     [self.mTRTCCloud callExperimentalAPI: jsonString];
 }
 
-
 - (BOOL)canDelegateResponseMethod:(SEL)method {
     return self.delegate && [self.delegate respondsToSelector:method];
 }
