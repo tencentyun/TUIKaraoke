@@ -26,6 +26,7 @@ import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.debug.GenerateTestUserSig;
+import com.tencent.liteav.demo.login.HttpLogicRequest;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomManager;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView        mTextEnterRoom;
     private TRTCKaraokeRoom mTRTCKaraokeRoom;
 
-
+    //随机房间封面
     private static final String ROOM_COVER_ARRAY[] = {
             "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover1.png",
             "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover2.png",
@@ -65,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
     private TextWatcher mEditTextWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
         }
 
         @Override
@@ -79,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void afterTextChanged(Editable s) {
-
         }
     };
 
@@ -106,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse("https://cloud.tencent.com/document/product/647/45667"));
+                intent.setData(Uri.parse("https://cloud.tencent.com/document/product/647/59403"));
                 startActivity(intent);
             }
         });
@@ -142,10 +141,12 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         final UserModel userModel = UserModelManager.getInstance().getUserModel();
         mTRTCKaraokeRoom = TRTCKaraokeRoom.sharedInstance(this);
-        mTRTCKaraokeRoom.login(GenerateTestUserSig.SDKAPPID, userModel.userId, userModel.userSig, new TRTCKaraokeRoomCallback.ActionCallback() {
+        int sdkAppId = HttpLogicRequest.getInstance().getSdkAppId();
+        mTRTCKaraokeRoom.login(sdkAppId, userModel.userId, userModel.userSig, new TRTCKaraokeRoomCallback.ActionCallback() {
             @Override
             public void onCallback(int code, String msg) {
                 if (code == 0) {
+                    Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment Step 2！***********");
                     mTRTCKaraokeRoom.setSelfProfile(userModel.userName, userModel.userAvatar, new TRTCKaraokeRoomCallback.ActionCallback() {
                         @Override
                         public void onCallback(int code, String msg) {

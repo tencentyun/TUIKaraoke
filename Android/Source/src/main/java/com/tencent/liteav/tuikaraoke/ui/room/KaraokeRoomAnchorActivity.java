@@ -180,6 +180,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         TRTCKaraokeRoomManager.getInstance().createRoom(mRoomId, new TRTCKaraokeRoomManager.ActionCallback() {
             @Override
             public void onSuccess() {
+                Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment！***********");
                 TRTCLogger.d(TAG, "create room success");
             }
 

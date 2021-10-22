@@ -431,6 +431,17 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         return null;
     }
 
+    public KaraokeMusicModel findEntityFromSelect(String musicId) {
+        if (musicId == null || mMusicSelectedList == null) {
+            return null;
+        }
+        for (KaraokeMusicModel entity : mMusicSelectedList) {
+            if (entity.musicId.equals(musicId)) {
+                return entity;
+            }
+        }
+        return null;
+    }
     // 收发信息的管理
     // 准备播放，发通知，收到通知后应准备好歌词
     private void notiPrepare(String musicId) {
@@ -599,8 +610,9 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                         break;
                     case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MDELETE:
                         //房主收到主播删除歌曲的请求后,直接删除歌曲
-                        if (mMusicSelectedList.size() > 0) {
-                            mMusicSelectedList.remove(entity);
+                        KaraokeMusicModel model = findEntityFromSelect(musicId);
+                        if (mMusicSelectedList.size() > 0 && model != null) {
+                            mMusicSelectedList.remove(model);
                         }
                         notiListChange();
                         break;

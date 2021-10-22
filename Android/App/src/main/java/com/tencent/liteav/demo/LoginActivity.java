@@ -4,22 +4,21 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.tencent.liteav.basic.AvatarConstant;
-import com.tencent.liteav.basic.UserModel;
-import com.tencent.liteav.basic.UserModelManager;
-import com.tencent.liteav.debug.GenerateTestUserSig;
-
-import java.util.Random;
+import com.tencent.liteav.demo.login.HttpLogicRequest;
 
 public class LoginActivity extends AppCompatActivity {
-    private static final String TAG = LoginActivity.class.getName();
+    private static final String TAG = "LoginActivity";
 
     private EditText mEditUserId;
     private Button   mButtonLogin;
@@ -30,6 +29,9 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         initStatusBar();
         initView();
+        Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment Step 1！***********");
+        HttpLogicRequest.getInstance().initContext(this);
+        initData();
     }
 
     private void initView() {
@@ -47,17 +49,49 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void initData() {
+        String token = HttpLogicRequest.getInstance().getToken();
+        if (!TextUtils.isEmpty(token)) {
+            HttpLogicRequest.getInstance().autoLogin(token, new HttpLogicRequest.ActionCallback() {
+                @Override
+                public void onSuccess() {
+                    startMainActivity();
+                }
+
+                @Override
+                public void onFailed(int code, String msg) {
+                    if (code == HttpLogicRequest.ERROR_CODE_NEED_REGISTER) {
+                        Intent starter = new Intent(LoginActivity.this, ProfileActivity.class);
+                        startActivity(starter);
+                        finish();
+                    }
+                }
+            });
+        }
+    }
+
     private void login() {
-        String          userId    = mEditUserId.getText().toString().trim();
-        final UserModel userModel = new UserModel();
-        userModel.userId = userId;
-        userModel.userName = userId;
-        int    index    = new Random().nextInt(AvatarConstant.USER_AVATAR_ARRAY.length);
-        String coverUrl = AvatarConstant.USER_AVATAR_ARRAY[index];
-        userModel.userAvatar = coverUrl;
-        userModel.userSig = GenerateTestUserSig.genTestUserSig(userId);
-        final UserModelManager manager = UserModelManager.getInstance();
-        manager.setUserModel(userModel);
+        String userId = mEditUserId.getText().toString().trim();
+        Log.d(TAG, "login: userId = " + userId);
+        HttpLogicRequest.getInstance().login(userId, new HttpLogicRequest.ActionCallback() {
+            @Override
+            public void onSuccess() {
+                startMainActivity();
+                finish();
+            }
+
+            @Override
+            public void onFailed(int code, String msg) {
+                if (code == HttpLogicRequest.ERROR_CODE_NEED_REGISTER) {
+                    Intent starter = new Intent(LoginActivity.this, ProfileActivity.class);
+                    startActivity(starter);
+                    finish();
+                }
+            }
+        });
+    }
+
+    private void startMainActivity() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
         finish();

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 
 import com.blankj.utilcode.constant.PermissionConstants;
 import com.blankj.utilcode.util.PermissionUtils;
@@ -184,6 +185,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
             @Override
             public void onCallback(int code, String msg) {
                 if (code == 0) {
+                    Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment！***********");
                     //进房成功
                     ToastUtils.showShort(R.string.trtckaraoke_toast_enter_the_room_successfully);
                     mTRTCKaraokeRoom.setAudioQuality(mAudioQuality);
