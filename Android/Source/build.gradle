@@ -37,5 +37,4 @@ dependencies {
     api "com.blankj:utilcode:$UTIL_CODE_VERSION"
     api rootProject.ext.liteavSdk
     api rootProject.ext.imSdk
-    api project(':Debug')
 }

@@ -25,7 +25,6 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
-import com.tencent.liteav.debug.GenerateTestUserSig;
 import com.tencent.liteav.demo.login.HttpLogicRequest;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
