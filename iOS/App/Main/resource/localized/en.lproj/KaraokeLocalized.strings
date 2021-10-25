@@ -60,7 +60,7 @@
 "Demo.TRTC.LoginMock.nickname.clinton" = "clinton";
 "Demo.TRTC.LoginMock.nickname.virelai" = "virelai";
 "Demo.TRTC.LoginMock.nickname.Ace" = "Martijn";
-
+"Demo.TRTC.http.syserror"= "System Error";
 "Demo.TRTC.Karaoke.voicechatroom" = "Karaoke";
 "Demo.TRTC.LiveRoom.createRoom" = "Create Room";
 "Demo.TRTC.LiveRoom.roomNumber" = "Room Number  ";
