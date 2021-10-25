@@ -12,7 +12,10 @@ import TUIKaraoke
 import TUICore
 import Kingfisher
 
+//您需要在这里替换你在腾讯云发布日志中获取API网关地址，例如：
+//https://service-xxxyyzzz-xxxxxxxxxx.gz.apigw.tencentcs.com
 private let httpBaseUrl = ""
+
 private let appLoginBaseUrl = httpBaseUrl + "/prod/base/v1/"
 private let SDK_APP_ID_KEY = "sdk_app_id_key"
 
