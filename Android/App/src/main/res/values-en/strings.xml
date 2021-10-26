@@ -34,4 +34,11 @@
     <string name="app_custom_name_10">ivet</string>
     <string name="app_custom_name_11">clinton</string>
     <string name="app_custom_name_12">virelai</string>
+    <string name="app_privacy_protocol_detail">&#160;Privacy Policy&#160;</string>
+    <string name="app_protocol_start">I have read and agree to the </string>
+    <string name="app_user_agreement_detail">&#160;Terms of Use&#160;</string>
+    <string name="app_protocol_and">and</string>
+    <string name="app_privacy_protocol">Privacy Policy</string>
+    <string name="app_user_agreement">Terms of Use</string>
+    <string name="app_protocol_tip">You must agree to the Privacy Policy and Terms of Use first.</string>
 </resources>

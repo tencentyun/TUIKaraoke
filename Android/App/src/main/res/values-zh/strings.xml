@@ -36,4 +36,12 @@
     <string name="app_custom_name_10">乔巴</string>
     <string name="app_custom_name_11">鸣人</string>
     <string name="app_custom_name_12">艾斯</string>
+    <!--    增加隐私相关词条-->
+    <string name="app_protocol_start">我已阅读并同意</string>
+    <string name="app_privacy_protocol_detail">《隐私条例》</string>
+    <string name="app_user_agreement_detail">《用户协议》</string>
+    <string name="app_protocol_and">和</string>
+    <string name="app_privacy_protocol">隐私条例</string>
+    <string name="app_user_agreement">用户协议</string>
+    <string name="app_protocol_tip">请先同意隐私条款和用户协议</string>
 </resources>

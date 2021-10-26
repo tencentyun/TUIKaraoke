@@ -46,7 +46,18 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".WebViewActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar" >
 
+            <intent-filter>
+                <action android:name="com.tencent.liteav.action.ktv.webview" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
     </application>
 
 </manifest>
