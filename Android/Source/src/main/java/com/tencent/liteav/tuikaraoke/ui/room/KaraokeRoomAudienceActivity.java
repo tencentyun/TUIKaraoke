@@ -185,7 +185,6 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
             @Override
             public void onCallback(int code, String msg) {
                 if (code == 0) {
-                    Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment！***********");
                     //进房成功
                     ToastUtils.showShort(R.string.trtckaraoke_toast_enter_the_room_successfully);
                     mTRTCKaraokeRoom.setAudioQuality(mAudioQuality);
@@ -195,6 +194,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                 }
             }
         });
+        Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment！***********");
     }
 
     @Override

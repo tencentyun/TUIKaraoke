@@ -172,6 +172,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
     }
 
     private void onTRTCRoomCreateSuccess() {
+        Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment！***********");
         mIsEnterRoom = true;
         mTvRoomName.setText(mRoomName);
         mTvRoomId.setText(getString(R.string.trtckaraoke_room_id, mRoomId));
@@ -180,7 +181,6 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         TRTCKaraokeRoomManager.getInstance().createRoom(mRoomId, new TRTCKaraokeRoomManager.ActionCallback() {
             @Override
             public void onSuccess() {
-                Log.d(TAG, "*********** Congratulations! You have completed Lab Experiment！***********");
                 TRTCLogger.d(TAG, "create room success");
             }
 
