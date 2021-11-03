@@ -95,8 +95,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
             data.setRoomId(mRoomId);
             data.setInstruction(cmd);
 
-            Gson   gsonContent = new Gson();
-            String content     = gsonContent.toJson(mMusicSelectedList);
+            Gson gsonContent = new Gson();
+            String content = gsonContent.toJson(mMusicSelectedList);
 
             data.setContent(content);
             jsonData.setData(data);
@@ -133,7 +133,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     @Override
     public void ktvGetPopularMusic(KaraokeMusicCallback.PopularMusicListCallback callback) {
         List<KaraokePopularInfo> list = new ArrayList<>();
-        KaraokePopularInfo       info = new KaraokePopularInfo();
+        KaraokePopularInfo info = new KaraokePopularInfo();
         info.description = LOCAL_DESCRIPTION;
         info.musicNum = LOCAL_MUSICNUM;
         info.playlistId = LOCAL_PLAYLISTID;
@@ -147,8 +147,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         if (!LOCAL_PLAYLISTID.equals(playlistId)) {
             return;
         }
-        MusicInfoController    musicInfoController = new MusicInfoController(mContext);
-        List<KaraokeMusicInfo> list                = musicInfoController.getLibraryList();
+        MusicInfoController musicInfoController = new MusicInfoController(mContext);
+        List<KaraokeMusicInfo> list = musicInfoController.getLibraryList();
         callback.onCallback(0, "success", list);
 
         if (mMusicLibraryList.size() <= 0) {
@@ -206,7 +206,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
 
     @Override
     public void pickMusic(KaraokeMusicInfo musicInfo, KaraokeMusicCallback.ActionCallback callback) {
-        boolean           shouldPlay = mMusicSelectedList.size() == 0;
+        boolean shouldPlay = mMusicSelectedList.size() == 0;
         KaraokeMusicModel songEntity = changeMusicInfoToModel(musicInfo);
         songEntity.isSelected = true;
         songEntity.performId = songEntity.musicId;
@@ -431,6 +431,18 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         return null;
     }
 
+    public KaraokeMusicModel findEntityFromSelect(String musicId) {
+        if (musicId == null || mMusicSelectedList == null) {
+            return null;
+        }
+        for (KaraokeMusicModel entity : mMusicSelectedList) {
+            if (entity.musicId.equals(musicId)) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
     // 收发信息的管理
     // 准备播放，发通知，收到通知后应准备好歌词
     private void notiPrepare(String musicId) {
@@ -543,16 +555,16 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 return;
             }
             try {
-                Gson            gson       = new Gson();
-                KaraokeJsonData jsonData   = gson.fromJson(customStr, KaraokeJsonData.class);
-                String          businessID = jsonData.getBusinessID();
+                Gson gson = new Gson();
+                KaraokeJsonData jsonData = gson.fromJson(customStr, KaraokeJsonData.class);
+                String businessID = jsonData.getBusinessID();
                 if (!KaraokeConstants.KARAOKE_VALUE_CMD_BUSINESSID.equals(businessID)) {
                     return;
                 }
-                KaraokeJsonData.Data data        = jsonData.getData();
-                String               instruction = data.getInstruction();
-                String               musicId     = data.getContent();
-                KaraokeMusicModel    entity      = findEntityFromLibrary(musicId);
+                KaraokeJsonData.Data data = jsonData.getData();
+                String instruction = data.getInstruction();
+                String musicId = data.getContent();
+                KaraokeMusicModel entity = findEntityFromLibrary(musicId);
                 TRTCLogger.d(TAG, "RecvC2CMessage: instruction = " + instruction + " customStr = " + customStr);
                 switch (instruction) {
                     case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MGETLIST:
@@ -599,8 +611,9 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                         break;
                     case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MDELETE:
                         //房主收到主播删除歌曲的请求后,直接删除歌曲
-                        if (mMusicSelectedList.size() > 0) {
-                            mMusicSelectedList.remove(entity);
+                        KaraokeMusicModel model = findEntityFromSelect(musicId);
+                        if (mMusicSelectedList.size() > 0 && model != null) {
+                            mMusicSelectedList.remove(model);
                         }
                         notiListChange();
                         break;
@@ -640,15 +653,15 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 Log.d(TAG, "onRecvC2CCustomMessage  the customData is null");
                 return;
             }
-            Gson            gson       = new Gson();
-            KaraokeJsonData jsonData   = gson.fromJson(customStr, KaraokeJsonData.class);
-            String          businessID = jsonData.getBusinessID();
+            Gson gson = new Gson();
+            KaraokeJsonData jsonData = gson.fromJson(customStr, KaraokeJsonData.class);
+            String businessID = jsonData.getBusinessID();
             if (!KaraokeConstants.KARAOKE_VALUE_CMD_BUSINESSID.equals(businessID)) {
                 return;
             }
-            KaraokeJsonData.Data data        = jsonData.getData();
-            String               instruction = data.getInstruction();
-            String               musicId     = data.getContent();
+            KaraokeJsonData.Data data = jsonData.getData();
+            String instruction = data.getInstruction();
+            String musicId = data.getContent();
             TRTCLogger.d(TAG, "RecvGroupMessage instruction = " + instruction + " ,data = " + data);
             switch (instruction) {
                 case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MLISTCHANGE:
