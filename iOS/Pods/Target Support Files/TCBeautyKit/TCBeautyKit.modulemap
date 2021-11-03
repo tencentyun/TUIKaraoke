@@ -1,0 +1,6 @@
+framework module TCBeautyKit {
+  umbrella header "TCBeautyKit-umbrella.h"
+
+  export *
+  module * { export * }
+}

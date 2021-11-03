@@ -17,6 +17,9 @@
   },
   "swift_versions": "5.0",
   "dependencies": {
+    "TCBeautyKit": [
+
+    ],
     "TXAppBasic": [
 
     ],
@@ -36,9 +39,6 @@
 
     ],
     "MJExtension": [
-
-    ],
-    "MJRefresh": [
 
     ]
   },
