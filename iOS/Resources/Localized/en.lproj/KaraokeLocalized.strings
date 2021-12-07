@@ -7,13 +7,13 @@
 */
 
 "Demo.TRTC.Karaoke.exit" = "Exit";
-"Demo.TRTC.Karaoke.isvoicingandsuretoexit" = "Are you sure you want to exit the live stream?";
+"Demo.TRTC.Karaoke.isvoicingandsuretoexit" = "The room will close after you leave. Leave?";
 "Demo.TRTC.LiveRoom.confirm" = "OK";
 "Demo.TRTC.LiveRoom.cancel" = "Cancel";
 "Demo.TRTC.Salon.seatmuted" = "Muted by room owner";
 "Demo.TRTC.Salon.seatunmuted" = "Unmuted by room owner";
-"Demo.TRTC.LiveRoom.accept" = "Accept";
-"Demo.TRTC.LiveRoom.refuse" = "Decline";
+"Demo.TRTC.LiveRoom.accept" = "Confirm";
+"Demo.TRTC.LiveRoom.refuse" = "Cancel";
 "Demo.TRTC.Salon.pleaseselect" = "Please Select";
 "Demo.TRTC.LiveRoom.cancel" = "Cancel";
 "Demo.TRTC.Karaoke.xxonline" = "xxx is online";
@@ -98,11 +98,11 @@
 "Demo.TRTC.Karaoke.roomidxx" = "Room ID: xxx";
 "Demo.TRTC.Karaoke.xxenterroom" = "xxx enters the room";
 "Demo.TRTC.Karaoke.exit" = "Exit";
-"Demo.TRTC.Karaoke.isvoicingandsuretoexit" = "Are you sure you want to exit the live stream?";
+"Demo.TRTC.Karaoke.isvoicingandsuretoexit" = "The room will close after you leave. Leave?";
 "ASKit.MainMenu.Title" = "Sound effect settings";
 "ASKit.MainMenu.VoiceChangeTitle" = "Voice changing";
 "ASKit.MainMenu.Reverberation" = "Reverb";
-"ASKit.MusicSelectMenu.Title" = "Background music";
+"ASKit.MusicSelectMenu.Title" = "Music";
 "Demo.TRTC.Karaoke.useearphones" = "Use earphones for better experience";
 "Demo.TRTC.Karaoke.copyrights" = "Music Library ©";
 "ASKit.MainMenu.SelectMusic" = "Select song";
