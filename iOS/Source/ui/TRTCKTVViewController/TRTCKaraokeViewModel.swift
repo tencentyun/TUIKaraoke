@@ -16,6 +16,8 @@ public enum RoomUserType {
 
 protocol TRTCKaraokeViewResponder: AnyObject {
     func showToast(message: String)
+    func showToastActivity()
+    func hiddenToastActivity()
     func popToPrevious()
     func switchView(type: RoomUserType)
     func changeRoom(info: RoomInfo)
@@ -181,7 +183,7 @@ class TRTCKaraokeViewModel: NSObject {
     public var muteItem: IconTuple?
     
     public func muteAction(isMute: Bool) -> Bool {
-        if mSelfSeatIndex > 0, let user = anchorSeatList[mSelfSeatIndex-1].seatUser, !(anchorSeatList[mSelfSeatIndex-1].seatInfo?.mute ?? true) {
+        if mSelfSeatIndex > 0, mSelfSeatIndex < anchorSeatList.count, let user = anchorSeatList[mSelfSeatIndex].seatUser, !(anchorSeatList[mSelfSeatIndex].seatInfo?.mute ?? true) {
             userMuteMap[user.userId] = isMute
             viewResponder?.onAnchorMute(isMute: isMute)
         }
@@ -942,8 +944,12 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
                 return
             }
             if !seatModel.isUsed {
+                // 显示Loading指示框， 回调结束消失
+                self.viewResponder?.showToastActivity()
                 Karaoke.enterSeat(seatIndex: seatIndex) { [weak self] (code, message) in
                     guard let `self` = self else { return }
+                    // 隐藏loading指示器
+                    self.viewResponder?.hiddenToastActivity()
                     if code == 0 {
                         self.viewResponder?.showToast(message: .handsupSuccessText)
                     } else {

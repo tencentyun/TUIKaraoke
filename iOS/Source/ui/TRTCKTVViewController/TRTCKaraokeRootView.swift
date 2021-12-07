@@ -375,6 +375,14 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         makeToast(message)
     }
     
+    func showToastActivity(){
+        makeToastActivity(.center)
+    }
+    
+    func hiddenToastActivity() {
+        hideToastActivity()
+    }
+    
     func popToPrevious() {
         rootViewController?.navigationController?.popViewController(animated: true)
     }
