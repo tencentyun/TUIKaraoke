@@ -121,6 +121,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     protected AppCompatImageButton        mBtnMic;
     protected AppCompatImageButton        mBtnGift;
     protected ImageView                   mIvAudienceMove;
+    protected View                        mProgressBar;
 
     protected TUIKaraokeAudioManager     mTUIKaraokeAudioManager;
     protected InputTextMsgDialog         mInputTextMsgDialog;
@@ -210,6 +211,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         mRvAudience = (RecyclerView) findViewById(R.id.rv_audience);
         mIvAudienceMove = (ImageView) findViewById(R.id.iv_audience_move);
         mBtnExitRoom = (AppCompatImageButton) findViewById(R.id.exit_room);
+        mProgressBar = findViewById(R.id.progress_group);
 
         mRvSeat = (RecyclerView) findViewById(R.id.rv_seat);
         mRvImMsg = (RecyclerView) findViewById(R.id.rv_im_msg);

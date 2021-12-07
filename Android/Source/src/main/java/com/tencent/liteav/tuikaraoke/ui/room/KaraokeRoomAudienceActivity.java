@@ -4,7 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
+import android.view.View;
 
 import com.blankj.utilcode.constant.PermissionConstants;
 import com.blankj.utilcode.util.PermissionUtils;
@@ -32,6 +35,7 @@ import java.util.Map;
  * 听众界面
  */
 public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
+    private static final int MSG_DISMISS_LOADING = 1001;
 
     private        Map<String, Integer>  mInvitationSeatMap;
     private        String                mOwnerId;
@@ -41,6 +45,8 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     private static AudienceRoomEntity    mCollectEntity;
     private static AudienceRoomEntity    mLastEntity;
     private        boolean               mRoomDestroy;
+    private boolean                      mIsTakingSeat; //正在进行上麦
+
 
     public static void enterRoom(final Context context, final int roomId, final String userId, final int audioQuality) {
         //保存房间信息
@@ -64,6 +70,16 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
         starter.putExtra(KTVROOM_AUDIO_QUALITY, audioQuality);
         context.startActivity(starter);
     }
+
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == MSG_DISMISS_LOADING) {
+                mHandler.removeMessages(MSG_DISMISS_LOADING);
+                mProgressBar.setVisibility(View.GONE);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -300,6 +316,10 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                 @Override
                 public void onClick() {
                     mAlertDialog.dismiss();
+                    if (mIsTakingSeat) {
+                        return;
+                    }
+                    showTakingSeatLoading(true);
                     mTRTCKaraokeRoom.enterSeat(changeSeatIndexToModelIndex(itemPos), new TRTCKaraokeRoomCallback.ActionCallback() {
                         @Override
                         public void onCallback(int code, String msg) {
@@ -307,6 +327,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                                 //成功上座位，可以展示UI了
                                 ToastUtils.showLong(getString(R.string.trtckaraoke_toast_owner_succeeded_in_occupying_the_seat));
                             } else {
+                                showTakingSeatLoading(false);
                                 ToastUtils.showLong(getString(R.string.trtckaraoke_toast_owner_failed_to_occupy_the_seat), code, msg);
                             }
                         }
@@ -348,15 +369,31 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
         if (seatIndex != null) {
             KaraokeRoomSeatEntity entity = mKaraokeRoomSeatEntityList.get(seatIndex);
             if (!entity.isUsed) {
+                if (mIsTakingSeat) {
+                    return;
+                }
+                showTakingSeatLoading(true);
                 mTRTCKaraokeRoom.enterSeat(changeSeatIndexToModelIndex(seatIndex), new TRTCKaraokeRoomCallback.ActionCallback() {
                     @Override
                     public void onCallback(int code, String msg) {
                         if (code == 0) {
                             TRTCLogger.d(TAG, " enter seat succeed");
+                        } else {
+                            showTakingSeatLoading(false);
                         }
                     }
                 });
             }
+        }
+    }
+
+    private void showTakingSeatLoading(boolean isShow) {
+        mIsTakingSeat = isShow;
+        mProgressBar.setVisibility(isShow ? View.VISIBLE : View.GONE);
+        if (isShow) {
+            mHandler.sendEmptyMessageDelayed(MSG_DISMISS_LOADING, 10000);
+        } else {
+            mHandler.removeMessages(MSG_DISMISS_LOADING);
         }
     }
 
@@ -366,6 +403,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
         if (user.userId.equals(mSelfUserId)) {
             mCurrentRole = TRTCCloudDef.TRTCRoleAnchor;
             mSelfSeatIndex = index;
+            showTakingSeatLoading(false);
             refreshView();
         }
     }

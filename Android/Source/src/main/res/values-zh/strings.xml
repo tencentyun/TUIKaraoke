@@ -7,8 +7,7 @@
     <string name="trtckaraoke_warning_room_name_too_long">房间名称过长</string>
     <string name="trtckaraoke_send">发送</string>
     <string name="trtckaraoke_dialog_cancel">取消</string>
-    <string name="trtckaraoke_btn_confirm">我确定</string>
-    <string name="trtckaraoke_btn_cancel">再等等</string>
+    <string name="trtckaraoke_btn_confirm">确定</string>
     <string name="trtckaraoke_warning_not_empty">输入不能为空!</string>
     <string name="trtckaraoke_delete">删除</string>
 
@@ -25,7 +24,6 @@
     <string name="trtckaraoke_tv_the_position_has_unmuted">%d号位解除禁言</string>
     <string name="trtckaraoke_tv_the_owner_ban_this_position">房主封禁%d号位</string>
     <string name="trtckaraoke_tv_the_owner_not_ban_this_position">房主解禁%d号位</string>
-    <string name="trtckaraoke_toast_accept_request_failure">接受请求失败:%d</string>
 
     <string name="trtckaraoke_tv_online_no_name">上%d号麦</string>
     <string name="trtckaraoke_tv_offline_no_name">下%d号麦</string>
@@ -55,15 +53,12 @@
     <string name="trtckaraoke_toast_offline_successfully">下麦成功</string>
     <string name="trtckaraoke_toast_offline_failure">下麦失败:%s</string>
     <string name="trtckaraoke_toast_you_are_already_an_anchor">您已经是麦上主播了~</string>
-
-    <string name="trtckaraoke_msg_invite_you_to_chat">主播邀请你上%d号麦</string>
     <string name="trtckaraoke_msg_apply_for_chat">申请上%d号麦</string>
     <string name="trtckaraoke_tv_apply_for_chat">申请上麦</string>
     <string name="trtckaraoke_seat_closed">该麦位已经被关闭了</string>
 
     <string name="trtckaraoke_accept_failed">接受请求失败</string>
     <string name="trtckaraoke_msg_close_room">房主已解散房间</string>
-    <string name="trtckaraoke_audience_leave_room">确认离开房间吗？</string>
     <string name="trtckaraoke_toast_you_have_turned_on_the_microphone">您已开启麦克风</string>
     <string name="trtckaraoke_toast_you_have_turned_off_the_microphone">您已关闭麦克风</string>
     <string name="trtckaraoke_toast_anchor_can_only_operate_it">主播才能操作哦</string>
@@ -98,8 +93,6 @@
     <string name="trtckaraoke_gift_send_out">确认打赏</string>
 
     <!--    音效面板-->
-    <string name="trtckaraoke_bgm_title">背景音乐</string>
-    <string name="trtckaraoke_back">返回</string>
     <string name="trtckaraoke_sound_effects">音效</string>
     <string name="trtckaraoke_sound_audition">音效试听</string>
     <string name="trtckaraoke_put_on_your_headphones">请带上耳机获得更好体验</string>
@@ -109,9 +102,7 @@
     <string name="trtckaraoke_mic_volume">人声音量</string>
     <string name="trtckaraoke_changer">变声</string>
     <string name="trtckaraoke_reverb">混响</string>
-    <string name="trtckaraoke_bg_music_positive_happy">欢快</string>
-    <string name="trtckaraoke_bg_music_sad_cinematic_piano">忧郁</string>
-    <string name="trtckaraoke_bg_music_wonder_world">神奇世界</string>
+
     <string name="trtckaraoke_no_effect">无效果</string>
     <string name="trtckaraoke_audio_change_type_child">熊孩子</string>
     <string name="trtckaraoke_audio_change_type_luoli">萝莉</string>

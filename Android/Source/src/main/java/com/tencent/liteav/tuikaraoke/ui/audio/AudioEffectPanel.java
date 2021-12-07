@@ -415,16 +415,8 @@ public class AudioEffectPanel extends BottomSheetDialog {
         void onItemClick(int position);
     }
 
-    public void showAudioPanel() {
-        mMainAudioEffectPanel.setVisibility(VISIBLE);
-    }
-
-    public void hideAudioPanel() {
-        mMainAudioEffectPanel.setVisibility(GONE);
-    }
-
-    public void setTRTCKaraokeRoom(TRTCKaraokeRoom TRTCKaraokeRoom) {
-        mTRTCKaraokeRoom = TRTCKaraokeRoom;
+    public void setTRTCKaraokeRoom(TRTCKaraokeRoom trtcKaraokeRoom) {
+        mTRTCKaraokeRoom = trtcKaraokeRoom;
     }
 
     public void reset() {

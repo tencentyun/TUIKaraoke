@@ -29,7 +29,6 @@ import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicServiceDelegate {
     private static String          TAG = "KaraokeMusicView";
     private final  Context         mContext;
@@ -46,8 +45,6 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     private Button       mBtnChangeVoice;
     private Button       mBtnSwitchMusic;
     private Button       mBtnEmptyChoose;
-    private int          mPage         = 1;
-    private int          mLoadPageSize = 10;
 
     private KaraokeMusicService         mMusicManagerImpl;
     private List<KaraokeMusicModel>     mSelectedList;
@@ -153,7 +150,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         mBtnChangeVoice = (Button) view.findViewById(R.id.btn_change_voice);
     }
 
-    public void updateSongTableView(int size) {
+    private void updateSongTableView(int size) {
         if (size == 0) {
             mLayoutSongInfo.setVisibility(View.GONE);
             mLayoutInfo.setVisibility(View.GONE);
@@ -243,10 +240,13 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     }
 
     //打开点歌/已点面板
-    public void showChooseSongDialog() {
+    private void showChooseSongDialog() {
         if (mDialog != null) {
             mDialog.show();
         } else {
+            if (mRoomInfoController == null) {
+                return;
+            }
             mDialog = new KaraokeMusicDialog(mContext, mRoomInfoController);
             mDialog.show();
         }
@@ -258,7 +258,6 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         }
         return mRoomInfoController.isAnchor();
     }
-
 
     @Override
     public void OnMusicListChange(List<KaraokeMusicModel> musicInfoList) {

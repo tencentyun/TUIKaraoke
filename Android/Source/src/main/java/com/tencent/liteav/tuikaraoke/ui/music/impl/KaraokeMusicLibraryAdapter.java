@@ -19,7 +19,6 @@ import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import com.tencent.liteav.tuikaraoke.ui.widget.RoundCornerImageView;
 
 import java.util.List;
-import java.util.Random;
 
 public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusicLibraryAdapter.ViewHolder> {
     protected Context                 mContext;

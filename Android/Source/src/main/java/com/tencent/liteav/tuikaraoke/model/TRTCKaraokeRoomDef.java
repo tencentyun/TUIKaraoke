@@ -3,7 +3,10 @@ package com.tencent.liteav.tuikaraoke.model;
 import java.util.List;
 
 public class TRTCKaraokeRoomDef {
+    public static final int ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT = 10056; //群属性写冲突，请先拉取最新的群属性后再尝试写操作，IMSDK5.6及其以上版本支持，麦位信息已经发生变化，需要重新拉取
+
     public static class SeatInfo {
+
         public static final transient int STATUS_UNUSED = 0;
         public static final transient int STATUS_USED   = 1;
         public static final transient int STATUS_CLOSE  = 2;

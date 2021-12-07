@@ -681,7 +681,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "kickSeat " + seatIndex + " " + isMute);
+                TRTCLogger.i(TAG, "muteSeat " + seatIndex + " " + isMute);
                 TXRoomService.getInstance().muteSeat(seatIndex, isMute, new TXCallback() {
                     @Override
                     public void onCallback(final int code, final String msg) {

@@ -18,7 +18,6 @@ import com.tencent.liteav.tuikaraoke.R;
 
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.ui.music.CustomViewPager;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicService;
 import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 
 import java.util.ArrayList;

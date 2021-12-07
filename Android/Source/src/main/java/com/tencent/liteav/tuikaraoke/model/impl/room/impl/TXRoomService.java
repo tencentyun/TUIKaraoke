@@ -19,6 +19,7 @@ import com.tencent.imsdk.v2.V2TIMSignalingListener;
 import com.tencent.imsdk.v2.V2TIMSimpleMsgListener;
 import com.tencent.imsdk.v2.V2TIMUserFullInfo;
 import com.tencent.imsdk.v2.V2TIMValueCallback;
+import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TXCallback;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TXRoomInfo;
@@ -87,7 +88,7 @@ public class TXRoomService extends V2TIMSDKListener {
         // 未初始化 IM 先初始化 IM
         if (!mIsInitIMSDK) {
             V2TIMSDKConfig config = new V2TIMSDKConfig();
-            mIsInitIMSDK = V2TIMManager.getInstance().initSDK(mContext, sdkAppId, config, this);
+            mIsInitIMSDK = V2TIMManager.getInstance().initSDK(mContext, sdkAppId, config);
             if (!mIsInitIMSDK) {
                 TRTCLogger.e(TAG, "init im sdk error.");
                 if (callback != null) {
@@ -98,21 +99,14 @@ public class TXRoomService extends V2TIMSDKListener {
         }
         mIsInitIMSDK = true;
         // 登陆到 IM
-        String loginedUserId = V2TIMManager.getInstance().getLoginUser();
-        if (loginedUserId != null && loginedUserId.equals(userId)) {
+        String loggedUserId = V2TIMManager.getInstance().getLoginUser();
+        if (loggedUserId != null && loggedUserId.equals(userId)) {
             // 已经登录过了
             mIsLogin = true;
             mSelfUserId = userId;
             TRTCLogger.i(TAG, "login im success.");
             if (callback != null) {
                 callback.onCallback(0, "login im success.");
-            }
-            return;
-        }
-        if (isLogin()) {
-            TRTCLogger.e(TAG, "start login fail, you have been login, can't login twice.");
-            if (callback != null) {
-                callback.onCallback(CODE_ERROR, "start login fail, you have been login, can't login twice.");
             }
             return;
         }
@@ -182,6 +176,8 @@ public class TXRoomService extends V2TIMSDKListener {
             }
             return;
         }
+        mIsLogin = false;
+        mSelfUserId = "";
         V2TIMManager.getInstance().logout(new V2TIMCallback() {
             @Override
             public void onError(int i, String s) {
@@ -193,8 +189,6 @@ public class TXRoomService extends V2TIMSDKListener {
 
             @Override
             public void onSuccess() {
-                mIsLogin = false;
-                mSelfUserId = "";
                 TRTCLogger.i(TAG, "logout im success.");
                 if (callback != null) {
                     callback.onCallback(0, "login im success.");
@@ -347,8 +341,23 @@ public class TXRoomService extends V2TIMSDKListener {
             @Override
             public void onError(int i, String s) {
                 TRTCLogger.i(TAG, "init room info and seat failed. code:" + i);
-                if (callback != null) {
-                    callback.onCallback(i, s);
+                if (i == TRTCKaraokeRoomDef.ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
+                    getGroupAttrs(new TXCallback() {
+                        @Override
+                        public void onCallback(int code, String msg) {
+                            if (callback != null) {
+                                if (code == 0) {
+                                    callback.onCallback(0, "create room success.");
+                                } else {
+                                    callback.onCallback(code, msg);
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    if (callback != null) {
+                        callback.onCallback(i, s);
+                    }
                 }
             }
 
@@ -495,8 +504,8 @@ public class TXRoomService extends V2TIMSDKListener {
     }
 
     public void takeSeat(int index, TXCallback callback) {
-        if (mTXSeatInfoList == null || index > mTXSeatInfoList.size()) {
-            TRTCLogger.e(TAG, "seat info list is empty");
+        if (mTXSeatInfoList == null || index >= mTXSeatInfoList.size()) {
+            TRTCLogger.e(TAG, "seat info list is empty or index error");
             if (callback != null) {
                 callback.onCallback(-1, "seat info list is empty or index error");
             }
@@ -510,6 +519,14 @@ public class TXRoomService extends V2TIMSDKListener {
             }
             return;
         }
+
+        if (TextUtils.isEmpty(mSelfUserId)) {
+            if (callback != null) {
+                callback.onCallback(-1, "self userId is null");
+            }
+            return;
+        }
+
         // 修改属性列表
         TXSeatInfo changeInfo = new TXSeatInfo();
         changeInfo.status = TXSeatInfo.STATUS_USED;
@@ -520,8 +537,8 @@ public class TXRoomService extends V2TIMSDKListener {
     }
 
     public void leaveSeat(int index, TXCallback callback) {
-        if (mTXSeatInfoList == null || index > mTXSeatInfoList.size()) {
-            TRTCLogger.e(TAG, "seat info list is empty");
+        if (mTXSeatInfoList == null || index >= mTXSeatInfoList.size()) {
+            TRTCLogger.e(TAG, "seat info list is empty or index error");
             if (callback != null) {
                 callback.onCallback(-1, "seat info list is empty or index error");
             }
@@ -545,6 +562,13 @@ public class TXRoomService extends V2TIMSDKListener {
     }
 
     public void pickSeat(int index, String userId, TXCallback callback) {
+        if (TextUtils.isEmpty(userId)) {
+            if (callback != null) {
+                callback.onCallback(-1, "userId is null");
+            }
+            return;
+        }
+
         if (!isOwner()) {
             TRTCLogger.e(TAG, "only owner could pick seat");
             if (callback != null) {
@@ -552,8 +576,8 @@ public class TXRoomService extends V2TIMSDKListener {
             }
             return;
         }
-        if (mTXSeatInfoList == null || index > mTXSeatInfoList.size()) {
-            TRTCLogger.e(TAG, "seat info list is empty");
+        if (mTXSeatInfoList == null || index >= mTXSeatInfoList.size()) {
+            TRTCLogger.e(TAG, "seat info list is empty or index error");
             if (callback != null) {
                 callback.onCallback(-1, "seat info list is empty or index error");
             }
@@ -585,8 +609,8 @@ public class TXRoomService extends V2TIMSDKListener {
             }
             return;
         }
-        if (mTXSeatInfoList == null || index > mTXSeatInfoList.size()) {
-            TRTCLogger.e(TAG, "seat info list is empty");
+        if (mTXSeatInfoList == null || index >= mTXSeatInfoList.size()) {
+            TRTCLogger.e(TAG, "seat info list is empty or index error");
             if (callback != null) {
                 callback.onCallback(-1, "seat info list is empty or index error");
             }
@@ -646,13 +670,89 @@ public class TXRoomService extends V2TIMSDKListener {
         modifyGroupAttrs(map, callback);
     }
 
-    private void modifyGroupAttrs(HashMap<String, String> map, final TXCallback callback) {
-        V2TIMManager.getGroupManager().setGroupAttributes(mRoomId, map, new V2TIMCallback() {
+    private void getGroupAttrs(final TXCallback callback) {
+        V2TIMManager.getGroupManager().getGroupAttributes(mRoomId, null, new V2TIMValueCallback<Map<String, String>>() {
             @Override
             public void onError(int i, String s) {
-                TRTCLogger.e(TAG, "modify group attrs error, code:" + i + " " + s);
+                TRTCLogger.e(TAG, "get group attrs error, code:" + i + " msg:" + s);
                 if (callback != null) {
                     callback.onCallback(i, s);
+                }
+            }
+
+            @Override
+            public void onSuccess(Map<String, String> attrMap) {
+                TRTCLogger.e(TAG, "getGroupAttrs attrMap:" + attrMap);
+                mIsEnterRoom = true;
+                mOwnerUserId = mTXRoomInfo.ownerId;
+                mTXRoomInfo = IMProtocol.getRoomInfoFromAttr(attrMap);
+                mTXRoomInfo.roomId = mRoomId;
+                if (mTXRoomInfo == null) {
+                    TRTCLogger.e(TAG, "group room info is empty");
+                    callback.onCallback(-1, "group room info is empty");
+                    return;
+                }
+                if (mTXRoomInfo.seatSize == null) {
+                    mTXRoomInfo.seatSize = 0;
+                }
+                if (mDelegate != null) {
+                    mDelegate.onRoomInfoChange(mTXRoomInfo);
+                }
+                onSeatAttrMapChanged(attrMap, mTXRoomInfo.seatSize);
+                if (callback != null) {
+                    callback.onCallback(0, "success");
+                }
+            }
+        });
+    }
+
+    private void onSeatAttrMapChanged(Map<String, String> attrMap, int seatSize) {
+        List<TXSeatInfo>       txSeatInfoList    = IMProtocol.getSeatListFromAttr(attrMap, seatSize);
+        final List<TXSeatInfo> oldTXSeatInfoList = mTXSeatInfoList;
+        mTXSeatInfoList = txSeatInfoList;
+        if (mDelegate != null) {
+            mDelegate.onSeatInfoListChange(txSeatInfoList);
+        }
+        try {
+            for (int i = 0; i < seatSize; i++) {
+                TXSeatInfo oldInfo = oldTXSeatInfoList.get(i);
+                TXSeatInfo newInfo = txSeatInfoList.get(i);
+                if (oldInfo.status == TXSeatInfo.STATUS_CLOSE && newInfo.status == TXSeatInfo.STATUS_UNUSED) {
+                    onSeatClose(i, false);
+                } else if (oldInfo.status != newInfo.status) {
+                    switch (newInfo.status) {
+                        case TXSeatInfo.STATUS_UNUSED:
+                            onSeatLeave(i, oldInfo.user);
+                            break;
+                        case TXSeatInfo.STATUS_USED:
+                            onSeatTake(i, newInfo.user);
+                            break;
+                        case TXSeatInfo.STATUS_CLOSE:
+                            onSeatClose(i, true);
+                            break;
+                    }
+                }
+                if (oldInfo.mute != newInfo.mute) {
+                    onSeatMute(i, newInfo.mute);
+                }
+            }
+        } catch (Exception e) {
+            TRTCLogger.e(TAG, "group attr changed, seat compare error:" + e.getCause());
+        }
+    }
+
+    private void modifyGroupAttrs(HashMap<String, String> map, final TXCallback callback) {
+        TRTCLogger.d(TAG, "modify group attrs, map:" + map);
+        V2TIMManager.getGroupManager().setGroupAttributes(mRoomId, map, new V2TIMCallback() {
+            @Override
+            public void onError(int code, String message) {
+                TRTCLogger.e(TAG, "modify group attrs error, code:" + code + " message" + message);
+                if (callback != null) {
+                    callback.onCallback(code, message);
+                }
+                //当前群属性修改的版本与后台版本不匹配
+                if (code == TRTCKaraokeRoomDef.ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
+                    getGroupAttrs(callback);
                 }
             }
 
@@ -1107,38 +1207,7 @@ public class TXRoomService extends V2TIMSDKListener {
                 TRTCLogger.e(TAG, "group attr changed, but room info is empty!");
                 return;
             }
-            List<TXSeatInfo>       txSeatInfoList    = IMProtocol.getSeatListFromAttr(groupAttributeMap, mTXRoomInfo.seatSize);
-            final List<TXSeatInfo> oldTXSeatInfoList = mTXSeatInfoList;
-            mTXSeatInfoList = txSeatInfoList;
-            if (mDelegate != null) {
-                mDelegate.onSeatInfoListChange(txSeatInfoList);
-            }
-            try {
-                for (int i = 0; i < mTXRoomInfo.seatSize; i++) {
-                    TXSeatInfo oldInfo = oldTXSeatInfoList.get(i);
-                    TXSeatInfo newInfo = txSeatInfoList.get(i);
-                    if (oldInfo.status == TXSeatInfo.STATUS_CLOSE && newInfo.status == TXSeatInfo.STATUS_UNUSED) {
-                        onSeatClose(i, false);
-                    } else if (oldInfo.status != newInfo.status) {
-                        switch (newInfo.status) {
-                            case TXSeatInfo.STATUS_UNUSED:
-                                onSeatLeave(i, oldInfo.user);
-                                break;
-                            case TXSeatInfo.STATUS_USED:
-                                onSeatTake(i, newInfo.user);
-                                break;
-                            case TXSeatInfo.STATUS_CLOSE:
-                                onSeatClose(i, true);
-                                break;
-                        }
-                    }
-                    if (oldInfo.mute != newInfo.mute) {
-                        onSeatMute(i, newInfo.mute);
-                    }
-                }
-            } catch (Exception e) {
-                TRTCLogger.e(TAG, "group attr changed, seat compare error:" + e.getCause());
-            }
+            onSeatAttrMapChanged(groupAttributeMap, mTXRoomInfo.seatSize);
         }
     }
 

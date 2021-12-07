@@ -8,7 +8,6 @@
     <string name="trtckaraoke_send">Send</string>
     <string name="trtckaraoke_dialog_cancel">Cancel</string>
     <string name="trtckaraoke_btn_confirm">Confirm</string>
-    <string name="trtckaraoke_btn_cancel">Wait a bit</string>
     <string name="trtckaraoke_warning_not_empty">The input field must not be empty!</string>
     <string name="trtckaraoke_delete">delete</string>
     <string name="trtckaraoke_tips_open_audio">Please turn on the microphone permission first</string>
@@ -23,7 +22,6 @@
     <string name="trtckaraoke_tv_the_position_has_unmuted">Seat %d unmuted</string>
     <string name="trtckaraoke_tv_the_owner_ban_this_position">Seat %d locked</string>
     <string name="trtckaraoke_tv_the_owner_not_ban_this_position">Seat %d unlocked</string>
-    <string name="trtckaraoke_toast_accept_request_failure">Failed to accept the request: %d</string>
     <string name="trtckaraoke_tv_online_no_name">took seat %d</string>
     <string name="trtckaraoke_tv_offline_no_name">left seat %d</string>
     <string name="trtckaraoke_tv_enter_room">%s entered</string>
@@ -49,13 +47,11 @@
     <string name="trtckaraoke_toast_offline_successfully">Mic turned off</string>
     <string name="trtckaraoke_toast_offline_failure">Failed to turn mic off: %s</string>
     <string name="trtckaraoke_toast_you_are_already_an_anchor">You are an anchor now</string>
-    <string name="trtckaraoke_msg_invite_you_to_chat">The anchor invited you to take seat %d</string>
     <string name="trtckaraoke_msg_apply_for_chat">requested to take seat %d</string>
     <string name="trtckaraoke_tv_apply_for_chat">Request to Speak</string>
     <string name="trtckaraoke_seat_closed">The seat is blocked</string>
     <string name="trtckaraoke_accept_failed">Failed to accept request</string>
     <string name="trtckaraoke_msg_close_room">Room closed</string>
-    <string name="trtckaraoke_audience_leave_room">Are you sure you want to leave？</string>
     <string name="trtckaraoke_toast_you_have_turned_on_the_microphone">Mic turned on</string>
     <string name="trtckaraoke_toast_you_have_turned_off_the_microphone">Mic turned off</string>
     <string name="trtckaraoke_toast_anchor_can_only_operate_it">Only an anchor can perform this operation.</string>
@@ -82,8 +78,6 @@
     <string name="trtckaraoke_gift_title">Gift</string>
     <string name="trtckaraoke_gift_send_out">Sent</string>
 
-    <string name="trtckaraoke_bgm_title">Background music</string>
-    <string name="trtckaraoke_back">Back</string>
     <string name="trtckaraoke_sound_effects">Sound effect settings</string>
     <string name="trtckaraoke_sound_audition">Music Preview</string>
     <string name="trtckaraoke_put_on_your_headphones">Use earphones for better experience</string>
@@ -92,9 +86,6 @@
     <string name="trtckaraoke_mic_volume">Voice volume</string>
     <string name="trtckaraoke_changer">Voice changing</string>
     <string name="trtckaraoke_reverb">Reverb</string>
-    <string name="trtckaraoke_bg_music_positive_happy">Happy</string>
-    <string name="trtckaraoke_bg_music_sad_cinematic_piano">Sad Cinematic Piano</string>
-    <string name="trtckaraoke_bg_music_wonder_world">Wonder World</string>
     <string name="trtckaraoke_no_effect">No effect</string>
     <string name="trtckaraoke_audio_change_type_child">Naughty boy</string>
     <string name="trtckaraoke_audio_change_type_luoli">Little girl</string>

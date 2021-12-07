@@ -125,17 +125,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         mRoomId = getRoomId();
         //设置昵称、头像
         mTRTCKaraokeRoom.setSelfProfile(mUserName, mUserAvatar, null);
-        PermissionUtils.permission(PermissionConstants.MICROPHONE).callback(new PermissionUtils.FullCallback() {
-            @Override
-            public void onGranted(List<String> permissionsGranted) {
-                internalCreateRoom();
-            }
-
-            @Override
-            public void onDenied(List<String> permissionsDeniedForever, List<String> permissionsDenied) {
-                ToastUtils.showShort(R.string.trtckaraoke_tips_open_audio);
-            }
-        }).request();
+        internalCreateRoom();
     }
 
     private void internalCreateRoom() {
@@ -267,18 +257,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                                 return;
                             }
                             mIsTakeSeat = true;
-                            mTRTCKaraokeRoom.enterSeat(changeSeatIndexToModelIndex(itemPos), new TRTCKaraokeRoomCallback.ActionCallback() {
-                                @Override
-                                public void onCallback(int code, String msg) {
-                                    if (code == 0) {
-                                        //成功上座位，可以展示UI了
-                                        ToastUtils.showLong(getString(R.string.trtckaraoke_toast_owner_succeeded_in_occupying_the_seat));
-                                    } else {
-                                        ToastUtils.showLong(getString(R.string.trtckaraoke_toast_owner_failed_to_occupy_the_seat), code, msg);
-                                    }
-                                    mIsTakeSeat = false;
-                                }
-                            });
+                            enterSeat(itemPos);
                         } else {
                             //锁定座位
                             mTRTCKaraokeRoom.closeSeat(changeSeatIndexToModelIndex(itemPos), !isClose, new TRTCKaraokeRoomCallback.ActionCallback() {
@@ -297,6 +276,34 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
             dialog.show();
         }
 
+    }
+
+    private void enterSeat(final int itemPos) {
+        PermissionUtils.permission(PermissionConstants.MICROPHONE).callback(new PermissionUtils.FullCallback() {
+            @Override
+            public void onGranted(List<String> permissionsGranted) {
+                mTRTCKaraokeRoom
+                        .enterSeat(changeSeatIndexToModelIndex(itemPos), new TRTCKaraokeRoomCallback.ActionCallback() {
+                            @Override
+                            public void onCallback(int code, String msg) {
+                                if (code == 0) {
+                                    //成功上座位，可以展示UI了
+                                    ToastUtils.showLong(getString(
+                                            R.string.trtckaraoke_toast_owner_succeeded_in_occupying_the_seat));
+                                } else {
+                                    ToastUtils.showLong(getString(
+                                            R.string.trtckaraoke_toast_owner_failed_to_occupy_the_seat), code, msg);
+                                }
+                                mIsTakeSeat = false;
+                            }
+                        });
+            }
+
+            @Override
+            public void onDenied(List<String> permissionsDeniedForever, List<String> permissionsDenied) {
+                ToastUtils.showShort(R.string.trtckaraoke_tips_open_audio);
+            }
+        }).request();
     }
 
     @Override
