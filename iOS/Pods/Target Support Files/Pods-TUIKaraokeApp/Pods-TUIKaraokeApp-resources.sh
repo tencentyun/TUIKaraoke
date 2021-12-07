@@ -97,11 +97,9 @@ EOM
   esac
 }
 if [[ "$CONFIGURATION" == "Debug" ]]; then
-  install_resource "${PODS_CONFIGURATION_BUILD_DIR}/TCBeautyKit/TCBeautyKitBundle.bundle"
   install_resource "${PODS_CONFIGURATION_BUILD_DIR}/TUIKaraoke/TUIKaraokeKitBundle.bundle"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
-  install_resource "${PODS_CONFIGURATION_BUILD_DIR}/TCBeautyKit/TCBeautyKitBundle.bundle"
   install_resource "${PODS_CONFIGURATION_BUILD_DIR}/TUIKaraoke/TUIKaraokeKitBundle.bundle"
 fi
 

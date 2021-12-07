@@ -15,7 +15,6 @@ Pod::Spec.new do |spec|
   spec.xcconfig     = { 'VALID_ARCHS' => 'armv7 arm64 x86_64' }
   spec.swift_version = '5.0'
 
-  spec.dependency 'TCBeautyKit'
   spec.dependency 'TXAppBasic'
   spec.dependency 'TXIMSDK_Plus_iOS', '~> 5.7.1435'
   
