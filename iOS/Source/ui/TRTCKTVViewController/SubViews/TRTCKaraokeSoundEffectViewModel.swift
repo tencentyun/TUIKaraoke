@@ -47,6 +47,18 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
     var currentPitchVolum: Double = 0
     var currentEarMonitor: Bool = false
     var bgmID: Int32 = 0
+    
+    var isOriginalVolume: Bool = true {
+        didSet {
+            if isOriginalVolume == oldValue {
+                return
+            }
+            bgmID = bgmID + (isOriginalVolume ? -1 : 1)
+            setVolume(music: currentMusicVolum)
+            setVolume(person: currentVocalVolume)
+            setPitch(person: currentPitchVolum)
+        }
+    }
 
     public func setVolume(music: Int) {
         currentMusicVolum = music

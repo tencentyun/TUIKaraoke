@@ -71,19 +71,9 @@ typedef NS_ENUM(NSInteger, V2TIMFriendAcceptType) {
 /////////////////////////////////////////////////////////////////////////////////
 
 /**
- *  1.1 添加关系链监听器
+ *  1.1 设置关系链监听器
  */
-- (void)addFriendListener:(id<V2TIMFriendshipListener>)listener NS_SWIFT_NAME(addFriendListener(listener:));
-
-/**
- *  1.2 移除关系链监听器
- */
-- (void)removeFriendListener:(id<V2TIMFriendshipListener>)listener NS_SWIFT_NAME(removeFriendListener(listener:));
-
-/**
- *  设置关系链监听器（待废弃接口，请使用 addFriendListener 和 removeFriendListener 接口）
- */
-- (void)setFriendListener:(id<V2TIMFriendshipListener>)listener __attribute__((deprecated("use addFriendListener: instead")));
+- (void)setFriendListener:(id<V2TIMFriendshipListener>)listener;
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -108,13 +98,12 @@ typedef NS_ENUM(NSInteger, V2TIMFriendAcceptType) {
  */
 - (void)setFriendInfo:(V2TIMFriendInfo *)info succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
-
 /**
- * 2.4 搜索好友（5.4.666 及以上版本支持）
-
- * @note 接口返回本地存储的用户资料，可以根据 V2TIMFriendInfoResult 中的 getRelation 来判断是否为好友。
+ *  2.4 搜索好友列表
+ *
+ *  SDK 会根据条件搜索好友备注、好友昵称以及好友 userID 包含于关键字列表 keywordList 的所有好友并返回好友信息列表。关键字列表最多支持5个。
  */
-- (void)searchFriends:(V2TIMFriendSearchParam *)searchParam succ:(V2TIMFriendInfoResultListSucc)succ fail:(V2TIMFail)fail;
+- (void)searchFriends:(V2TIMFriendSearchParam *)searchParam succ:(V2TIMFriendInfoListSucc)succ fail:(V2TIMFail)fail;
 
 /**
  *  2.5 添加好友
@@ -151,9 +140,7 @@ typedef NS_ENUM(NSInteger, V2TIMFriendAcceptType) {
 
 /**
  *  3.1 获取好友申请列表
- *
- *  @note 好友申请列表包括发起的好友申请和收到的好友申请。
-*/
+ */
 - (void)getFriendApplicationList:(V2TIMFriendApplicationResultSucc)succ fail:(V2TIMFail)fail;
 
 /**
@@ -339,29 +326,14 @@ typedef NS_ENUM(NSInteger, V2TIMFriendAcceptType) {
 /// 好友 ID
 @property(nonatomic,strong) NSString *userID;
 
-/**
- * 好友备注
- *
- * @note
- * - 备注长度最长不得超过 96 个字节;
- * - 字段描述详见 [控制台](https://cloud.tencent.com/document/product/269/1501#.E6.A0.87.E9.85.8D.E5.A5.BD.E5.8F.8B.E5.AD.97.E6.AE.B5)。
-*/
+/// 好友备注
 @property(nonatomic,strong) NSString *friendRemark;
 
 /// 好友自定义字段
 /// 首先要在 [控制台](https://console.cloud.tencent.com/im) (功能配置 -> 好友自定义字段) 配置好友自定义字段，然后再调用该接口进行设置，key 值不需要加 Tag_SNS_Custom_ 前缀。
 @property(nonatomic,strong) NSDictionary<NSString *,NSData *> *friendCustomInfo;
 
-/**
- * 好友所在分组列表
- *
- * @note
- * - 最多支持 32 个分组；
- * - 不允许分组名为空；
- * - 分组名长度不得超过 30 个字节；
- * - 同一个好友可以有多个不同的分组。
- * - 字段描述详见 [控制台](https://cloud.tencent.com/document/product/269/1501#.E6.A0.87.E9.85.8D.E5.A5.BD.E5.8F.8B.E5.AD.97.E6.AE.B5)。
-*/
+/// 好友所在分组列表
 @property(nonatomic,strong,readonly) NSArray *friendGroups;
 
 /// 好友个人资料

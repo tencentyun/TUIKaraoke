@@ -214,6 +214,7 @@ class TRTCLyricView: UIView {
     @objc func originalOrAccompanyChangeBtnClick() {
         originalOrAccompanyChangeBtn.isSelected = !originalOrAccompanyChangeBtn.isSelected
         viewModel.Karaoke.switchToOriginalVolume(isOriginal: !originalOrAccompanyChangeBtn.isSelected)
+        viewModel.effectViewModel.isOriginalVolume = !originalOrAccompanyChangeBtn.isSelected
     }
 }
 
