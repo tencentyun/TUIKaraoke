@@ -38,7 +38,7 @@ typedef void (^V2TIMGroupMemberInfoListSucc)(NSArray<V2TIMGroupMemberFullInfo *>
 /// 获取指定群成员列表成功回调
 typedef void (^V2TIMGroupMemberInfoResultSucc)(uint64_t nextSeq, NSArray<V2TIMGroupMemberFullInfo *> * memberList);
 /// 搜索群成员列表成功回调
-typedef void (^V2TIMGroupMemberInfoListSearchSucc)(NSDictionary<NSString *, NSArray<V2TIMGroupMemberFullInfo *> *> *memberList);
+typedef void (^V2TIMGroupMemberInfoListSearchSucc)(NSArray<NSDictionary<NSString *, NSArray<V2TIMGroupMemberFullInfo *> *> *> *memberList);
 /// 群成员操作成功回调
 typedef void (^V2TIMGroupMemberOperationResultListSucc)(NSArray<V2TIMGroupMemberOperationResult*> * resultList);
 /// 获取好友申请列表成功回调
@@ -117,14 +117,14 @@ typedef NS_ENUM(NSInteger, V2TIMGroupApplicationHandleResult) {
 /////////////////////////////////////////////////////////////////////////////////
 
 /**
- * 2.1 拉取群资料
+ *  2.1 拉取群资料
  *
  *  @param groupIDList 群组 ID 列表
  */
 - (void)getGroupsInfo:(NSArray<NSString *> *)groupIDList succ:(V2TIMGroupInfoResultListSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  2.2 搜索群列表（5.4.666 及以上版本支持）
+ *  2.2 搜索群列表
  *
  *  SDK 会搜索群名称包含于关键字列表 keywordList 的所有群并返回群信息列表。关键字列表最多支持5个。
  */
@@ -140,14 +140,12 @@ typedef NS_ENUM(NSInteger, V2TIMGroupApplicationHandleResult) {
  *
  * @note
  * attributes 的使用限制如下：
- *  - 目前只支持 AVChatRoom；
- *  - key 最多支持 16 个，长度限制为 32 字节；
- *  - value 长度限制为 4k；
- *  - 总的 attributes（包括 key 和 value）限制为 16k；
- *  - initGroupAttributes、setGroupAttributes、deleteGroupAttributes 接口合并计算， SDK 限制为 5 秒 10 次，超过后回调 8511 错误码；后台限制 1 秒 5 次，超过后返回 10049 错误码；
- *  - getGroupAttributes 接口 SDK 限制 5 秒 20 次；
- *  - 从 5.6 版本开始，当每次APP启动后初次修改群属性时，请您先调用 getGroupAttributes 拉取到最新的群属性之后，再发起修改操作；
- *  - 从 5.6 版本开始，当多个用户同时修改同一个群属性时，只有第一个用户可以执行成功，其它用户会收到 10056 错误码；收到这个错误码之后，请您调用 getGroupAttributes 把本地保存的群属性更新到最新之后，再发起修改操作。
+ *  - 目前只支持 AVChatRoom
+ *  - key 最多支持16个，长度限制为32字节
+ *  - value 长度限制为4k
+ *  - 总的 attributes（包括 key 和 value）限制为16k
+ *  - initGroupAttributes、setGroupAttributes、deleteGroupAttributes 接口合并计算， SDK 限制为5秒10次，超过后回调8511错误码；后台限制1秒5次，超过后返回10049错误码
+ *  - getGroupAttributes 接口 SDK 限制5秒20次
  */
 - (void)initGroupAttributes:(NSString*)groupID attributes:(NSDictionary<NSString *,NSString *> *)attributes succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
@@ -202,7 +200,7 @@ typedef NS_ENUM(NSInteger, V2TIMGroupApplicationHandleResult) {
 - (void)getGroupMembersInfo:(NSString*)groupID memberList:(NSArray<NSString*>*)memberList succ:(V2TIMGroupMemberInfoListSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  3.3 搜索指定的群成员资料（5.4.666 及以上版本支持）
+ *  3.3 搜索指定的群成员资料
  *
  *  SDK 会在本地搜索指定群 ID 列表中，群成员信息（名片、好友备注、昵称、userID）包含于关键字列表 keywordList 的所有群成员并返回群 ID 和群成员列表的 map，关键字列表最多支持5个。
  *
@@ -268,8 +266,8 @@ typedef NS_ENUM(NSInteger, V2TIMGroupApplicationHandleResult) {
 /////////////////////////////////////////////////////////////////////////////////
 
 /**
- * 4.1 获取加群申请列表
-*/
+ *  4.1 获取加群的申请列表
+ */
 - (void)getGroupApplicationList:(V2TIMGroupApplicationResultSucc)succ fail:(V2TIMFail)fail;
 
 /**
@@ -298,42 +296,22 @@ typedef NS_ENUM(NSInteger, V2TIMGroupApplicationHandleResult) {
 /// 群资料
 @interface V2TIMGroupInfo : NSObject
 
-/**
- * 群组 ID
- *
- * @note 自定义群组 ID 必须为可打印 ASCII 字符（0x20-0x7e），最长48个字节，且前缀不能为 @TGS#（避免与默认分配的群组 ID 混淆）
- */
+/// 群组 ID
 @property(nonatomic,strong) NSString* groupID;
 
 /// 群类型
 @property(nonatomic,strong) NSString* groupType;
 
-/**
- * 群名称
- *
- * @note 群名称最长30字节
- */
+/// 群名称
 @property(nonatomic,strong) NSString* groupName;
 
-/**
- * 群公告
- *
- * @note 群公告最长300字节
- */
+/// 群公告
 @property(nonatomic,strong) NSString* notification;
 
-/**
- * 群简介
- *
- * @note 群简介最长240字节
- */
+/// 群简介
 @property(nonatomic,strong) NSString* introduction;
 
-/**
- * 群头像
- *
- * @note 群头像 URL 最长100字节
- */
+/// 群头像
 @property(nonatomic,strong) NSString* faceURL;
 
 /// 是否全员禁言
@@ -360,15 +338,12 @@ typedef NS_ENUM(NSInteger, V2TIMGroupApplicationHandleResult) {
 /// 群最近一次发消息时间
 @property(nonatomic,assign,readonly) uint32_t lastMessageTime;
 
-/// 已加入的群成员数量
+/// 群成员总数量
+/// @note 频繁调用该接口会影响程序性能，如果仅需获取群在线人数，推荐使用[V2TIMManager.sharedInstance getGroupOnlineMemberCount:groupId succ:nil fail:nil]接口
 @property(nonatomic,assign,readonly) uint32_t memberCount;
 
-/// 在线的群成员数量
+/// 在线成员数量
 @property(nonatomic,assign,readonly) uint32_t onlineCount;
-
-/// 最多允许加入的群成员数量
-/// @note 各类群成员人数限制详见: https://cloud.tencent.com/document/product/269/1502#.E7.BE.A4.E7.BB.84.E9.99.90.E5.88.B6.E5.B7.AE.E5.BC.82
-@property(nonatomic,assign,readonly) uint32_t memberMaxCount;
 
 /// 当前用户在此群组中的角色，切换角色请调用 setGroupMemberRole 接口
 @property(nonatomic,assign,readonly) V2TIMGroupMemberRole role;

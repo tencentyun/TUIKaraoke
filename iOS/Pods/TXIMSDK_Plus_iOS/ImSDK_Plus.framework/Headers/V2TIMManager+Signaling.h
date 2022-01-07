@@ -55,7 +55,7 @@ NS_SWIFT_NAME(removeSignalingListener(listener:));
  *  @param onlineUserOnly 是否只有在线用户才能收到邀请，如果设置为 YES，只有在线用户才能收到，并且 invite 操作也不会产生历史消息（针对该次 invite 的后续 cancel、accept、reject、timeout 操作也同样不会产生历史消息）。
  *  @return inviteID   邀请 ID，如果邀请失败，返回 nil
  *
- *  @note 群邀请暂不支持离线推送，如果您需要离线推送，可以针对被邀请的用户单独发离线推送自定义消息。
+ *  @note 群邀请暂不支持离线推送，如果您需要离线推送，可以针对被邀请的用户单独发离线推送自定义消息，详细代码请参考 TUICall+Signal.m -> sendAPNsForGroupCall 函数。
  */
 - (NSString*)inviteInGroup:(NSString *)groupID
                inviteeList:(NSArray *)inviteeList
@@ -102,9 +102,8 @@ NS_SWIFT_NAME(removeSignalingListener(listener:));
  *  添加邀请信令
  *
  *  在离线推送的场景下：
- *  针对 1V1 信令邀请，被邀请者 APP 如果被 Kill，当 APP 收到信令离线推送再次启动后，SDK 可以自动同步到邀请信令，如果邀请还没超时，用户会收到 onReceiveNewInvitation 回调，如果邀请已经超时，用户还会收到 onInvitationTimeout 回调。
- *
- *  针对群信令邀请，被邀请者 APP 如果被 Kill，当 APP 收到离线推送再次启动后，SDK 无法自动同步到邀请信令（邀请信令本质上就是一条自定义消息，群离线消息在程序启动后无法自动同步），也就没法处理该邀请信令。如果被邀请者需要处理该邀请信令，可以让邀请者在发起信令的时候对针对每个被邀请者再单独发送一条 C2C 离线推送消息，消息里面携带 V2TIMSignalingInfo 信息，被邀请者收到离线推送的时候把 V2TIMSignalingInfo 信息再通过 addInvitedSignaling 接口告知 SDK。
+ *  1V1邀请，被邀请者 APP 如果被 Kill，当 APP 收到离线推送再次启动后，SDK 可以自动同步到邀请信令，如果邀请还没超时，用户会收到 onReceiveNewInvitation 回调，如果邀请已经超时，用户会收到 onInvitationTimeout 回调。
+ *  群邀请，被邀请者 APP 如果被 Kill，当 APP 收到离线推送再次启动后，SDK 无法自动同步到邀请信令，如果您想要在该场景下处理邀请，请在发送推送消息时携带信令信息（代码参考 TUICall+Signal.m -> sendAPNsForGroupCall），收到推送时候解析信令信息（代码参考 AppDelegate.m -> didReceiveRemoteNotification），然后调用 addInvitedSignaling 主动添加信令信息。
  *
  *  TUIKit 群组音视频通话离线推送就是基于该接口实现，详细实现方法请参考文档：[集成音视频通话](https://cloud.tencent.com/document/product/269/39167)
  *
