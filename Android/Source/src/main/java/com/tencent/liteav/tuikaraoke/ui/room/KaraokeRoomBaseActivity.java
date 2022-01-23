@@ -3,17 +3,9 @@ package com.tencent.liteav.tuikaraoke.ui.room;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatImageButton;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -25,11 +17,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.blankj.utilcode.constant.PermissionConstants;
 import com.blankj.utilcode.util.PermissionUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.google.gson.Gson;
 import com.tencent.liteav.basic.ImageLoader;
+import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
@@ -40,13 +39,6 @@ import com.tencent.liteav.tuikaraoke.model.impl.base.TXSeatInfo;
 import com.tencent.liteav.tuikaraoke.ui.audio.impl.TUIKaraokeAudioManager;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
-import com.tencent.liteav.tuikaraoke.ui.lrc.LyricsReader;
-import com.tencent.liteav.tuikaraoke.ui.lrc.widget.AbstractLrcView;
-import com.tencent.liteav.tuikaraoke.ui.lrc.widget.LyricsView;
-import com.tencent.liteav.tuikaraoke.ui.music.IUpdateLrcDelegate;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicCallback;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicService;
-import com.tencent.liteav.tuikaraoke.ui.music.impl.KaraokeMusicView;
 import com.tencent.liteav.tuikaraoke.ui.base.MemberEntity;
 import com.tencent.liteav.tuikaraoke.ui.gift.GiftAdapter;
 import com.tencent.liteav.tuikaraoke.ui.gift.GiftPanelDelegate;
@@ -56,12 +48,18 @@ import com.tencent.liteav.tuikaraoke.ui.gift.imp.GiftAnimatorLayout;
 import com.tencent.liteav.tuikaraoke.ui.gift.imp.GiftInfo;
 import com.tencent.liteav.tuikaraoke.ui.gift.imp.GiftInfoDataHandler;
 import com.tencent.liteav.tuikaraoke.ui.gift.imp.GiftPanelViewImp;
+import com.tencent.liteav.tuikaraoke.ui.lrc.LyricsReader;
+import com.tencent.liteav.tuikaraoke.ui.lrc.widget.AbstractLrcView;
+import com.tencent.liteav.tuikaraoke.ui.lrc.widget.LyricsView;
+import com.tencent.liteav.tuikaraoke.ui.music.IUpdateLrcDelegate;
+import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicCallback;
+import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicService;
+import com.tencent.liteav.tuikaraoke.ui.music.impl.KaraokeMusicView;
 import com.tencent.liteav.tuikaraoke.ui.widget.ConfirmDialogFragment;
 import com.tencent.liteav.tuikaraoke.ui.widget.InputTextMsgDialog;
 import com.tencent.liteav.tuikaraoke.ui.widget.msg.AudienceEntity;
 import com.tencent.liteav.tuikaraoke.ui.widget.msg.MsgEntity;
 import com.tencent.liteav.tuikaraoke.ui.widget.msg.MsgListAdapter;
-
 import com.tencent.trtc.TRTCCloudDef;
 
 import java.io.File;
@@ -164,6 +162,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
+        UserModelManager.getInstance().getUserModel().userType = UserModel.UserType.KARAOKE;
         // 应用运行时，保持不锁屏、全屏化
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -1057,6 +1056,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     @Override
     protected void onDestroy() {
         mIsDestroyed = true;
+        UserModelManager.getInstance().getUserModel().userType = UserModel.UserType.NONE;
         super.onDestroy();
     }
 
