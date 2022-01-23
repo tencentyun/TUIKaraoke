@@ -9,6 +9,9 @@
 #import "KaraokeTRTCService.h"
 #import "TRTCCloud.h"
 
+static const int TC_COMPONENT_KARAOKE = 8;
+static const int TC_TRTC_FRAMEWORK    = 1;
+
 @interface KaraokeTRTCService () <TRTCCloudDelegate>
 
 @property (nonatomic, assign) BOOL isInRoom;
@@ -203,14 +206,15 @@
     if (self.mTRTCParms) {
         self.mTRTCCloud.delegate = self;
         [self enableAudioEvalutation:YES];
-        [self setFramework:5];
+        [self setFramework];
         [self.mTRTCCloud enterRoom:self.mTRTCParms appScene:TRTCAppSceneVoiceChatRoom];
     }
 }
 
-- (void)setFramework:(int)framework {
+- (void)setFramework {
     NSDictionary *jsonDic = @{@"api": @"setFramework",
-                              @"params":@{@"framework": @(framework)}};
+                              @"params":@{@"framework": @(TC_TRTC_FRAMEWORK),
+                                          @"component": @(TC_COMPONENT_KARAOKE)}};
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDic options:NSJSONWritingPrettyPrinted error:nil];
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     TRTCLog(@"jsonString = %@",jsonString);
