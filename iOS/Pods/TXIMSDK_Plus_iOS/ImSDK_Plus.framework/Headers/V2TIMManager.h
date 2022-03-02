@@ -122,32 +122,41 @@ typedef void (^V2TIMLogListener)(V2TIMLogLevel logLevel, NSString * logContent);
  *  @param config 配置信息
  *  @return YES：成功；NO：失败
  */
-- (BOOL)initSDK:(int)sdkAppID config:(V2TIMSDKConfig*)config listener:(id<V2TIMSDKListener>)listener;
+- (BOOL)initSDK:(int)sdkAppID config:(V2TIMSDKConfig*)config;
 
 /**
- *  1.3 反初始化 SDK
+ *  1.3 添加 IM 监听
+ */
+- (void)addIMSDKListener:(id<V2TIMSDKListener>)listener;
+
+/**
+ *  1.4 移除 IM 监听
+ */
+- (void)removeIMSDKListener:(id<V2TIMSDKListener>)listener;
+
+/**
+ *  1.5 反初始化 SDK
  */
 - (void)unInitSDK;
 
 /**
- *  1.4 获取版本号
+ *  1.6 获取版本号
  *
  *  @return 返回版本号，字符串表示，例如 5.0.10
  */
 - (NSString*)getVersion;
 
 /**
- *  1.5 获取服务器当前时间
+ *  1.7 获取服务器时间戳
  *
- *  可用于信令离线推送场景下超时判断。
- *
- *  示例代码请参考 TUIKit：
- *  信令邀请方：TUICall+Signal.m -> getOfflinePushInfo 设置邀请的服务器时间 serverTime 。
- *  信令接收方：AppDelegate.m -> didReceiveRemoteNotification，收到信令推送，根据 serverTime 判断信令是否超时 。
- *
- *  @return 服务器时间，单位 s
+ *  @return 服务器时间时间戳，单位 s
  */
 - (uint64_t)getServerTime;
+
+/**
+ *  初始化 SDK（待废弃接口，请使用 initSDK 和 addIMSDKListener 接口）
+ */
+- (BOOL)initSDK:(int)sdkAppID config:(V2TIMSDKConfig*)config listener:(id<V2TIMSDKListener>)listener __attribute__((deprecated("use initSDK:config: and addIMSDKListener: instead")));
 
 /////////////////////////////////////////////////////////////////////////////////
 //                               登录登出
@@ -159,7 +168,7 @@ typedef void (^V2TIMLogListener)(V2TIMLogLevel logLevel, NSString * logContent);
  *  登录需要设置用户名 userID 和用户签名 userSig，userSig 生成请参考 [UserSig 后台 API](https://cloud.tencent.com/document/product/269/32688)。
  *
  *  @note 请注意如下特殊逻辑:
- * - 登陆时票据过期：login 函数的 V2TIMFail 会返回 ERR_USER_SIG_EXPIRED：6206 错误码，此时生成新的 userSig 重新登录。
+ * - 登陆时票据过期：login 函数的 V2TIMFail 会返回 ERR_USER_SIG_EXPIRED（6206）或者 ERR_SVR_ACCOUNT_USERSIG_EXPIRED（70001） 错误码，此时请您生成新的 userSig 重新登录。
  * - 在线时票据过期：用户在线期间也可能收到 V2TIMSDKListener -> onUserSigExpired 回调，此时也是需要您生成新的 userSig 并重新登录。
  * - 在线时被踢下线：用户在线情况下被踢，SDK 会通过 V2TIMSDKListener -> onKickedOffline 回调通知给您，此时可以 UI 提示用户，并再次调用 login() 重新登录。
  */
@@ -249,13 +258,19 @@ typedef void (^V2TIMLogListener)(V2TIMLogLevel logLevel, NSString * logContent);
 /////////////////////////////////////////////////////////////////////////////////
 //                        群相关操作
 /////////////////////////////////////////////////////////////////////////////////
+
 /**
  *  4.1 设置群组监听器
  */
-- (void)setGroupListener:(id<V2TIMGroupListener>)listener;
+- (void)addGroupListener:(id<V2TIMGroupListener>)listener NS_SWIFT_NAME(addGroupListener(listener:));
 
 /**
- *  4.2 创建群组
+ *  4.2 设置群组监听器
+ */
+- (void)removeGroupListener:(id<V2TIMGroupListener>)listener NS_SWIFT_NAME(removeGroupListener(listener:));
+
+/**
+ *  4.3 创建群组
  *
  *  @param groupType 群类型，我们为您预定义好了四种常用的群类型，您也可以在控制台定义自己需要的群类型：
  *  - "Work"       ：工作群，成员上限 200  人，不支持由用户主动加入，需要他人邀请入群，适合用于类似微信中随意组建的工作群（对应老版本的 Private 群）。
@@ -264,7 +279,7 @@ typedef void (^V2TIMLogListener)(V2TIMLogLevel logLevel, NSString * logContent);
  *  - "AVChatRoom" ：直播群，人数无上限，任何人都可以自由进出，消息吞吐量大，适合用作直播场景中的高并发弹幕聊天室。
  *
  *  @param groupID 自定义群组 ID，可以传 nil。传 nil 时系统会自动分配 groupID，并通过 succ 回调返回
- *  @param groupName 群名称，不能为 nil
+ *  @param groupName 群名称，不能为 nil，最长30字节
  *
  *  @note 请注意如下特殊逻辑:
  *  - 不支持在同一个 SDKAPPID 下创建两个相同 groupID 的群
@@ -272,7 +287,7 @@ typedef void (^V2TIMLogListener)(V2TIMLogLevel logLevel, NSString * logContent);
 - (void)createGroup:(NSString *)groupType groupID:(NSString*)groupID groupName:(NSString *)groupName succ:(V2TIMCreateGroupSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  4.3 加入群组
+ *  4.4 加入群组
  *
  *  @note 请注意如下特殊逻辑:
  *  - 工作群（Work）：不能主动入群，只能通过群成员调用 V2TIMManager+Group.h -> inviteUserToGroup 接口邀请入群。
@@ -282,22 +297,27 @@ typedef void (^V2TIMLogListener)(V2TIMLogLevel logLevel, NSString * logContent);
 - (void)joinGroup:(NSString*)groupID msg:(NSString*)msg succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  4.4 退出群组
+ *  4.5 退出群组
  *
  *  @note 在公开群（Public）、会议（Meeting）和直播群（AVChatRoom）中，群主是不可以退群的，群主只能调用 dismissGroup 解散群组。
  */
 - (void)quitGroup:(NSString*)groupID succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  4.5 解散群组
+ *  4.6 解散群组
  *
  *  @note 请注意如下特殊逻辑:
- *  - Work：任何人都无法解散群组。
- *  - 其他群：群主可以解散群组。
+ *  - 好友工作群（Work）的解散最为严格，即使群主也不能随意解散，只能由您的业务服务器调用 [解散群组 REST API](https://cloud.tencent.com/document/product/269/1624) 解散。
+ *  - 其他类型群的群主可以解散群组。
  */
 - (void)dismissGroup:(NSString*)groupID succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
-//  4.6 更多功能，详见 V2TIMManager+Group.h
+//  4.7 更多功能，详见 V2TIMManager+Group.h
+
+/**
+ *  设置群组监听器（待废弃接口，请使用 addGroupListener 和 removeGroupListener 接口）
+ */
+- (void)setGroupListener:(id<V2TIMGroupListener>)listener __attribute__((deprecated("use addGroupListener: instead")));
 
 /////////////////////////////////////////////////////////////////////////////////
 //                        资料相关操作

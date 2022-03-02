@@ -55,6 +55,7 @@
  *  - 接口成功设置后会开启离线推送功能，如果您需要自定义推送的格式信息，请参考 V2TIMManager+Message.h 里面的 sendMessage 接口。
  *  - 如果成功开启了离线推送，APP 进后台后，如果收到消息，会弹系统推送通知，APP 进前台后，如果收到消息，则不会弹系统推送通知。
  *  - APP 进后台后应用图标展示的未读数默认为所有会话未读数之和,如果您需要自定义 APP 的未读数，请监听 V2TIMAPNSListener 回调设置。
+ *  - 如果您想关闭离线推送，请把 config 设置为 nil。
  */
 - (void)setAPNS:(V2TIMAPNSConfig*)config succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
