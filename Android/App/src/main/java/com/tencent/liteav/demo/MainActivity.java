@@ -5,10 +5,14 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
+
 import androidx.appcompat.widget.Toolbar;
+
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -23,6 +27,7 @@ import android.widget.TextView;
 
 import com.blankj.utilcode.util.ToastUtils;
 import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
+import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.debug.GenerateTestUserSig;
@@ -107,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse("https://cloud.tencent.com/document/product/647/59403"));
-                startActivity(intent);
+                IntentUtils.safeStartActivity(MainActivity.this, intent);
             }
         });
 
@@ -160,11 +165,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createRoom() {
-        int                     index    = new Random().nextInt(ROOM_COVER_ARRAY.length);
-        String                  coverUrl = ROOM_COVER_ARRAY[index];
-        String                  userName = UserModelManager.getInstance().getUserModel().userName;
-        String                  userId   = UserModelManager.getInstance().getUserModel().userId;
-        KaraokeRoomCreateDialog dialog   = new KaraokeRoomCreateDialog(this);
+        int index = new Random().nextInt(ROOM_COVER_ARRAY.length);
+        String coverUrl = ROOM_COVER_ARRAY[index];
+        String userName = UserModelManager.getInstance().getUserModel().userName;
+        String userId = UserModelManager.getInstance().getUserModel().userId;
+        KaraokeRoomCreateDialog dialog = new KaraokeRoomCreateDialog(this);
         dialog.showRoomCreateDialog(userId, userName, coverUrl, TRTCCloudDef.TRTC_AUDIO_QUALITY_DEFAULT,
                 true);
     }
@@ -189,8 +194,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void realEnterRoom(String roomIdStr) {
         UserModel userModel = UserModelManager.getInstance().getUserModel();
-        String    userId    = userModel.userId;
-        int       roomId;
+        String userId = userModel.userId;
+        int roomId;
         try {
             roomId = Integer.parseInt(roomIdStr);
         } catch (Exception e) {
@@ -225,7 +230,6 @@ public class MainActivity extends AppCompatActivity {
         copyAssetsToFile(context, "qfdy_yc.mp3");
         copyAssetsToFile(context, "qfdy_bz.mp3");
 
-
         copyAssetsToFile(context, "xq_bz.mp3");
         copyAssetsToFile(context, "xq_yc.mp3");
 
@@ -245,16 +249,16 @@ public class MainActivity extends AppCompatActivity {
     public static void copyAssetsToFile(Context context, String name) {
         String savePath = ContextCompat.getExternalFilesDirs(context, null)[0].getAbsolutePath();
         String filename = savePath + "/" + name;
-        File   dir      = new File(savePath);
+        File dir = new File(savePath);
         // 如果目录不存在，创建这个目录
         if (!dir.exists())
             dir.mkdir();
         try {
             if (!(new File(filename)).exists()) {
-                InputStream      is     = context.getResources().getAssets().open(name);
-                FileOutputStream fos    = new FileOutputStream(filename);
-                byte[]           buffer = new byte[7168];
-                int              count  = 0;
+                InputStream is = context.getResources().getAssets().open(name);
+                FileOutputStream fos = new FileOutputStream(filename);
+                byte[] buffer = new byte[7168];
+                int count = 0;
                 while ((count = is.read(buffer)) > 0) {
                     fos.write(buffer, 0, count);
                 }
