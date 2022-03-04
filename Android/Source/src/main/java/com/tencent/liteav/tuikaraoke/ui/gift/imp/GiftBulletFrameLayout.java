@@ -120,8 +120,16 @@ public class GiftBulletFrameLayout extends FrameLayout implements Handler.Callba
             return;
         }
         this.setVisibility(View.VISIBLE);
-        ImageLoader.loadImage(mContext, mImageSendUserIcon, mGift.sendUserHeadIcon, R.drawable.trtckaraoke_ic_head);
-        ImageLoader.loadImage(mContext, mImageGiftIcon, mGift.giftPicUrl, R.drawable.trtckaraoke_ic_head);
+        ImageLoader.loadImage(mContext.getApplicationContext(), mImageSendUserIcon,
+                mGift.sendUserHeadIcon, R.drawable.trtckaraoke_ic_head);
+        ImageLoader.loadImage(mContext.getApplicationContext(), mImageGiftIcon,
+                mGift.giftPicUrl, R.drawable.trtckaraoke_ic_head);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        ImageLoader.clear(mContext.getApplicationContext());
     }
 
     private void startAnimationForMsg() {

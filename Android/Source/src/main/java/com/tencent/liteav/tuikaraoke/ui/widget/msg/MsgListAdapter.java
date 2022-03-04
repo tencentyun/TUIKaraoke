@@ -3,7 +3,9 @@ package com.tencent.liteav.tuikaraoke.ui.widget.msg;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -14,13 +16,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.tuikaraoke.R;
 
 import java.util.List;
 
 /**
  * KTV消息互动显示的适配器
- *
+ * <p>
  * 根据消息的类型显示不同的样式，消息的发送者的username可以对颜色进行设置。
  * 普通消息：      TYPE_NORMAL        消息的内容会在界面显示出来
  * 邀请等待的消息： TYPE_WAIT_AGREE    消息中会有同意的按钮，可以进行事件处理
@@ -46,10 +49,10 @@ public class MsgListAdapter extends
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context        context    = parent.getContext();
-        LayoutInflater inflater   = LayoutInflater.from(context);
-        View           view       = inflater.inflate(R.layout.trtckaraoke_item_msg, parent, false);
-        ViewHolder     viewHolder = new ViewHolder(view);
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View view = inflater.inflate(R.layout.trtckaraoke_item_msg, parent, false);
+        ViewHolder viewHolder = new ViewHolder(view);
         return viewHolder;
     }
 
@@ -66,8 +69,10 @@ public class MsgListAdapter extends
 
     public interface OnItemClickListener {
         void onAgreeClick(int position);
+
         void onOrderedManagerClick(int position);
     }
+
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private TextView mTvMsgContent;
@@ -92,15 +97,15 @@ public class MsgListAdapter extends
                 SpannableStringBuilder builder = new SpannableStringBuilder(result);
                 ForegroundColorSpan welcomeTitleSpan = new ForegroundColorSpan(mContext.getResources().getColor(R.color.trtckaraoke_color_welcome));
                 ForegroundColorSpan linkSpan = new ForegroundColorSpan(mContext.getResources().getColor(R.color.trtckaraoke_color_link));
-                UnderlineSpan linkUnderline  = new UnderlineSpan();
+                UnderlineSpan linkUnderline = new UnderlineSpan();
                 builder.setSpan(welcomeTitleSpan, 0, model.content.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.setSpan(linkSpan, model.content.length(), result.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 builder.setSpan(linkUnderline, model.content.length(), result.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 mTvMsgContent.setText(builder);
                 mTvMsgContent.setBackground(null);
-            //消息发送者颜色定制，消息发送者的username会根据设置的颜色显示
-            } else if(model.type == MsgEntity.TYPE_ORDERED_SONG){
-                String                 split   = " ";
+                //消息发送者颜色定制，消息发送者的username会根据设置的颜色显示
+            } else if (model.type == MsgEntity.TYPE_ORDERED_SONG) {
+                String split = " ";
                 String result = model.content + split + model.userName + model.linkUrl;
                 SpannableStringBuilder builder = new SpannableStringBuilder(result);
                 ForegroundColorSpan redSpan = new ForegroundColorSpan(model.color);
@@ -128,9 +133,9 @@ public class MsgListAdapter extends
                 @Override
                 public void onClick(View v) {
                     if (listener != null) {
-                        if(model.type == MsgEntity.TYPE_WAIT_AGREE){
+                        if (model.type == MsgEntity.TYPE_WAIT_AGREE) {
                             listener.onAgreeClick(getLayoutPosition());
-                        } else if(model.type == MsgEntity.TYPE_ORDERED_SONG) {
+                        } else if (model.type == MsgEntity.TYPE_ORDERED_SONG) {
                             listener.onOrderedManagerClick(getLayoutPosition());
                         }
                     }
@@ -167,7 +172,7 @@ public class MsgListAdapter extends
     private void startLinkActivity(String url) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(url));
-        mContext.startActivity(intent);
+        IntentUtils.safeStartActivity(mContext, intent);
     }
 
 }

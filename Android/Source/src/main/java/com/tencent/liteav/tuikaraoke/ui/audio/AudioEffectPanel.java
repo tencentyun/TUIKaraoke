@@ -4,13 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.SwitchCompat;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +23,7 @@ import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.ui.base.EarMonitorInstance;
@@ -286,7 +291,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse("https://cloud.tencent.com/product/ame"));
-                mContext.startActivity(intent);
+                IntentUtils.safeStartActivity(mContext, intent);
             }
         });
         mSwitchMusiceAudiction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -342,6 +347,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
         }
     }
 
+
     public class RecyclerViewAdapter extends
             RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
@@ -392,10 +398,10 @@ public class AudioEffectPanel extends BottomSheetDialog {
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            Context        context    = parent.getContext();
-            LayoutInflater inflater   = LayoutInflater.from(context);
-            View           view       = inflater.inflate(R.layout.trtckaraoke_audio_main_entry_item, parent, false);
-            ViewHolder     viewHolder = new ViewHolder(view);
+            Context context = parent.getContext();
+            LayoutInflater inflater = LayoutInflater.from(context);
+            View view = inflater.inflate(R.layout.trtckaraoke_audio_main_entry_item, parent, false);
+            ViewHolder viewHolder = new ViewHolder(view);
             return viewHolder;
         }
 
@@ -410,6 +416,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
             return list.size();
         }
     }
+
 
     public interface OnItemClickListener {
         void onItemClick(int position);
