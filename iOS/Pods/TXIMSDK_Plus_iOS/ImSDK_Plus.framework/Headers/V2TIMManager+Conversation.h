@@ -47,49 +47,41 @@ typedef NS_ENUM(NSInteger, V2TIMGroupAtType) {
 };
 
 /**
- * 1.1 添加会话监听器
+ *  1.1 设置会话监听器
  */
-- (void)addConversationListener:(id<V2TIMConversationListener>)listener NS_SWIFT_NAME(addConversationListener(listener:));
+- (void)setConversationListener:(id<V2TIMConversationListener>)listener;
 
 /**
- * 1.2 移除会话监听器
- */
-- (void)removeConversationListener:(id<V2TIMConversationListener>)listener NS_SWIFT_NAME(removeConversationListener(listener:));
-
-/**
- * 1.3 获取会话列表
+ *  1.2 获取会话列表
  *
- * - 一个会话对应一个聊天窗口，比如跟一个好友的 1v1 聊天，或者一个聊天群，都是一个会话。
- * - 由于历史的会话数量可能很多，所以该接口希望您采用分页查询的方式进行调用，每次分页拉取的个数建议为 100 个。
- * - 该接口拉取的是本地缓存的会话，如果服务器会话有更新，SDK 内部会自动同步，然后在 @ref V2TIMConversationListener 回调告知客户。
- * - 如果会话全部拉取完毕，成功回调里面 V2TIMConversationResult 中的 isFinished 获取字段值为 YES。
+ *  - 一个会话对应一个聊天窗口，比如跟一个好友的 1v1 聊天，或者一个聊天群，都是一个会话。
+ *  - 由于历史的会话数量可能很多，所以该接口希望您采用分页查询的方式进行调用，每次分页拉取的个数建议为 100 个。
+ *  - 该接口拉取的是本地缓存的会话，如果服务器会话有更新，SDK 内部会自动同步，然后在 V2TIMConversationListener 告知客户。
+ *  - 该接口获取的会话默认已经按照会话 lastMessage -> timestamp 做了排序，timestamp 越大，会话越靠前。
+ *  - 如果会话全部拉取完毕，成功回调里面的 isFinished 字段值为 YES。
  *
- * @note 会话排序规则
- * - 5.5.892 及以后版本, 该接口获取的会话列表默认已经按照会话 orderKey 做了排序，orderKey 值越大，代表该会话排序越靠前。
- * - 5.5.892 以前版本，该接口获取的会话列表默认已经按照会话 lastMessage -> timestamp 做了排序，timestamp 越大，会话越靠前。
- *
- * @param nextSeq   分页拉取的游标，第一次默认取传 0，后续分页拉传上一次分页拉取成功回调里的 nextSeq
- * @param count    分页拉取的个数，一次分页拉取不宜太多，会影响拉取的速度，建议每次拉取 100 个会话
+ *  @param nextSeq 分页拉取游标，第一次默认取传 0，后续分页拉传上一次分页拉取回调里的 nextSeq
+ *  @param count  分页拉取的个数，一次分页拉取不宜太多，会影响拉取的速度，建议每次拉取 100 个会话
  */
 - (void)getConversationList:(uint64_t)nextSeq count:(int)count succ:(V2TIMConversationResultSucc)succ fail:(V2TIMFail)fail;
 
 
 /**
- * 1.4 获取单个会话
+ * 1.3 获取单个会话
  *
  * @param conversationID  会话唯一 ID, C2C 单聊组成方式：[NSString stringWithFormat:@"c2c_%@",userID]；群聊组成方式为 [NSString stringWithFormat:@"group_%@",groupID]
  */
 - (void)getConversation:(NSString *)conversationID succ:(V2TIMConversationSucc)succ fail:(V2TIMFail)fail;
 
 /**
- * 1.5 获取指定会话列表
+ * 1.4 获取指定会话列表
  *
  * @param conversationIDList 会话唯一 ID 列表，C2C 单聊组成方式：[NSString stringWithFormat:@"c2c_%@",userID]；群聊组成方式为 [NSString stringWithFormat:@"group_%@",groupID]
  */
 - (void)getConversationList:(NSArray<NSString *> *)conversationIDList succ:(V2TIMConversationListSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  1.6 删除会话以及该会话中的历史消息
+ *  1.5 删除会话以及该会话中的历史消息
  *
  * @param conversationID 会话唯一 ID，C2C 单聊组成方式：[NSString stringWithFormat:@"c2c_%@",userID]；群聊组成方式为 [NSString stringWithFormat:@"group_%@",groupID]
  *
@@ -99,7 +91,7 @@ typedef NS_ENUM(NSInteger, V2TIMGroupAtType) {
 - (void)deleteConversation:(NSString *)conversationID succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  1.7 设置会话草稿
+ *  1.6 设置会话草稿
  *
  *  @param conversationID 会话唯一 ID，C2C 单聊组成方式：[NSString stringWithFormat:@"c2c_%@",userID]；群聊组成方式为 [NSString stringWithFormat:@"group_%@",groupID]
  *
@@ -108,7 +100,7 @@ typedef NS_ENUM(NSInteger, V2TIMGroupAtType) {
 - (void)setConversationDraft:(NSString *)conversationID draftText:(NSString *)draftText succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  1.8 设置会话置顶（5.3.425 及以上版本支持）
+ *  1.7 设置会话置顶
  *
  * @param conversationID  会话唯一 ID，C2C 单聊组成方式：[NSString stringWithFormat:@"c2c_%@",userID]；群聊组成方式为 [NSString stringWithFormat:@"group_%@",groupID]
  * @param isPinned 是否置顶
@@ -116,16 +108,10 @@ typedef NS_ENUM(NSInteger, V2TIMGroupAtType) {
 - (void)pinConversation:(NSString *)conversationID isPinned:(BOOL)isPinned succ:(V2TIMSucc)succ fail:(V2TIMFail)fail;
 
 /**
- *  1.9 获取所有会话的未读消息总数（5.3.425 及以上版本支持）
- * @note
- *  - 未读总数会减去设置为免打扰的会话的未读数，即消息接收选项设置为 V2TIMMessage.V2TIM_NOT_RECEIVE_MESSAGE 的会话。
+ *  1.8 获取所有会话的未读消息总数
  */
 - (void)getTotalUnreadMessageCount:(V2TIMTotalUnreadMessageCountSucc)succ fail:(V2TIMFail)fail;
 
-/**
- * 设置会话监听器（待废弃接口，请使用 addConversationListener 和 removeConversationListener 接口）
- */
-- (void)setConversationListener:(id<V2TIMConversationListener>)listener __attribute__((deprecated("use addConversationListener: instead")));
 @end
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -162,9 +148,7 @@ typedef NS_ENUM(NSInteger, V2TIMGroupAtType) {
 - (void)onConversationChanged:(NSArray<V2TIMConversation*> *) conversationList;
 
 /**
- * 会话未读总数变更通知（5.3.425 及以上版本支持）
- * @note
- *  - 未读总数会减去设置为免打扰的会话的未读数，即消息接收选项设置为 V2TIMMessage.V2TIM_NOT_RECEIVE_MESSAGE 的会话。
+ * 会话未读总数变更通知
  */
 - (void)onTotalUnreadMessageCountChanged:(UInt64) totalUnreadCount;
 
@@ -205,10 +189,7 @@ typedef NS_ENUM(NSInteger, V2TIMGroupAtType) {
 /// 消息接收选项（接收 | 接收但不提醒 | 不接收）
 @property(nonatomic,assign,readonly) V2TIMReceiveMessageOpt recvOpt;
 
-/**
- * 会话最后一条消息
- * @note 5.5.892 以前版本，请您使用 lastMessage -> timestamp 对会话做排序，timestamp 越大，会话越靠前
- */
+/// 会话最后一条消息，可以通过 lastMessage -> timestamp 对会话做排序，timestamp 越大，会话越靠前
 @property(nonatomic,strong,readonly) V2TIMMessage *lastMessage;
 
 /// 群会话 @ 信息列表，用于展示 “有人@我” 或 “@所有人” 这两种提醒状态
@@ -222,15 +203,6 @@ typedef NS_ENUM(NSInteger, V2TIMGroupAtType) {
 
 /// 是否置顶
 @property(nonatomic,assign,readonly) BOOL isPinned;
-
-/**
- * 排序字段（5.5.892 及以后版本支持）
- * @note
- * - 排序字段 orderKey 是按照会话的激活时间线性递增的一个数字（注意：不是时间戳，因为同一时刻可能会有多个会话被同时激活）
- * - 5.5.892 及其以后版本，推荐您使用该字段对所有会话进行排序，orderKey 值越大，代表该会话排序越靠前
- * - 当您 “清空会话所有消息” 或者 “逐个删除会话的所有消息” 之后，会话的 lastMessage 变为空，但会话的 orderKey 不会改变；如果想保持会话的排序位置不变，可以使用该字段对所有会话进行排序
- */
-@property(nonatomic,assign,readonly) NSUInteger orderKey;
 
 @end
 
