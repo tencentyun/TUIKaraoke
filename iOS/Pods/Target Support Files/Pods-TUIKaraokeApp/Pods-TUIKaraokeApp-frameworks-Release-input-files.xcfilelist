@@ -1,9 +1,0 @@
-${PODS_ROOT}/Target Support Files/Pods-TUIKaraokeApp/Pods-TUIKaraokeApp-frameworks.sh
-${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework
-${BUILT_PRODUCTS_DIR}/Kingfisher/Kingfisher.framework
-${BUILT_PRODUCTS_DIR}/MJExtension/MJExtension.framework
-${BUILT_PRODUCTS_DIR}/SSZipArchive/SSZipArchive.framework
-${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework
-${BUILT_PRODUCTS_DIR}/TXAppBasic/TXAppBasic.framework
-${PODS_ROOT}/TXIMSDK_Plus_iOS/ImSDK_Plus.framework
-${BUILT_PRODUCTS_DIR}/Toast-Swift/Toast_Swift.framework
