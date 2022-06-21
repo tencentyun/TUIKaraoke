@@ -689,6 +689,13 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             Karaoke.exitRoom(callback: nil)
             viewResponder?.popToPrevious()
         }
+#if RTCube_APPSTORE
+        guard isOwner else { return }
+        let selector = NSSelectorFromString("showAlertUserLiveTimeOut")
+        if UIViewController.responds(to: selector) {
+            UIViewController.perform(selector)
+        }
+#endif
     }
     
     func onRoomInfoChange(roomInfo: RoomInfo) {
