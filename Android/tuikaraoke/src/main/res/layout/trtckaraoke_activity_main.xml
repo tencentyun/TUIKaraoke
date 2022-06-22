@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/trtckaraoke_bg_main_gradient"
+    android:descendantFocusability="blocksDescendants"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:id="@+id/ll_anchor_info"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="36dp"
+        android:background="@drawable/trtckaraoke_bg_auchor_title"
+        android:orientation="horizontal"
+        android:paddingStart="1dp"
+        android:paddingTop="1dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="1dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/iv_anchor_head"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/trtckaraoke_ic_head" />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="3dp"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_room_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:maxWidth="120dp"
+                android:maxLines="1"
+                android:minWidth="30dp"
+                android:singleLine="true"
+                android:textColor="@color/trtckaraoke_white"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_room_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tv_room_name"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:maxWidth="120dp"
+                android:maxLines="1"
+                android:textColor="@color/trtckaraoke_white"
+                android:textSize="12sp"
+                tools:text="房间ID : 123456" />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/exit_room"
+        style="@style/TRTCKtvRoomButtonStyle"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/trtckaraoke_ic_exit_room"
+        app:layout_constraintBottom_toBottomOf="@id/ll_anchor_info"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/ll_anchor_info" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_report"
+        android:visibility="gone"
+        app:layout_constraintRight_toLeftOf="@id/exit_room"
+        app:layout_constraintTop_toTopOf="@id/ll_anchor_info"
+        app:layout_constraintBottom_toBottomOf="@id/ll_anchor_info"
+        android:layout_marginRight="10dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/trtckaraoke_ic_report_room" />
+
+    <ImageView
+        android:id="@+id/iv_audience_move"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/trtckaraoke_ic_arrow_right"
+        app:layout_constraintBottom_toBottomOf="@+id/exit_room"
+        app:layout_constraintEnd_toStartOf="@+id/btn_report"
+        app:layout_constraintTop_toTopOf="@+id/exit_room" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_audience"
+        android:layout_width="56dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:layoutDirection="rtl"
+        app:layout_constraintBottom_toBottomOf="@+id/iv_audience_move"
+        app:layout_constraintRight_toLeftOf="@+id/iv_audience_move"
+        app:layout_constraintTop_toTopOf="@+id/iv_audience_move" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/gl_v"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.7" />
+
+    <com.tencent.liteav.tuikaraoke.ui.music.impl.KaraokeMusicView
+        android:id="@+id/fl_songtable_container"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/ll_anchor_info" />
+
+    <com.tencent.liteav.tuikaraoke.ui.lrc.widget.LyricsView
+        android:id="@+id/lrc_view"
+        android:layout_width="match_parent"
+        android:layout_height="82dp"
+        android:layout_gravity="bottom"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="90dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/ll_anchor_info"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_seat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/fl_songtable_container" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_im_msg"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="@+id/tool_bar_separator"
+        app:layout_constraintEnd_toEndOf="@id/gl_v"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rv_seat"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/tool_bar_separator"
+        android:layout_width="wrap_content"
+        android:layout_height="1px"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_msg"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_msg"
+        style="@style/TRTCKtvRoomButtonStyle"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/trtckaraoke_button_msg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_msg"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintTop_toTopOf="@+id/btn_msg">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btn_mic"
+            style="@style/TRTCKtvRoomButtonStyle"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/trtckaraoke_button_mic"
+            android:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btn_more_gift"
+            style="@style/TRTCKtvRoomButtonStyle"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/trtckaraoke_ic_gift" />
+    </LinearLayout>
+
+    <com.tencent.liteav.tuikaraoke.ui.gift.imp.GiftAnimatorLayout
+        android:id="@+id/gift_animator_layout"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="300dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <RelativeLayout
+        android:id="@+id/progress_group"
+        android:visibility="gone"
+        android:background="@android:color/transparent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
