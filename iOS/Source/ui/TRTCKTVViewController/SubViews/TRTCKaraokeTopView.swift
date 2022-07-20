@@ -106,6 +106,12 @@ class TRTCKaraokeTopView: UIView {
         btn.adjustsImageWhenHighlighted = false
         return btn
     }()
+    private let reportBtn : UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.setImage(UIImage(named: "karaoke_report", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.adjustsImageWhenHighlighted = false
+        return btn
+    }()
     private let audienceListCollectionView : UICollectionView = {
         let layout = TRTCKaraokeAudienceListLayout()
         layout.itemSize = CGSize(width: 24, height: 24)
@@ -168,6 +174,11 @@ class TRTCKaraokeTopView: UIView {
         addSubview(closeBtn)
         addSubview(audienceListCollectionView)
         addSubview(nextBtn)
+#if RTCube_APPSTORE
+        if !viewModel.isOwner {
+            addSubview(reportBtn)
+        }
+#endif
     }
     
     private func activateConstraints() {
@@ -182,16 +193,30 @@ class TRTCKaraokeTopView: UIView {
             make.centerY.equalTo(closeBtn)
             make.size.equalTo(CGSize(width: 32, height: 32))
         }
-        audienceListCollectionView.snp.makeConstraints { (make) in
-            make.centerY.equalTo(closeBtn)
-            make.trailing.equalTo(closeBtn.snp.leading).offset(-48)
-            make.height.equalTo(24)
-            make.width.equalTo(24*2+8)
-        }
         nextBtn.snp.makeConstraints { (make) in
             make.leading.equalTo(audienceListCollectionView.snp.trailing).offset(8)
             make.size.equalTo(CGSize(width: 24, height: 24))
             make.centerY.equalTo(audienceListCollectionView)
+        }
+        if reportBtn.superview != nil {
+            reportBtn.snp.makeConstraints { (make) in
+                make.trailing.equalTo(closeBtn.snp.leading).offset(-10)
+                make.centerY.equalTo(closeBtn)
+                make.size.equalTo(CGSize(width: 32, height: 32))
+            }
+            audienceListCollectionView.snp.makeConstraints { (make) in
+                make.centerY.equalTo(reportBtn)
+                make.trailing.equalTo(reportBtn.snp.leading).offset(-48)
+                make.height.equalTo(24)
+                make.width.equalTo(24*2+8)
+            }
+        } else {
+            audienceListCollectionView.snp.makeConstraints { (make) in
+                make.centerY.equalTo(closeBtn)
+                make.trailing.equalTo(closeBtn.snp.leading).offset(-48)
+                make.height.equalTo(24)
+                make.width.equalTo(24*2+8)
+            }
         }
     }
     
@@ -229,6 +254,7 @@ class TRTCKaraokeTopView: UIView {
         closeBtn.addTarget(self, action: #selector(closeBtnClick), for: .touchUpInside)
         shareBtn.addTarget(self, action: #selector(shareBtnClick), for: .touchUpInside)
         nextBtn.addTarget(self, action: #selector(nextBtnClick), for: .touchUpInside)
+        reportBtn.addTarget(self, action: #selector(reportBtnClick), for: .touchUpInside)
     }
     
     @objc func closeBtnClick() {
@@ -284,10 +310,18 @@ class TRTCKaraokeTopView: UIView {
         if audienceIndex >= memberAudienceDataSource.count {
             audienceIndex = 0
         }
-        audienceListCollectionView.scrollToItem(at: IndexPath(item: audienceIndex, section: 0), at: .left, animated: true)
+        if audienceIndex >= 0, audienceIndex < audienceListCollectionView.numberOfItems(inSection: 0) {
+            audienceListCollectionView.scrollToItem(at: IndexPath(item: audienceIndex, section: 0), at: .left, animated: true)
+        }
     }
     @objc func shareBtnClick() {
         
+    }
+    @objc func reportBtnClick() {
+        let selector = NSSelectorFromString("showReportAlertWithRoomId:ownerId:")
+        if responds(to: selector) {
+            perform(selector, with: viewModel.roomInfo.roomID.description, with: viewModel.roomInfo.ownerId)
+        }
     }
 }
 

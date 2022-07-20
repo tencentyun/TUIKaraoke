@@ -3,7 +3,7 @@
 //  TRTCKaraokeDemo
 //
 //  Created by abyyxwang on 2020/6/8.
-//Copyright © 2020 tencent. All rights reserved.
+//  Copyright © 2020 tencent. All rights reserved.
 //
 import UIKit
 import TXAppBasic

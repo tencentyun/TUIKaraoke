@@ -3,9 +3,10 @@
 //  TRTCKaraokeDemo
 //
 //  Created by abyyxwang on 2020/6/8.
-//Copyright © 2020 tencent. All rights reserved.
+//  Copyright © 2020 tencent. All rights reserved.
 //
 import UIKit
+import TUICore
 
 protocol TRTCKaraokeViewModelFactory {
    func makeKaraokeViewModel(roomInfo: RoomInfo, roomType: KaraokeViewType) -> TRTCKaraokeViewModel
@@ -44,6 +45,13 @@ public class TRTCKaraokeViewController: UIViewController {
         } else {
             model.enterRoom()
         }
+#if RTCube_APPSTORE
+        let selector = NSSelectorFromString("showAlertUserLiveTips")
+        if responds(to: selector) {
+            perform(selector)
+        }
+#endif
+        TUILogin.add(self)
     }
     
     public override func viewWillAppear(_ animated: Bool) {
@@ -74,8 +82,40 @@ public class TRTCKaraokeViewController: UIViewController {
     }
     
     deinit {
+        TUILogin.remove(self)
         TRTCLog.out("deinit \(type(of: self))")
     }
+}
+
+// MARK: - TUILoginListener
+extension TRTCKaraokeViewController: TUILoginListener {
+    
+    public func onConnecting() {
+        
+    }
+    
+    public func onConnectSuccess() {
+        
+    }
+    
+    public func onConnectFailed(_ code: Int32, err: String!) {
+        
+    }
+    
+    public func onKickedOffline() {
+        if TRTCKaraokeFloatingWindowManager.shared().windowIsShowing {
+            TRTCKaraokeFloatingWindowManager.shared().closeWindowAndExitRoom()
+        } else {
+            viewModel?.exitRoom {
+                
+            }
+        }
+    }
+    
+    public func onUserSigExpired() {
+        
+    }
+    
 }
 
 extension TRTCKaraokeViewController {

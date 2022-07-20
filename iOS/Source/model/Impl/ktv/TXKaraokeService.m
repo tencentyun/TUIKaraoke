@@ -252,6 +252,8 @@
             [self unInitIMListener];
             [self cleanRoomStatus];
         } else {
+            [self unInitIMListener];
+            [self cleanRoomStatus];
             if (callback) {
                 callback(code, desc ?: @"destroy room failed");
             }
@@ -824,6 +826,7 @@
     if (![groupID isEqualToString:self.mRoomId]) {
         return;
     }
+    [self unInitIMListener];
     [self cleanRoomStatus];
     if ([self canDelegateResponseMethod:@selector(onRoomDestroyWithRoomId:)]) {
         [self.delegate onRoomDestroyWithRoomId:groupID];

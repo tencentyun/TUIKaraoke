@@ -3,7 +3,7 @@
 //  TUIKaraoke
 //
 //  Created by gg on 2021/6/24.
-//
+//  Copyright © 2022 Tencent. All rights reserved.
 
 import Foundation
 

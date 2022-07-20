@@ -3,7 +3,7 @@
 //  TUIKaraoke
 //
 //  Created by gg on 2021/6/29.
-//
+//  Copyright © 2022 Tencent. All rights reserved.
 
 import Foundation
 let KaraokeFileDirectoryPath = NSHomeDirectory().appending("/Documents/Karaoke") // 返回歌词缓存路径
