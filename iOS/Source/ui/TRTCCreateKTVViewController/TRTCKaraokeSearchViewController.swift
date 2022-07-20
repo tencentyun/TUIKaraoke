@@ -3,7 +3,7 @@
 //  TRTCAPP_AppStore
 //
 //  Created by WesleyLei on 2021/8/9.
-//
+//  Copyright © 2022 Tencent. All rights reserved.
 
 import MJRefresh
 import UIKit

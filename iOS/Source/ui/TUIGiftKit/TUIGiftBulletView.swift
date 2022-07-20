@@ -3,8 +3,8 @@
 //  TUIKaraoke
 //
 //  Created by adams on 2021/6/25.
-//
-// 礼物播放UI视图控件
+//  Copyright © 2022 Tencent. All rights reserved.
+//  礼物播放UI视图控件
 
 import Foundation
 
