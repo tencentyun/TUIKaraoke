@@ -132,18 +132,19 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
 
     @Override
     public void ktvGetPopularMusic(KaraokeMusicCallback.PopularMusicListCallback callback) {
-        List<KaraokePopularInfo> list = new ArrayList<>();
         KaraokePopularInfo info = new KaraokePopularInfo();
         info.description = LOCAL_DESCRIPTION;
         info.musicNum = LOCAL_MUSICNUM;
         info.playlistId = LOCAL_PLAYLISTID;
         info.topic = LOCAL_TOPIC;
+        List<KaraokePopularInfo> list = new ArrayList<>();
         list.add(info);
         callback.onCallBack(list);
     }
 
     @Override
-    public void ktvGetMusicPage(String playlistId, int offset, int pageSize, KaraokeMusicCallback.MusicListCallback callback) {
+    public void ktvGetMusicPage(String playlistId, int offset,
+                                int pageSize, KaraokeMusicCallback.MusicListCallback callback) {
         if (!LOCAL_PLAYLISTID.equals(playlistId)) {
             return;
         }
@@ -170,7 +171,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     }
 
     @Override
-    public void ktvSearchMusicByKeyWords(int offset, int pageSize, String keyWords, KaraokeMusicCallback.MusicListCallback callback) {
+    public void ktvSearchMusicByKeyWords(int offset, int pageSize,
+                                         String keyWords, KaraokeMusicCallback.MusicListCallback callback) {
         if (keyWords == null) {
             return;
         }
@@ -510,31 +512,33 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     }
 
     public void sendNoti(String data) {
-        V2TIMManager.getInstance().sendGroupCustomMessage(data.getBytes(), mRoomId, V2TIMMessage.V2TIM_PRIORITY_NORMAL, new V2TIMValueCallback<V2TIMMessage>() {
-            @Override
-            public void onSuccess(V2TIMMessage v2TIMMessage) {
-            }
+        V2TIMManager.getInstance().sendGroupCustomMessage(data.getBytes(),
+                mRoomId, V2TIMMessage.V2TIM_PRIORITY_NORMAL, new V2TIMValueCallback<V2TIMMessage>() {
+                    @Override
+                    public void onSuccess(V2TIMMessage v2TIMMessage) {
+                    }
 
-            @Override
-            public void onError(int code, String desc) {
-                TRTCLogger.d(TAG, "sendNoti onError:" + desc);
-            }
-        });
+                    @Override
+                    public void onError(int code, String desc) {
+                        TRTCLogger.d(TAG, "sendNoti onError:" + desc);
+                    }
+                });
     }
 
     public void sendInstruction(String cmd, String userId, String content) {
         Log.d(TAG, "sendInstruction: cmd = " + cmd + " , content = " + content);
         String data = buildSingleMsg(cmd, content);
-        V2TIMManager.getInstance().sendC2CCustomMessage(data.getBytes(), userId, new V2TIMValueCallback<V2TIMMessage>() {
-            @Override
-            public void onSuccess(V2TIMMessage v2TIMMessage) {
-            }
+        V2TIMManager.getInstance().sendC2CCustomMessage(data.getBytes(),
+                userId, new V2TIMValueCallback<V2TIMMessage>() {
+                    @Override
+                    public void onSuccess(V2TIMMessage v2TIMMessage) {
+                    }
 
-            @Override
-            public void onError(int code, String desc) {
-                TRTCLogger.d(TAG, "sendInstruction onError: code = " + code);
-            }
-        });
+                    @Override
+                    public void onError(int code, String desc) {
+                        TRTCLogger.d(TAG, "sendInstruction onError: code = " + code);
+                    }
+                });
     }
 
     private class KTVMusicListener extends V2TIMSimpleMsgListener {
@@ -564,78 +568,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 KaraokeJsonData.Data data = jsonData.getData();
                 String instruction = data.getInstruction();
                 String musicId = data.getContent();
-                KaraokeMusicModel entity = findEntityFromLibrary(musicId);
                 TRTCLogger.d(TAG, "RecvC2CMessage: instruction = " + instruction + " customStr = " + customStr);
-                switch (instruction) {
-                    case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MGETLIST:
-                        //房主收到其他人的进房请求后,更新列表,然后通知去设置歌词
-                        if (!isOwner()) {
-                            return;
-                        }
-                        notiListChange();
-                        if (mMusicSelectedList.size() > 0) {
-                            notiPrepare(mMusicSelectedList.get(0).musicId);
-                        }
-                        break;
-                    case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPICK:
-                        //房主收到其他人的点歌后,去更新列表并通知主播去播放;其他人不处理该通知
-                        if (!isOwner()) {
-                            return;
-                        }
-                        boolean shouPlay = mMusicSelectedList.size() == 0;
-                        entity.userId = sender.getUserID();
-                        mMusicSelectedList.add(entity);
-                        notiListChange();
-                        if (shouPlay) {
-                            sendShouldPlay(sender.getUserID(), entity.musicId);
-                        }
-                        if (mSelectDelegates != null) {
-                            for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                                delegate.onShouldShowMessage(entity);
-                            }
-                        }
-                        break;
-                    case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPLAYMUSIC:
-                        if (mSelectDelegates != null) {
-                            for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                                delegate.onShouldPlay(entity);
-                            }
-                        }
-                        break;
-                    case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MSTOP:
-                        if (mSelectDelegates != null && mSelectDelegates.size() > 0) {
-                            for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                                delegate.onShouldStopPlay(entity);
-                            }
-                        }
-                        break;
-                    case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MDELETE:
-                        //房主收到主播删除歌曲的请求后,直接删除歌曲
-                        KaraokeMusicModel model = findEntityFromSelect(musicId);
-                        if (mMusicSelectedList.size() > 0 && model != null) {
-                            mMusicSelectedList.remove(model);
-                        }
-                        notiListChange();
-                        break;
-                    case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MDELETEALL:
-                        // 房主处理,其他人收到不处理
-                        if (!isOwner()) {
-                            return;
-                        }
-                        if (mMusicSelectedList.size() > 0) {
-                            List<KaraokeMusicModel> list = new ArrayList<>();
-                            for (KaraokeMusicModel temp : mMusicSelectedList) {
-                                if (sender != null && sender.getUserID().equals(temp.userId)) {
-                                    list.add(temp);
-                                }
-                            }
-                            mMusicSelectedList.removeAll(list);
-                            notiListChange();
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                handleC2CInstruction(instruction, sender, musicId);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -647,14 +581,20 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         }
 
         @Override
-        public void onRecvGroupCustomMessage(String msgID, String groupID, V2TIMGroupMemberInfo sender, byte[] customData) {
+        public void onRecvGroupCustomMessage(String msgID, String groupID,
+                                             V2TIMGroupMemberInfo sender, byte[] customData) {
             String customStr = new String(customData);
             if (TextUtils.isEmpty(customStr)) {
                 Log.d(TAG, "onRecvC2CCustomMessage  the customData is null");
                 return;
             }
             Gson gson = new Gson();
-            KaraokeJsonData jsonData = gson.fromJson(customStr, KaraokeJsonData.class);
+            KaraokeJsonData jsonData;
+            try {
+                jsonData = gson.fromJson(customStr, KaraokeJsonData.class);
+            } catch (Exception e) {
+                return;
+            }
             String businessID = jsonData.getBusinessID();
             if (!KaraokeConstants.KARAOKE_VALUE_CMD_BUSINESSID.equals(businessID)) {
                 return;
@@ -663,85 +603,179 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
             String instruction = data.getInstruction();
             String musicId = data.getContent();
             TRTCLogger.d(TAG, "RecvGroupMessage instruction = " + instruction + " ,data = " + data);
-            switch (instruction) {
-                case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MLISTCHANGE:
-                    List<KaraokeMusicModel> list = new ArrayList<>();
-                    Gson gsonTemp = new Gson();
-                    list = gsonTemp.fromJson(data.getContent(),
-                            new TypeToken<List<KaraokeMusicModel>>() {
-                            }.getType());
+            handleGroupInstruction(instruction, data, musicId);
+        }
+    }
 
-                    mMusicSelectedList.clear();
-                    //避免ios端和Android数据不一致导致的数据异常
-                    //根据musicId对齐两端的信息
-                    if (list.size() > 0) {
-                        for (KaraokeMusicModel temp : list) {
-                            if (temp != null) {
-                                KaraokeMusicModel tempEntity = findEntityFromLibrary(temp.musicId);
-                                if (tempEntity != null) {
-                                    tempEntity.userId = temp.userId;
-                                    tempEntity.isSelected = temp.isSelected;
-                                    mMusicSelectedList.add(tempEntity);
-                                }
-                            }
-                        }
+    private void handleGroupInstruction(String instruction, KaraokeJsonData.Data data, String musicId) {
+        switch (instruction) {
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MLISTCHANGE:
+                receiveListChange(data);
+                break;
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPREPARE:
+                mCurrentMusicId = musicId;
+                if (mSelectDelegates != null) {
+                    for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                        delegate.onShouldSetLyric(findEntityFromLibrary(mCurrentMusicId));
                     }
-                    //收到列表变化的通知,去更新自己的界面信息
-                    if (mSelectDelegates != null && mSelectDelegates.size() > 0) {
-                        for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                            delegate.OnMusicListChange(mMusicSelectedList);
-                        }
-                    }
-                    break;
-                case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPREPARE:
-                    mCurrentMusicId = musicId;
-                    if (mSelectDelegates != null) {
-                        for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                            delegate.onShouldSetLyric(findEntityFromLibrary(mCurrentMusicId));
-                        }
-                    }
-                    break;
-                case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MCOMPLETE:
-                    if (mCurrentMusicId == null || musicId.equals(mCurrentMusicId)) {
-                        if (mSelectDelegates != null) {
-                            for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                                delegate.onShouldSetLyric(null);
-                            }
-                        }
-                    }
-                    //房主收到后处理,其他人不处理
-                    if (!isOwner()) {
-                        return;
-                    }
-                    if (mMusicSelectedList.size() > 0 && musicId != null) {
-                        KaraokeMusicModel temp = null;
-                        for (KaraokeMusicModel model : mMusicSelectedList) {
-                            if (model != null && musicId.equals(model.musicId)) {
-                                temp = model;
-                            }
-                        }
-                        if (temp != null) {
-                            mMusicSelectedList.remove(temp);
-                            notiListChange();
-                        }
-                    }
-                    //如果切歌后已点列表还有歌,判断歌曲是谁的,通知播放.
-                    if (mMusicSelectedList.size() > 0) {
-                        KaraokeMusicModel curEntity = mMusicSelectedList.get(0);
-                        if (curEntity.userId.equals(mOwnerId)) {
-                            if (mSelectDelegates != null) {
-                                for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                                    delegate.onShouldPlay(curEntity);
-                                }
-                            }
-                        } else {
-                            sendShouldPlay(curEntity.userId, curEntity.musicId);
-                        }
-                    }
-                    break;
-                default:
-                    break;
+                }
+                break;
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MCOMPLETE:
+                receiveComplete(musicId);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void receiveComplete(String musicId) {
+        if (mCurrentMusicId == null || musicId.equals(mCurrentMusicId)) {
+            if (mSelectDelegates != null) {
+                for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                    delegate.onShouldSetLyric(null);
+                }
             }
+        }
+        //房主收到后处理,其他人不处理
+        if (!isOwner()) {
+            return;
+        }
+        if (mMusicSelectedList.size() > 0 && musicId != null) {
+            KaraokeMusicModel temp = null;
+            for (KaraokeMusicModel model : mMusicSelectedList) {
+                if (model != null && musicId.equals(model.musicId)) {
+                    temp = model;
+                }
+            }
+            if (temp != null) {
+                mMusicSelectedList.remove(temp);
+                notiListChange();
+            }
+        }
+        //如果切歌后已点列表还有歌,判断歌曲是谁的,通知播放.
+        if (mMusicSelectedList.size() > 0) {
+            KaraokeMusicModel curEntity = mMusicSelectedList.get(0);
+            if (curEntity.userId.equals(mOwnerId)) {
+                if (mSelectDelegates != null) {
+                    for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                        delegate.onShouldPlay(curEntity);
+                    }
+                }
+            } else {
+                sendShouldPlay(curEntity.userId, curEntity.musicId);
+            }
+        }
+    }
+
+    private void receiveListChange(KaraokeJsonData.Data data) {
+        List<KaraokeMusicModel> list = new ArrayList<>();
+        Gson gsonTemp = new Gson();
+        list = gsonTemp.fromJson(data.getContent(),
+                new TypeToken<List<KaraokeMusicModel>>() {
+                }.getType());
+
+        mMusicSelectedList.clear();
+        //避免ios端和Android数据不一致导致的数据异常
+        //根据musicId对齐两端的信息
+        if (list.size() > 0) {
+            for (KaraokeMusicModel temp : list) {
+                if (temp != null) {
+                    KaraokeMusicModel tempEntity = findEntityFromLibrary(temp.musicId);
+                    if (tempEntity != null) {
+                        tempEntity.userId = temp.userId;
+                        tempEntity.isSelected = temp.isSelected;
+                        mMusicSelectedList.add(tempEntity);
+                    }
+                }
+            }
+        }
+        //收到列表变化的通知,去更新自己的界面信息
+        if (mSelectDelegates != null && mSelectDelegates.size() > 0) {
+            for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                delegate.OnMusicListChange(mMusicSelectedList);
+            }
+        }
+    }
+
+    private void receivePick(V2TIMUserInfo sender, KaraokeMusicModel entity) {
+        //房主收到其他人的点歌后,去更新列表并通知主播去播放;其他人不处理该通知
+        if (!isOwner()) {
+            return;
+        }
+        entity.userId = sender.getUserID();
+        boolean shouPlay = mMusicSelectedList.size() == 0;
+        mMusicSelectedList.add(entity);
+        notiListChange();
+        if (shouPlay) {
+            sendShouldPlay(sender.getUserID(), entity.musicId);
+        }
+        if (mSelectDelegates != null) {
+            for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                delegate.onShouldShowMessage(entity);
+            }
+        }
+    }
+
+    private void receiveDeleteAll(V2TIMUserInfo sender) {
+        // 房主处理,其他人收到不处理
+        if (!isOwner()) {
+            return;
+        }
+        if (mMusicSelectedList.size() > 0) {
+            List<KaraokeMusicModel> list = new ArrayList<>();
+            for (KaraokeMusicModel temp : mMusicSelectedList) {
+                if (sender != null && sender.getUserID().equals(temp.userId)) {
+                    list.add(temp);
+                }
+            }
+            mMusicSelectedList.removeAll(list);
+            notiListChange();
+        }
+    }
+
+    private void handleC2CInstruction(String instruction, V2TIMUserInfo sender, String musicId) {
+        KaraokeMusicModel entity = findEntityFromLibrary(musicId);
+        switch (instruction) {
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MGETLIST:
+                //房主收到其他人的进房请求后,更新列表,然后通知去设置歌词
+                if (!isOwner()) {
+                    return;
+                }
+                notiListChange();
+                if (mMusicSelectedList.size() > 0) {
+                    notiPrepare(mMusicSelectedList.get(0).musicId);
+                }
+                break;
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPICK:
+                receivePick(sender, entity);
+                break;
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPLAYMUSIC:
+                if (mSelectDelegates != null) {
+                    for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                        delegate.onShouldPlay(entity);
+                    }
+                }
+                break;
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MSTOP:
+                if (mSelectDelegates != null && mSelectDelegates.size() > 0) {
+                    for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                        delegate.onShouldStopPlay(entity);
+                    }
+                }
+                break;
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MDELETE:
+                //房主收到主播删除歌曲的请求后,直接删除歌曲
+                KaraokeMusicModel model = findEntityFromSelect(musicId);
+                if (mMusicSelectedList.size() > 0 && model != null) {
+                    mMusicSelectedList.remove(model);
+                }
+                notiListChange();
+                break;
+            case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MDELETEALL:
+                receiveDeleteAll(sender);
+                break;
+            default:
+                break;
         }
     }
 }

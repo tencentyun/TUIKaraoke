@@ -11,10 +11,10 @@ import android.util.Log;
 import android.view.View;
 
 import com.blankj.utilcode.util.ToastUtils;
+import com.tencent.liteav.basic.RTCubeUtils;
 import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
 
-import com.tencent.liteav.debug.BuildConfig;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
@@ -179,7 +179,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
         // 开始进房
         enterRoom();
         TUILogin.addLoginListener(mTUILoginListener);
-        mBtnReport.setVisibility(BuildConfig.RTCube_APPSTORE ? View.VISIBLE : View.GONE);
+        mBtnReport.setVisibility(RTCubeUtils.isRTCubeApp(this) ? View.VISIBLE : View.GONE);
         mBtnReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
