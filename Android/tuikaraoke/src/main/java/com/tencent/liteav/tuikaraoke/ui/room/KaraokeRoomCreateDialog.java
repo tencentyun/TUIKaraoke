@@ -1,8 +1,11 @@
 package com.tencent.liteav.tuikaraoke.ui.room;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
+
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -11,14 +14,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.blankj.utilcode.util.ToastUtils;
+import com.tencent.liteav.basic.RTCubeUtils;
 import com.tencent.liteav.basic.UserModelManager;
-import com.tencent.liteav.debug.BuildConfig;
 import com.tencent.liteav.tuikaraoke.R;
 
 /**
  * 创建ktv房间页面
  */
 public class KaraokeRoomCreateDialog extends BottomSheetDialog {
+    private static final int MAX_LEN = 30;
+
     private EditText mRoomNameEt;
     private TextView mEnterTv;
     private String   mUserName;
@@ -26,9 +31,9 @@ public class KaraokeRoomCreateDialog extends BottomSheetDialog {
     private String   mCoverUrl;
     private int      mAudioQuality;
     private boolean  mNeedRequest;
-    private int      MAX_LEN = 30;
 
-    public void showRoomCreateDialog(String userId, String userName, String coverUrl, int audioQuality, boolean needRequest) {
+    public void showRoomCreateDialog(String userId, String userName,
+                                     String coverUrl, int audioQuality, boolean needRequest) {
         mUserId = userId;
         mUserName = userName;
         mCoverUrl = coverUrl;
@@ -87,13 +92,14 @@ public class KaraokeRoomCreateDialog extends BottomSheetDialog {
             ToastUtils.showLong(getContext().getText(R.string.trtckaraoke_warning_room_name_too_long));
             return;
         }
-        KaraokeRoomAnchorActivity.createRoom(getContext(), roomName, mUserId, mUserName, mCoverUrl, mAudioQuality, mNeedRequest);
+        KaraokeRoomAnchorActivity.createRoom(getContext(), roomName,
+                mUserId, mUserName, mCoverUrl, mAudioQuality, mNeedRequest);
         dismiss();
     }
 
     private void initView() {
         mRoomNameEt = (EditText) findViewById(R.id.et_room_name);
         mEnterTv = (TextView) findViewById(R.id.tv_enter);
-        mRoomNameEt.setFocusableInTouchMode(!BuildConfig.RTCube_APPSTORE);
+        mRoomNameEt.setFocusableInTouchMode(!RTCubeUtils.isRTCubeApp(getContext()));
     }
 }
