@@ -235,5 +235,5 @@ class TUIGiftPanelCell: UICollectionViewCell {
 }
 
 fileprivate extension String {
-    static let giftTitleText = KaraokeLocalize("Demo.TRTC.Karaoke.gift")
+    static let giftTitleText = karaokeLocalize("Demo.TRTC.Karaoke.gift")
 }

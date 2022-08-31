@@ -97,7 +97,7 @@ extension TRTCKaraokeSelectedSongTableView: UITableViewDataSource, UITableViewDe
             let index = indexPath.item
             if index == 0 {
                 scell.playImageView.isHidden = false
-                let path = KaraokeBundle().path(forResource: "playing", ofType: "gif") ?? ""
+                let path = karaokeBundle().path(forResource: "playing", ofType: "gif") ?? ""
                 scell.playImageView.kf.setImage(with: URL(fileURLWithPath: path))
                 scell.sortLabel.text = ""
                 scell.sortLabel.isHidden = true
@@ -234,13 +234,13 @@ class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
                 return
             }
             if let url = URL(string: model.bookUserAvatar) {
-                headerImageView.kf.setImage(with: .network(url), placeholder: UIImage(named: "voiceChange_loli_sel", in: KaraokeBundle(), compatibleWith: nil))
+                headerImageView.kf.setImage(with: .network(url), placeholder: UIImage(named: "voiceChange_loli_sel", in: karaokeBundle(), compatibleWith: nil))
             } else {
-                headerImageView.image = UIImage(named: "voiceChange_loli_sel", in: KaraokeBundle(), compatibleWith: nil)
+                headerImageView.image = UIImage(named: "voiceChange_loli_sel", in: karaokeBundle(), compatibleWith: nil)
             }
             titleLabel.text = model.musicName
-            authorLabel.text = LocalizeReplaceXX(.originSingerText, model.singer)
-            micOrderLabel.text = LocalizeReplaceXX(.seatIndexText, "\(model.seatIndex + 1)")
+            authorLabel.text = localizeReplaceXX(.originSingerText, model.singer)
+            micOrderLabel.text = localizeReplaceXX(.seatIndexText, "\(model.seatIndex + 1)")
             userNameLabel.text = model.bookUserName
         }
     }
@@ -354,18 +354,18 @@ class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
     func setState(_ state: SelectedState) {
         switch state {
         case .playing:
-            topBtn.setImage(UIImage(named: "switchSong", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+            topBtn.setImage(UIImage(named: "switchSong", in: karaokeBundle(), compatibleWith: nil), for: .normal)
             topBtn.setImage(nil, for: .disabled)
             topBtn.isHidden = false
             topBtn.isEnabled = true
         case .nextPlay:
-            topBtn.setImage(UIImage(named: "top_normal", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
-            topBtn.setImage(UIImage(named: "top_disable", in: KaraokeBundle(), compatibleWith: nil), for: .disabled)
+            topBtn.setImage(UIImage(named: "top_normal", in: karaokeBundle(), compatibleWith: nil), for: .normal)
+            topBtn.setImage(UIImage(named: "top_disable", in: karaokeBundle(), compatibleWith: nil), for: .disabled)
             topBtn.isHidden = false
             topBtn.isEnabled = false
         case .list:
-            topBtn.setImage(UIImage(named: "top_normal", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
-            topBtn.setImage(UIImage(named: "top_disable", in: KaraokeBundle(), compatibleWith: nil), for: .disabled)
+            topBtn.setImage(UIImage(named: "top_normal", in: karaokeBundle(), compatibleWith: nil), for: .normal)
+            topBtn.setImage(UIImage(named: "top_disable", in: karaokeBundle(), compatibleWith: nil), for: .disabled)
             topBtn.isHidden = false
             topBtn.isEnabled = true
         case .hide:
@@ -377,7 +377,7 @@ class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let deleteText = KaraokeLocalize("Demo.TRTC.Karaoke.delete")
-    static let seatIndexText = KaraokeLocalize("Demo.TRTC.Karaoke.xxmic")
-    static let originSingerText = KaraokeLocalize("Demo.TRTC.Karaoke.singerisxx")
+    static let deleteText = karaokeLocalize("Demo.TRTC.Karaoke.delete")
+    static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    static let originSingerText = karaokeLocalize("Demo.TRTC.Karaoke.singerisxx")
 }

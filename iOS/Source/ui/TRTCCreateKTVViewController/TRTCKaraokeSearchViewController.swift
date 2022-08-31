@@ -46,7 +46,7 @@ public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDeleg
             textfield.backgroundColor = .clear
             textfield.leftViewMode = .always
         }
-        searchBar.setImage(UIImage(named: "search_normal", in: KaraokeBundle(), compatibleWith: nil), for: .search, state: .normal)
+        searchBar.setImage(UIImage(named: "search_normal", in: karaokeBundle(), compatibleWith: nil), for: .search, state: .normal)
         return searchBar
     }()
 
@@ -276,7 +276,7 @@ extension TRTCKaraokeSearchViewController: UITableViewDelegate {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let searchPlaceholderText = KaraokeLocalize("Demo.TRTC.Karaoke.searchlike")
-    static let searchBackText = KaraokeLocalize("Demo.TRTC.LiveRoom.searchback")
-    static let searchNoResult = KaraokeLocalize("Demo.TRTC.LiveRoom.searchnoresult")
+    static let searchPlaceholderText = karaokeLocalize("Demo.TRTC.Karaoke.searchlike")
+    static let searchBackText = karaokeLocalize("Demo.TRTC.LiveRoom.searchback")
+    static let searchNoResult = karaokeLocalize("Demo.TRTC.LiveRoom.searchnoresult")
 }

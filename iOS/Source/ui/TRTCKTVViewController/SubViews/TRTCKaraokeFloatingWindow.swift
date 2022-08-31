@@ -311,14 +311,14 @@ fileprivate class TRTCKaraokeFloatingWindow: UIWindow {
     
     lazy var muteBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "volume", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
-        btn.setImage(UIImage(named: "volume_off", in: KaraokeBundle(), compatibleWith: nil), for: .selected)
+        btn.setImage(UIImage(named: "volume", in: karaokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "volume_off", in: karaokeBundle(), compatibleWith: nil), for: .selected)
         return btn
     }()
     
     lazy var closeBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "close", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "close", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         return btn
     }()
     
@@ -330,10 +330,10 @@ fileprivate class TRTCKaraokeFloatingWindow: UIWindow {
 }
 
 fileprivate extension String {
-    static let exitText = KaraokeLocalize("Demo.TRTC.Karaoke.exit")
-    static let sureToExitText = KaraokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
-    static let acceptText = KaraokeLocalize("Demo.TRTC.LiveRoom.accept")
-    static let refuseText = KaraokeLocalize("Demo.TRTC.LiveRoom.refuse")
-    static let mutedText = KaraokeLocalize("Demo.TRTC.Karaoke.ismuted")
-    static let unmutedText = KaraokeLocalize("Demo.TRTC.Karaoke.isunmuted")
+    static let exitText = karaokeLocalize("Demo.TRTC.Karaoke.exit")
+    static let sureToExitText = karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
+    static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    static let refuseText = karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
+    static let mutedText = karaokeLocalize("Demo.TRTC.Karaoke.ismuted")
+    static let unmutedText = karaokeLocalize("Demo.TRTC.Karaoke.isunmuted")
 }

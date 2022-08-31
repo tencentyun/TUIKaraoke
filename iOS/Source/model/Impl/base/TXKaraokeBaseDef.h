@@ -10,10 +10,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-FOUNDATION_EXPORT void TUIKaraokeLog(NSString *format, ...);
+FOUNDATION_EXPORT void tuiKaraokeLog(NSString *format, ...);
 
 // 使用TRTCCloud apiLog，日志会写入本地
-#define TRTCLog(fmt, ...) TUIKaraokeLog((@"TRTC LOG:%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define TRTCLog(fmt, ...) tuiKaraokeLog((@"TRTC LOG:%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 @class TXKaraokeUserInfo;
 @class TXKaraokeRoomInfo;

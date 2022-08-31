@@ -16,7 +16,7 @@
 
 @end
 
-void TUIKaraokeLog(NSString *format, ...){
+void tuiKaraokeLog(NSString *format, ...){
     if (!format || ![format isKindOfClass:[NSString class]] || format.length == 0) {
         return;
     }

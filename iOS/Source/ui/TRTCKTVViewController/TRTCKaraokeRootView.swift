@@ -74,10 +74,10 @@ class TRTCKaraokeRootView: UIView {
     
     lazy var mainMenuView: TRTCKaraokeMainMenuView = {
         let icons: [IconTuple] = [
-            IconTuple(normal: UIImage(named: "room_message", in: KaraokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_message", in: KaraokeBundle(), compatibleWith: nil)!, type: .message),
-            IconTuple(normal: UIImage(named: "room_leave_mic", in: KaraokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_leave_mic", in: KaraokeBundle(), compatibleWith: nil)!, type: .micoff),
-            IconTuple(normal: UIImage(named: "room_voice_off", in: KaraokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_voice_on", in: KaraokeBundle(), compatibleWith: nil)!, type: .mute),
-            IconTuple(normal: UIImage(named: "gift", in: KaraokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "gift", in: KaraokeBundle(), compatibleWith: nil)!, type: .gift),
+            IconTuple(normal: UIImage(named: "room_message", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_message", in: karaokeBundle(), compatibleWith: nil)!, type: .message),
+            IconTuple(normal: UIImage(named: "room_leave_mic", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_leave_mic", in: karaokeBundle(), compatibleWith: nil)!, type: .micoff),
+            IconTuple(normal: UIImage(named: "room_voice_off", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_voice_on", in: karaokeBundle(), compatibleWith: nil)!, type: .mute),
+            IconTuple(normal: UIImage(named: "gift", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "gift", in: karaokeBundle(), compatibleWith: nil)!, type: .gift),
         ]
         icons.forEach { (icon) in
             switch icon.type {
@@ -448,13 +448,13 @@ extension TRTCKaraokeRootView: TUIGiftPanelViewDelegate {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let mutedText = KaraokeLocalize("Demo.TRTC.Salon.seatmuted")
-    static let unmutedText = KaraokeLocalize("Demo.TRTC.Salon.seatunmuted")
-    static let acceptText = KaraokeLocalize("Demo.TRTC.LiveRoom.accept")
-    static let refuseText = KaraokeLocalize("Demo.TRTC.LiveRoom.refuse")
-    static let selectText = KaraokeLocalize("Demo.TRTC.Salon.pleaseselect")
-    static let cancelText = KaraokeLocalize("Demo.TRTC.LiveRoom.cancel")
-    static let seatmutedText = KaraokeLocalize("Demo.TRTC.Karaoke.onseatmuted")
+    static let mutedText = karaokeLocalize("Demo.TRTC.Salon.seatmuted")
+    static let unmutedText = karaokeLocalize("Demo.TRTC.Salon.seatunmuted")
+    static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    static let refuseText = karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
+    static let selectText = karaokeLocalize("Demo.TRTC.Salon.pleaseselect")
+    static let cancelText = karaokeLocalize("Demo.TRTC.LiveRoom.cancel")
+    static let seatmutedText = karaokeLocalize("Demo.TRTC.Karaoke.onseatmuted")
 }
 
 

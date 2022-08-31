@@ -59,7 +59,7 @@ class TRTCKaraokeTopView: UIView {
     }
     public func reloadRoomInfo(_ info: RoomInfo) {
         roomTitleLabel.text = info.roomName
-        roomDescLabel.text = LocalizeReplaceXX(.roomIdDescText, String(info.roomID))
+        roomDescLabel.text = localizeReplaceXX(.roomIdDescText, String(info.roomID))
         setNeedsDisplay()
     }
     
@@ -95,20 +95,20 @@ class TRTCKaraokeTopView: UIView {
     }()
     private let shareBtn : UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "share", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "share", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
         btn.isHidden = true
         return btn
     }()
     private let closeBtn : UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "exit", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "exit", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
         return btn
     }()
     private let reportBtn : UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "karaoke_report", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "karaoke_report", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
         return btn
     }()
@@ -126,7 +126,7 @@ class TRTCKaraokeTopView: UIView {
     }()
     private let nextBtn : UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "room_scrollright", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "room_scrollright", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
         return btn
     }()
@@ -372,10 +372,10 @@ extension TRTCKaraokeTopView : UICollectionViewDelegate {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let roomTitleText = KaraokeLocalize("Demo.TRTC.Karaoke.roomname")
-    static let roomIdDescText = KaraokeLocalize("Demo.TRTC.Karaoke.roomidxx")
-    static let welcomeText = KaraokeLocalize("Demo.TRTC.Karaoke.xxenterroom")
-    static let exitText = KaraokeLocalize("Demo.TRTC.Karaoke.exit")
-    static let sureToExitText = KaraokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
-    static let alertToMicoffText = KaraokeLocalize("退出会下麦哦～")
+    static let roomTitleText = karaokeLocalize("Demo.TRTC.Karaoke.roomname")
+    static let roomIdDescText = karaokeLocalize("Demo.TRTC.Karaoke.roomidxx")
+    static let welcomeText = karaokeLocalize("Demo.TRTC.Karaoke.xxenterroom")
+    static let exitText = karaokeLocalize("Demo.TRTC.Karaoke.exit")
+    static let sureToExitText = karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
+    static let alertToMicoffText = karaokeLocalize("退出会下麦哦～")
 }

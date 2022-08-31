@@ -53,7 +53,7 @@ class TRTCKaraokeSeatView: UIView {
     let avatarImageView: UIImageView = {
         let imageView = UIImageView.init(frame: .zero)
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage.init(named: "Karaoke_placeholder_avatar", in: KaraokeBundle(), compatibleWith: nil)
+        imageView.image = UIImage.init(named: "Karaoke_placeholder_avatar", in: karaokeBundle(), compatibleWith: nil)
         imageView.layer.masksToBounds = true
         return imageView
     }()
@@ -61,7 +61,7 @@ class TRTCKaraokeSeatView: UIView {
     let muteImageView: UIImageView = {
         let imageView = UIImageView.init(frame: .zero)
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage.init(named: "audience_voice_off", in: KaraokeBundle(), compatibleWith: nil)
+        imageView.image = UIImage.init(named: "audience_voice_off", in: karaokeBundle(), compatibleWith: nil)
         imageView.isHidden = true
         return imageView
     }()
@@ -137,7 +137,7 @@ class TRTCKaraokeSeatView: UIView {
         if model.isUsed {
             // 有人
             if let userSeatInfo = model.seatUser {
-                let placeholder = UIImage.init(named: "avatar2_100", in: KaraokeBundle(), compatibleWith: nil)
+                let placeholder = UIImage.init(named: "avatar2_100", in: karaokeBundle(), compatibleWith: nil)
                 let avatarStr = TRTCKaraokeIMManager.shared.checkAvatar(userSeatInfo.userAvatar)
                 if let avatarURL = URL.init(string: avatarStr) {
                     avatarImageView.kf.setImage(with: avatarURL, placeholder: placeholder)
@@ -148,13 +148,13 @@ class TRTCKaraokeSeatView: UIView {
             }
         } else {
             // 无人
-            avatarImageView.image = UIImage.init(named: "seatDefault", in: KaraokeBundle(), compatibleWith: nil)
-            nameLabel.text = LocalizeReplaceXX(.seatIndexText, "\(seatIndex + 1)")
+            avatarImageView.image = UIImage.init(named: "seatDefault", in: karaokeBundle(), compatibleWith: nil)
+            nameLabel.text = localizeReplaceXX(.seatIndexText, "\(seatIndex + 1)")
         }
         
         if model.isClosed {
             // close 状态
-            avatarImageView.image = UIImage.init(named: "room_lockseat", in: KaraokeBundle(), compatibleWith: nil)
+            avatarImageView.image = UIImage.init(named: "room_lockseat", in: karaokeBundle(), compatibleWith: nil)
             speakView.isHidden = true
             muteImageView.isHidden = true
             return
@@ -178,10 +178,10 @@ class TRTCKaraokeSeatView: UIView {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let handsupText = KaraokeLocalize("Demo.TRTC.Karaoke.presshandsup")
-    static let lockedText = KaraokeLocalize("Demo.TRTC.Karaoke.islocked")
-    static let inviteHandsupText = KaraokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
-    static let seatIndexText = KaraokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    static let handsupText = karaokeLocalize("Demo.TRTC.Karaoke.presshandsup")
+    static let lockedText = karaokeLocalize("Demo.TRTC.Karaoke.islocked")
+    static let inviteHandsupText = karaokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
+    static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
 }
 
 

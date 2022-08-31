@@ -39,7 +39,7 @@ class TRTCKaraokeSongSelectorTableView: UIView {
             textfield.backgroundColor = .clear
             textfield.leftViewMode = .always
         }
-        searchBar.setImage(UIImage(named: "search_normal", in: KaraokeBundle(), compatibleWith: nil), for: .search, state: .normal)
+        searchBar.setImage(UIImage(named: "search_normal", in: karaokeBundle(), compatibleWith: nil), for: .search, state: .normal)
         return searchBar
     }()
 
@@ -215,7 +215,7 @@ class TRTCKaraokeSongSelectorTableViewCell: UITableViewCell {
             guard let model = model else {
                 return
             }
-            headerImageView.image = UIImage(named: "music_default", in: KaraokeBundle(), compatibleWith: nil)
+            headerImageView.image = UIImage(named: "music_default", in: karaokeBundle(), compatibleWith: nil)
             titleLabel.text = model.musicName
             descLabel.text = model.singer
             songSelectBtn.isEnabled = !model.isSelected
@@ -335,7 +335,7 @@ class TRTCKaraokeSongSelectorTableViewCell: UITableViewCell {
 
     func setSearchUi(indexPath: IndexPath) {
         let array = ["voiceChange_xionghaizi_nor","voiceChange_loli_nor","voiceChange_dashu_nor"]
-        headerImageView.image = UIImage(named: array[indexPath.row%3], in: KaraokeBundle(), compatibleWith: nil)
+        headerImageView.image = UIImage(named: array[indexPath.row%3], in: karaokeBundle(), compatibleWith: nil)
     }
 
     @objc func songSelectBtnClick() {
@@ -371,8 +371,8 @@ class TRTCKaraokeSongSelectorTableViewCell: UITableViewCell {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let songSelectorText = KaraokeLocalize("Demo.TRTC.Karaoke.selectsong")
-    static let selectedSongText = KaraokeLocalize("Demo.TRTC.Karaoke.selectedsong")
-    static let permissionDeniedText = KaraokeLocalize("Permission denied")
-    static let searchPlaceholderText = KaraokeLocalize("Demo.TRTC.Karaoke.searchlike")
+    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    static let selectedSongText = karaokeLocalize("Demo.TRTC.Karaoke.selectedsong")
+    static let permissionDeniedText = karaokeLocalize("Permission denied")
+    static let searchPlaceholderText = karaokeLocalize("Demo.TRTC.Karaoke.searchlike")
 }

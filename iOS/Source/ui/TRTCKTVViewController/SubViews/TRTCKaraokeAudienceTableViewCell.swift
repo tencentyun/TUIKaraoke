@@ -124,7 +124,7 @@ class TRTCKaraokeAudienceTableViewCell: UITableViewCell {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let acceptText = KaraokeLocalize("Demo.TRTC.LiveRoom.accept")
-    static let inviteText = KaraokeLocalize("Demo.TRTC.LiveRoom.invite")
+    static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    static let inviteText = karaokeLocalize("Demo.TRTC.LiveRoom.invite")
 }
 

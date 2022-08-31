@@ -145,8 +145,8 @@ extension TRTCKaraokeAudienceListView: UITableViewDataSource {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let closeText = KaraokeLocalize("Demo.TRTC.Salon.close")
-    static let inviteHandsupText = KaraokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
+    static let closeText = karaokeLocalize("Demo.TRTC.Salon.close")
+    static let inviteHandsupText = karaokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
 }
 
 
