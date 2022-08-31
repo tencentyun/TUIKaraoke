@@ -52,8 +52,8 @@
 
 @implementation TRTCKaraokeRoom
 
-static TRTCKaraokeRoom *_instance;
-static dispatch_once_t onceToken;
+static TRTCKaraokeRoom *gInstance;
+static dispatch_once_t gOnceToken;
 
 - (instancetype)init
 {
@@ -184,10 +184,12 @@ static dispatch_once_t onceToken;
     }];
 }
 
-- (void)enterTRTCRoomInnerWithRoomId:(NSString *)roomId userId:(NSString *)userId userSign:(NSString *)userSig role:(NSInteger)role callback:(ActionCallback)callback {
+- (void)enterTRTCRoomInnerWithRoomId:(NSString *)roomId userId:(NSString *)userId
+ userSign:(NSString *)userSig role:(NSInteger)role callback:(ActionCallback)callback {
     TRTCLog(@"start enter trtc room.");
     @weakify(self)
-    [self.roomTRTCService enterRoomWithSdkAppId:self.mSDKAppID roomId:roomId userId:userId userSign:userSig role:role callback:^(int code, NSString * _Nonnull message) {
+    [self.roomTRTCService enterRoomWithSdkAppId:self.mSDKAppID roomId:roomId userId:userId
+     userSign:userSig role:role callback:^(int code, NSString * _Nonnull message) {
         @strongify(self)
         if (!self) {
             return;
@@ -202,17 +204,17 @@ static dispatch_once_t onceToken;
 
 #pragma mark - TRTCKaraoke 实现
 + (instancetype)sharedInstance {
-    dispatch_once(&onceToken, ^{
-        _instance = [[TRTCKaraokeRoom alloc] init];
-        [TXKaraokeService sharedInstance].delegate = _instance;
-        [KaraokeTRTCService sharedInstance].delegate = _instance;
+    dispatch_once(&gOnceToken, ^{
+        gInstance = [[TRTCKaraokeRoom alloc] init];
+        [TXKaraokeService sharedInstance].delegate = gInstance;
+        [KaraokeTRTCService sharedInstance].delegate = gInstance;
     });
-    return _instance;
+    return gInstance;
 }
 
 + (void)destroySharedInstance {
-    onceToken = 0;
-    _instance = nil;
+    gOnceToken = 0;
+    gInstance = nil;
 }
 
 - (void)setDelegate:(id<TRTCKaraokeRoomDelegate>)delegate{
@@ -342,7 +344,7 @@ static dispatch_once_t onceToken;
                 return;
             }
             if (code == 0) {
-                [self enterTRTCRoomInnerWithRoomId:self.roomID userId:self.userId userSign:self.userSig role:kTRTCRoleAnchorValue callback:callback];
+                [self enterTRTCRoomInnerWithRoomId:self.roomID userId:self.userId userSign:self.userSig role:KTRTCRoleAnchorValue callback:callback];
                 return;
             } else {
                 [self runOnDelegateQueue:^{
@@ -404,7 +406,8 @@ static dispatch_once_t onceToken;
         [self clearList];
         self.roomID = [NSString stringWithFormat:@"%ld", (long)roomID];
         TRTCLog(@"start enter room, room id is %ld", (long)roomID);
-        [self enterTRTCRoomInnerWithRoomId:self.roomID userId:self.userId userSign:self.userSig role:kTRTCRoleAudienceValue callback:^(int code, NSString * _Nonnull message) {
+        [self enterTRTCRoomInnerWithRoomId:self.roomID userId:self.userId userSign:self.userSig
+         role:KTRTCRoleAudienceValue callback:^(int code, NSString * _Nonnull message) {
             @strongify(self)
             if (!self) {
                 return;
@@ -465,7 +468,8 @@ static dispatch_once_t onceToken;
         for (NSNumber *roomId in roomIdList) {
             [roomIds addObject:[roomId stringValue]];
         }
-        [self.roomService getRoomInfoList:roomIds calback:^(int code, NSString * _Nonnull message, NSArray<TXKaraokeRoomInfo *> * _Nonnull roomInfos) {
+        [self.roomService getRoomInfoList:roomIds calback:^(int code, NSString * _Nonnull
+         message, NSArray<TXKaraokeRoomInfo *> * _Nonnull roomInfos) {
             if (code == 0) {
                 TRTCLog(@"roomInfos: %@", roomInfos);
                 NSMutableArray* trtcRoomInfos = [[NSMutableArray alloc] initWithCapacity:2];
@@ -505,7 +509,8 @@ static dispatch_once_t onceToken;
             [self getAudienceList:callback];
             return;
         }
-        [self.roomService getUserInfo:userIDList callback:^(int code, NSString * _Nonnull message, NSArray<TXKaraokeUserInfo *> * _Nonnull userInfos) {
+        [self.roomService getUserInfo:userIDList callback:^(int code, NSString * _Nonnull
+         message, NSArray<TXKaraokeUserInfo *> * _Nonnull userInfos) {
             @strongify(self)
             if (!self) {
                 return;
@@ -602,7 +607,7 @@ static dispatch_once_t onceToken;
         if ([self isOnSeatWithUserId:userId]) {
             [self runOnDelegateQueue:^{
                 if (callback) {
-                    callback(-1, KaraokeLocalize(@"Demo.TRTC.Salon.userisspeaker"));
+                    callback(-1, karaokeLocalize(@"Demo.TRTC.Salon.userisspeaker"));
                 }
             }];
             return;

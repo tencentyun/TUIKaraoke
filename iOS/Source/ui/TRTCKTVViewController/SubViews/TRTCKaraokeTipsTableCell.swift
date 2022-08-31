@@ -32,7 +32,7 @@ class TRTCKaraokeTipsWelcomCell: UITableViewCell {
         let label = UILabel(frame: .zero)
         label.numberOfLines = 0
         let urlStr = TRTCKaraokeTipsWelcomCell.urlText
-        let totalStr = LocalizeReplaceXX(.welcomeText, urlStr)
+        let totalStr = localizeReplaceXX(.welcomeText, urlStr)
         let urlColor = UIColor(hex: "0063FF") ?? UIColor.blue
         let totalRange = NSRange(location: 0, length: totalStr.count)
         var urlRange = totalRange
@@ -204,7 +204,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
             var textInfo = "\(model.content)"
             if model.userName.count > 0 {
                 if model.content.contains("xxx") {
-                    textInfo = LocalizeReplaceXX(model.content, model.userName)
+                    textInfo = localizeReplaceXX(model.content, model.userName)
                 }
                 else {
                     textInfo = "\(model.userName):\(model.content)"
@@ -225,7 +225,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
         case .agreed:
             var textInfo = "\(model.content)"
             if model.content.contains("xxx") {
-                textInfo = LocalizeReplaceXX(model.content, model.userName)
+                textInfo = localizeReplaceXX(model.content, model.userName)
             }
             else {
                 textInfo = "\(model.userName):\(model.content)"
@@ -239,7 +239,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
         case .manage_song:
             var textInfo = "\(model.content)"
             if model.content.contains("xxx") {
-                textInfo = LocalizeReplaceXX(model.content, model.userName)
+                textInfo = localizeReplaceXX(model.content, model.userName)
             }
             else {
                 textInfo = "\(model.userName):\(model.content)"
@@ -254,7 +254,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
         default:
             var textInfo = "\(model.content)"
             if model.content.contains("xxx") {
-                textInfo = LocalizeReplaceXX(model.content, model.userName)
+                textInfo = localizeReplaceXX(model.content, model.userName)
             }
             else {
                 textInfo = "\(model.userName):\(model.content)"
@@ -330,7 +330,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let acceptText = KaraokeLocalize("Demo.TRTC.LiveRoom.accept")
-    static let welcomeText = KaraokeLocalize("Demo.TRTC.Karaoke.welcome")
-    static let manageSongText = KaraokeLocalize("Demo.TRTC.Karaoke.manageselectedsongs")
+    static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    static let welcomeText = karaokeLocalize("Demo.TRTC.Karaoke.welcome")
+    static let manageSongText = karaokeLocalize("Demo.TRTC.Karaoke.manageselectedsongs")
 }

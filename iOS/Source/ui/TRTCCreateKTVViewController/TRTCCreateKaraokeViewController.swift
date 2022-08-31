@@ -34,7 +34,7 @@ public class TRTCCreateKaraokeViewController: UIViewController {
         title = .controllerTitle
         
         let backBtn = UIButton(type: .custom)
-        backBtn.setImage(UIImage(named: "navigationbar_back", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        backBtn.setImage(UIImage(named: "navigationbar_back", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         backBtn.addTarget(self, action: #selector(cancel), for: .touchUpInside)
         backBtn.sizeToFit()
         let backItem = UIBarButtonItem(customView: backBtn)
@@ -64,6 +64,6 @@ public class TRTCCreateKaraokeViewController: UIViewController {
 }
 
 private extension String {
-    static let controllerTitle = KaraokeLocalize("Demo.TRTC.Karaoke.createvoicechatroom")
+    static let controllerTitle = karaokeLocalize("Demo.TRTC.Karaoke.createvoicechatroom")
 }
 

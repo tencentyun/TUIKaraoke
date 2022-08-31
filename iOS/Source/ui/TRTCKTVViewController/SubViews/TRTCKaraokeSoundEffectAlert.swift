@@ -29,7 +29,7 @@ class TRTCKaraokeSoundEffectAlert : TRTCKaraokeAlertContentView {
     
     lazy var helpBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "helpUrl", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "helpUrl", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.isHidden = true
         return btn
     }()
@@ -340,7 +340,7 @@ class TRTCKaraokeSoundEffectSliderCell: TRTCKaraokeSoundEffectBaseCell {
     
     lazy var slider: TRTCKaraokeSoundEffectSlider = {
         let slider = TRTCKaraokeSoundEffectSlider(frame: .zero)
-        slider.setThumbImage(UIImage(named: "Slider", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        slider.setThumbImage(UIImage(named: "Slider", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         slider.minimumTrackTintColor = UIColor(hex: "F95F91")
         slider.maximumTrackTintColor = UIColor(hex: "F4F5F9")
         return slider
@@ -405,8 +405,8 @@ class TRTCKaraokeSoundEffectPlayingCell: TRTCKaraokeSoundEffectBaseCell {
     }()
     lazy var playBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "bgm_play", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
-        btn.setImage(UIImage(named: "bgm_pause", in: KaraokeBundle(), compatibleWith: nil), for: .selected)
+        btn.setImage(UIImage(named: "bgm_play", in: karaokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "bgm_pause", in: karaokeBundle(), compatibleWith: nil), for: .selected)
         return btn
     }()
     
@@ -445,7 +445,7 @@ class TRTCKaraokeSoundEffectPlayingCell: TRTCKaraokeSoundEffectBaseCell {
 
 class TRTCKaraokeSoundEffectDetailCell: TRTCKaraokeSoundEffectBaseCell {
     lazy var arrowImageView: UIImageView = {
-        let imageV = UIImageView(image: UIImage(named: "detail", in: KaraokeBundle(), compatibleWith: nil))
+        let imageV = UIImageView(image: UIImage(named: "detail", in: karaokeBundle(), compatibleWith: nil))
         return imageV
     }()
     
@@ -656,14 +656,14 @@ class TRTCKaraokeSoundEffectCellForCollectionCell: UICollectionViewCell {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let effectTitleText = KaraokeLocalize("ASKit.MainMenu.Title")
-    static let voiceChangeText = KaraokeLocalize("ASKit.MainMenu.VoiceChangeTitle")
-    static let reverbText = KaraokeLocalize("ASKit.MainMenu.Reverberation")
-    static let auditionText = KaraokeLocalize("ASKit.MusicSelectMenu.Title")
-    static let bringHeadphoneText = KaraokeLocalize("Demo.TRTC.Karaoke.useearphones")
-    static let copyrightText = KaraokeLocalize("Demo.TRTC.Karaoke.copyrights")
-    static let selectMusicText = KaraokeLocalize("ASKit.MainMenu.SelectMusic")
-    static let musicVolumeText = KaraokeLocalize("ASKit.MainMenu.MusicVolum")
-    static let vocalVolumeText = KaraokeLocalize("ASKit.MainMenu.PersonVolum")
-    static let vocalRiseFallText = KaraokeLocalize("ASKit.MainMenu.PersonPitch")
+    static let effectTitleText = karaokeLocalize("ASKit.MainMenu.Title")
+    static let voiceChangeText = karaokeLocalize("ASKit.MainMenu.VoiceChangeTitle")
+    static let reverbText = karaokeLocalize("ASKit.MainMenu.Reverberation")
+    static let auditionText = karaokeLocalize("ASKit.MusicSelectMenu.Title")
+    static let bringHeadphoneText = karaokeLocalize("Demo.TRTC.Karaoke.useearphones")
+    static let copyrightText = karaokeLocalize("Demo.TRTC.Karaoke.copyrights")
+    static let selectMusicText = karaokeLocalize("ASKit.MainMenu.SelectMusic")
+    static let musicVolumeText = karaokeLocalize("ASKit.MainMenu.MusicVolum")
+    static let vocalVolumeText = karaokeLocalize("ASKit.MainMenu.PersonVolum")
+    static let vocalRiseFallText = karaokeLocalize("ASKit.MainMenu.PersonPitch")
 }

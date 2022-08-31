@@ -235,11 +235,11 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
     lazy var reverbDataSource: [TRTCAudioEffectCellModel] = {
         var res: [TRTCAudioEffectCellModel] = []
         let titleArray = [
-            KaraokeLocalize("ASKit.MenuItem.No effect"),
-            KaraokeLocalize("ASKit.MenuItem.Karaoke room"),
-            KaraokeLocalize("ASKit.MenuItem.Metallic"),
-            KaraokeLocalize("ASKit.MenuItem.Deep"),
-            KaraokeLocalize("ASKit.MenuItem.Resonant"),
+            karaokeLocalize("ASKit.MenuItem.No effect"),
+            karaokeLocalize("ASKit.MenuItem.Karaoke room"),
+            karaokeLocalize("ASKit.MenuItem.Metallic"),
+            karaokeLocalize("ASKit.MenuItem.Deep"),
+            karaokeLocalize("ASKit.MenuItem.Resonant"),
         ]
         let iconNameArray = [
             "originState_nor",
@@ -263,9 +263,9 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             let model = TRTCAudioEffectCellModel()
             model.actionID = index
             model.title = title
-            model.selected = title == KaraokeLocalize("ASKit.MenuItem.No effect")
-            model.icon = UIImage(named: normalIconName, in: KaraokeBundle(), compatibleWith: nil)
-            model.selectIcon = UIImage(named: selectIconName, in: KaraokeBundle(), compatibleWith: nil)
+            model.selected = title == karaokeLocalize("ASKit.MenuItem.No effect")
+            model.icon = UIImage(named: normalIconName, in: karaokeBundle(), compatibleWith: nil)
+            model.selectIcon = UIImage(named: selectIconName, in: karaokeBundle(), compatibleWith: nil)
             model.action = { [weak self] in
                 guard let `self` = self else { return }
                 let type = self.switch2ReverbType(index)
@@ -283,11 +283,11 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
         var res: [TRTCAudioEffectCellModel] = []
 
         let titleArray =
-            [KaraokeLocalize("ASKit.MenuItem.Original"),
-             KaraokeLocalize("ASKit.MenuItem.Naughty boy"),
-             KaraokeLocalize("ASKit.MenuItem.Little girl"),
-             KaraokeLocalize("ASKit.MenuItem.Middle-aged man"),
-             KaraokeLocalize("ASKit.MenuItem.Ethereal voice"),
+            [karaokeLocalize("ASKit.MenuItem.Original"),
+             karaokeLocalize("ASKit.MenuItem.Naughty boy"),
+             karaokeLocalize("ASKit.MenuItem.Little girl"),
+             karaokeLocalize("ASKit.MenuItem.Middle-aged man"),
+             karaokeLocalize("ASKit.MenuItem.Ethereal voice"),
             ]
 
         let iconNameArray = [
@@ -313,9 +313,9 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             let model = TRTCAudioEffectCellModel()
             model.title = title
             model.actionID = index
-            model.selected = title == KaraokeLocalize("ASKit.MenuItem.Original")
-            model.icon = UIImage(named: normalIconName, in: KaraokeBundle(), compatibleWith: nil)
-            model.selectIcon = UIImage(named: selectedIconName, in: KaraokeBundle(), compatibleWith: nil)
+            model.selected = title == karaokeLocalize("ASKit.MenuItem.Original")
+            model.icon = UIImage(named: normalIconName, in: karaokeBundle(), compatibleWith: nil)
+            model.selectIcon = UIImage(named: selectedIconName, in: karaokeBundle(), compatibleWith: nil)
             model.action = { [weak self] in
                 guard let `self` = self else { return }
                 let type = self.switch2VoiceChangeType(index)
@@ -367,8 +367,8 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let musicTitle1Text = KaraokeLocalize("Demo.TRTC.Karaoke.musicname1")
-    static let musicTitle2Text = KaraokeLocalize("Demo.TRTC.Karaoke.musicname2")
-    static let musicTitle3Text = KaraokeLocalize("Demo.TRTC.Karaoke.musicname3")
-    static let notInSeatText = KaraokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
+    static let musicTitle1Text = karaokeLocalize("Demo.TRTC.Karaoke.musicname1")
+    static let musicTitle2Text = karaokeLocalize("Demo.TRTC.Karaoke.musicname2")
+    static let musicTitle3Text = karaokeLocalize("Demo.TRTC.Karaoke.musicname3")
+    static let notInSeatText = karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
 }

@@ -79,7 +79,9 @@ extension KaraokeMainViewController {
 
 extension KaraokeMainViewController {
     @objc func backBtnClick() {
-        let alertVC = UIAlertController.init(title: TRTCKaraokeLocalize("App.PortalViewController.areyousureloginout"), message: nil, preferredStyle: .alert)
+        let alertVC = UIAlertController.init(title:
+         TRTCKaraokeLocalize("App.PortalViewController.areyousureloginout"), message: nil,
+         preferredStyle: .alert)
         let cancelAction = UIAlertAction.init(title: TRTCKaraokeLocalize("App.PortalViewController.cancel"), style: .cancel, handler: nil)
         let sureAction = UIAlertAction.init(title: TRTCKaraokeLocalize("App.PortalViewController.determine"), style: .default) { (action) in
             ProfileManager.shared.removeLoginCache()
@@ -111,7 +113,8 @@ extension KaraokeMainViewController: KaraokeMainRootViewDelegate {
             if groupInfo.resultCode == 0 {
                 guard let introduction = groupInfo.info.introduction else { return }
                 let info = RoomInfo.init(roomID: Int(roomId) ?? 0, ownerId: introduction, memberCount: 0)
-                let vc = self.dependencyContainer.makeKaraokeViewController(roomInfo: info, role: .audience, toneQuality: .music, musicDataSource: KaraokeMusicImplement())
+                let vc = self.dependencyContainer.makeKaraokeViewController(roomInfo: info, role:
+                 .audience, toneQuality: .music, musicDataSource: KaraokeMusicImplement())
                 self.navigationController?.pushViewController(vc, animated: false)
             } else {
                 DispatchQueue.main.async {

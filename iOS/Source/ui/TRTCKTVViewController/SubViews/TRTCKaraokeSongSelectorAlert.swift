@@ -264,6 +264,6 @@ fileprivate extension UIButton {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let songSelectorText = KaraokeLocalize("Demo.TRTC.Karaoke.selectsong")
-    static let selectedSongText = KaraokeLocalize("Demo.TRTC.Karaoke.selectedsong")
+    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    static let selectedSongText = karaokeLocalize("Demo.TRTC.Karaoke.selectedsong")
 }

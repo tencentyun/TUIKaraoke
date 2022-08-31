@@ -31,7 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onReceiveInstructionMsg:(NSString *)instruction;
 @end
 
-static int Karaoke_SERVICE_CODE_ERROR = -1;
+static int gKaraoke_SERVICE_CODE_ERROR = -1;
 
 @interface TXKaraokeService : NSObject
 

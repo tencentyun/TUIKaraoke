@@ -53,7 +53,7 @@
         self.isInitIMSDK = [self.imManager initSDK:sdkAppId config:config];
         if (!self.isInitIMSDK) {
             if (callback) {
-                callback(Karaoke_SERVICE_CODE_ERROR, @"init im sdk error.");
+                callback(gKaraoke_SERVICE_CODE_ERROR, @"init im sdk error.");
             }
             return;
         }
@@ -105,13 +105,13 @@
 - (void)logout:(TXKaraokeCallback)callback {
     if (!self.isLogin) {
         if (callback) {
-            callback(Karaoke_SERVICE_CODE_ERROR, @"start logout fail. not login yet");
+            callback(gKaraoke_SERVICE_CODE_ERROR, @"start logout fail. not login yet");
         }
         return;
     }
     if (self.isEnterRoom) {
         if (callback) {
-            callback(Karaoke_SERVICE_CODE_ERROR, @"start logout fail. you are in room, please exit room before logout");
+            callback(gKaraoke_SERVICE_CODE_ERROR, @"start logout fail. you are in room, please exit room before logout");
         }
         return;
     }
@@ -136,7 +136,7 @@
 - (void)setSelfProfileWithUserName:(NSString *)userName avatarUrl:(NSString *)avatarUrl callback:(TXKaraokeCallback _Nullable)callback{
     if (!self.isLogin) {
         if (callback) {
-            callback(Karaoke_SERVICE_CODE_ERROR, @"set profile fail, not login yet.");
+            callback(gKaraoke_SERVICE_CODE_ERROR, @"set profile fail, not login yet.");
         }
         return;
     }
@@ -154,17 +154,18 @@
     }];
 }
 
-- (void)createRoomWithRoomId:(NSString *)roomId
-                    roomName:(NSString *)roomName coverUrl:(NSString *)coverUrl needRequest:(BOOL)needRequest seatInfoList:(NSArray<TXKaraokeSeatInfo *> *)seatInfoList callback:(TXKaraokeCallback)callback {
+- (void)createRoomWithRoomId:(NSString *)roomId roomName:(NSString *)roomName coverUrl:(NSString
+ *)coverUrl needRequest:(BOOL)needRequest seatInfoList:(NSArray<TXKaraokeSeatInfo *> *)seatInfoList
+ callback:(TXKaraokeCallback)callback {
     if (!self.isLogin) {
         if (callback) {
-            callback(Karaoke_SERVICE_CODE_ERROR, @"im not login yet, create room fail");
+            callback(gKaraoke_SERVICE_CODE_ERROR, @"im not login yet, create room fail");
         }
         return;
     }
     if (self.isEnterRoom) {
         if (callback) {
-            callback(Karaoke_SERVICE_CODE_ERROR, @"you have been in room");
+            callback(gKaraoke_SERVICE_CODE_ERROR, @"you have been in room");
         }
         return;
     }
@@ -194,11 +195,11 @@
         TRTCLog(@"create room error: %d, msg: %@", code, desc);
         NSString *msg = desc ?: @"create room fiald";
         if (code == 10036) {
-            msg = LocalizeReplaceXX(KaraokeLocalize(@"Demo.TRTC.Buy.chatroom"), @"https://cloud.tencent.com/document/product/269/11673");
+            msg = localizeReplaceXX(karaokeLocalize(@"Demo.TRTC.Buy.chatroom"), @"https://cloud.tencent.com/document/product/269/11673");
         } else if (code == 10037) {
-            msg = LocalizeReplaceXX(KaraokeLocalize(@"Demo.TRTC.Buy.grouplimit"), @"https://cloud.tencent.com/document/product/269/11673");
+            msg = localizeReplaceXX(karaokeLocalize(@"Demo.TRTC.Buy.grouplimit"), @"https://cloud.tencent.com/document/product/269/11673");
         } else if (code == 10038) {
-            msg = LocalizeReplaceXX(KaraokeLocalize(@"Demo.TRTC.Buy.groupmemberlimit"), @"https://cloud.tencent.com/document/product/269/11673");
+            msg = localizeReplaceXX(karaokeLocalize(@"Demo.TRTC.Buy.groupmemberlimit"), @"https://cloud.tencent.com/document/product/269/11673");
         }
         
         if (code == 10025 || code == 10021) {
@@ -472,13 +473,13 @@
 - (void)getUserInfo:(NSArray<NSString *> *)userList callback:(TXKaraokeUserListCallback)callback {
     if (!self.isEnterRoom) {
         if (callback) {
-            callback(Karaoke_SERVICE_CODE_ERROR, @"get user info list fail, not enter room yet", @[]);
+            callback(gKaraoke_SERVICE_CODE_ERROR, @"get user info list fail, not enter room yet", @[]);
         }
         return;
     }
     if (!userList || userList.count == 0) {
         if (callback) {
-            callback(Karaoke_SERVICE_CODE_ERROR, @"get user info list fail, user id list is empty.", @[]);
+            callback(gKaraoke_SERVICE_CODE_ERROR, @"get user info list fail, user id list is empty.", @[]);
         }
         return;
     }
@@ -554,7 +555,8 @@
 }
 
 - (void)getAudienceList:(TXKaraokeUserListCallback)callback {
-    [self.imManager getGroupMemberList:self.mRoomId filter:V2TIM_GROUP_MEMBER_FILTER_COMMON nextSeq:0 succ:^(uint64_t nextSeq, NSArray<V2TIMGroupMemberFullInfo *> *memberList) {
+    [self.imManager getGroupMemberList:self.mRoomId filter:V2TIM_GROUP_MEMBER_FILTER_COMMON
+ nextSeq:0 succ:^(uint64_t nextSeq, NSArray<V2TIMGroupMemberFullInfo *> *memberList) {
         if (memberList) {
             NSMutableArray *resultList = [[NSMutableArray alloc] initWithCapacity:2];
             [memberList enumerateObjectsUsingBlock:^(V2TIMGroupMemberFullInfo * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -621,14 +623,14 @@
 
 - (NSString *)sendInvitation:(NSString *)cmd userId:(NSString *)userId content:(NSString *)content callback:(TXKaraokeCallback)callback {
     NSDictionary *dic = @{
-        Karaoke_KEY_CMD_VERSION:@(Karaoke_VALUE_CMD_VERSION),
-        Karaoke_KEY_CMD_BUSINESSID:Karaoke_VALUE_CMD_BUSINESSID,
-        Karaoke_KEY_CMD_PLATFORM:Karaoke_VALUE_CMD_PLATFORM,
-        Karaoke_KEY_CMD_EXTINFO:@"",
-        Karaoke_KEY_CMD_DATA:@{
-                Karaoke_KEY_CMD_ROOMID:@(self.mRoomId.intValue),
-                Karaoke_KEY_CMD_CMD:cmd,
-                Karaoke_KEY_CMD_SEATNUMBER:content,
+        gKaraoke_KEY_CMD_VERSION:@(gKaraoke_VALUE_CMD_VERSION),
+        gKaraoke_KEY_CMD_BUSINESSID:gKaraoke_VALUE_CMD_BUSINESSID,
+        gKaraoke_KEY_CMD_PLATFORM:gKaraoke_VALUE_CMD_PLATFORM,
+        gKaraoke_KEY_CMD_EXTINFO:@"",
+        gKaraoke_KEY_CMD_DATA:@{
+                gKaraoke_KEY_CMD_ROOMID:@(self.mRoomId.intValue),
+                gKaraoke_KEY_CMD_CMD:cmd,
+                gKaraoke_KEY_CMD_SEATNUMBER:content,
         },
     };
     NSString *jsonString = [dic mj_JSONString];
@@ -648,9 +650,9 @@
 - (void)acceptInvitation:(NSString *)identifier callback:(TXKaraokeCallback)callback {
     TRTCLog(@"accept %@", identifier);
     NSDictionary *dic = @{
-        Karaoke_KEY_CMD_VERSION:@(Karaoke_VALUE_CMD_VERSION),
-        Karaoke_KEY_CMD_BUSINESSID:Karaoke_VALUE_CMD_BUSINESSID,
-        Karaoke_KEY_CMD_PLATFORM:Karaoke_VALUE_CMD_PLATFORM,
+        gKaraoke_KEY_CMD_VERSION:@(gKaraoke_VALUE_CMD_VERSION),
+        gKaraoke_KEY_CMD_BUSINESSID:gKaraoke_VALUE_CMD_BUSINESSID,
+        gKaraoke_KEY_CMD_PLATFORM:gKaraoke_VALUE_CMD_PLATFORM,
     };
     NSString *jsonString = [dic mj_JSONString];
     [self.imManager accept:identifier data:jsonString succ:^{
@@ -669,9 +671,9 @@
 - (void)rejectInvitaiton:(NSString *)identifier callback:(TXKaraokeCallback)callback {
     TRTCLog(@"reject %@", identifier);
     NSDictionary *dic = @{
-        Karaoke_KEY_CMD_VERSION:@(Karaoke_VALUE_CMD_VERSION),
-        Karaoke_KEY_CMD_BUSINESSID:Karaoke_VALUE_CMD_BUSINESSID,
-        Karaoke_KEY_CMD_PLATFORM:Karaoke_VALUE_CMD_PLATFORM,
+        gKaraoke_KEY_CMD_VERSION:@(gKaraoke_VALUE_CMD_VERSION),
+        gKaraoke_KEY_CMD_BUSINESSID:gKaraoke_VALUE_CMD_BUSINESSID,
+        gKaraoke_KEY_CMD_PLATFORM:gKaraoke_VALUE_CMD_PLATFORM,
     };
     NSString *jsonString = [dic mj_JSONString];
     [self.imManager reject:identifier data:jsonString succ:^{
@@ -690,9 +692,9 @@
 - (void)cancelInvitation:(NSString *)identifier callback:(TXKaraokeCallback)callback {
     TRTCLog(@"cancel %@", identifier);
     NSDictionary *dic = @{
-        Karaoke_KEY_CMD_VERSION:@(Karaoke_VALUE_CMD_VERSION),
-        Karaoke_KEY_CMD_BUSINESSID:Karaoke_VALUE_CMD_BUSINESSID,
-        Karaoke_KEY_CMD_PLATFORM:Karaoke_VALUE_CMD_PLATFORM,
+        gKaraoke_KEY_CMD_VERSION:@(gKaraoke_VALUE_CMD_VERSION),
+        gKaraoke_KEY_CMD_BUSINESSID:gKaraoke_VALUE_CMD_BUSINESSID,
+        gKaraoke_KEY_CMD_PLATFORM:gKaraoke_VALUE_CMD_PLATFORM,
     };
     NSString *jsonString = [dic mj_JSONString];
     [self.imManager cancel:identifier data:jsonString succ:^{
@@ -751,12 +753,12 @@
     if ([dicData.allKeys containsObject:@"instruction"] || [dic.allKeys containsObject:@"instruction"]) {
         return;
     }
-    NSString *version = [dic objectForKey:Karaoke_KEY_ATTR_VERSION];
-    if (!version || ![version isEqualToString:Karaoke_VALUE_ATTR_VERSION]) {
+    NSString *version = [dic objectForKey:gKaraoke_KEY_ATTR_VERSION];
+    if (!version || ![version isEqualToString:gKaraoke_VALUE_ATTR_VERSION]) {
         TRTCLog(@"protocol version is not match, ignore msg");
         return;
     }
-    NSNumber* action = [dic objectForKey:Karaoke_KEY_CMD_ACTION];
+    NSNumber* action = [dic objectForKey:gKaraoke_KEY_CMD_ACTION];
     if (!action) {
         TRTCLog(@"action can't parse from data");
         return;
@@ -953,27 +955,28 @@
 }
 
 #pragma mark - V2TIMSignalingListener
-- (void)onReceiveNewInvitation:(NSString *)inviteID inviter:(NSString *)inviter groupID:(NSString *)groupID inviteeList:(NSArray<NSString *> *)inviteeList data:(NSString *)data{
+- (void)onReceiveNewInvitation:(NSString *)inviteID inviter:(NSString *)inviter groupID:(NSString
+ *)groupID inviteeList:(NSArray<NSString *> *)inviteeList data:(NSString *)data{
     NSDictionary *dic = [data mj_JSONObject];
     if (![dic isKindOfClass:[NSDictionary class]]) {
         TRTCLog(@"parse data error");
         return;
     }
-    NSInteger version = [[dic objectForKey:Karaoke_KEY_CMD_VERSION] integerValue];
-    if (version < Karaoke_VALUE_CMD_BASIC_VERSION) {
+    NSInteger version = [[dic objectForKey:gKaraoke_KEY_CMD_VERSION] integerValue];
+    if (version < gKaraoke_VALUE_CMD_BASIC_VERSION) {
         TRTCLog(@"protocol version is nil or not match, ignore c2c msg");
         return;
     }
-    NSString *businessID = [dic objectForKey:Karaoke_KEY_CMD_BUSINESSID];
-    if (!businessID || ![businessID isEqualToString:Karaoke_VALUE_CMD_BUSINESSID]) {
+    NSString *businessID = [dic objectForKey:gKaraoke_KEY_CMD_BUSINESSID];
+    if (!businessID || ![businessID isEqualToString:gKaraoke_VALUE_CMD_BUSINESSID]) {
         TRTCLog(@"bussiness id error");
         return;
     }
     
-    NSDictionary *cmdData = [dic objectForKey:Karaoke_KEY_CMD_DATA];
-    NSString *cmd = [cmdData objectForKey:Karaoke_KEY_CMD_CMD];
-    NSString *content = [cmdData objectForKey:Karaoke_KEY_CMD_SEATNUMBER];
-    int roomID = [[cmdData objectForKey:Karaoke_KEY_CMD_ROOMID] intValue];
+    NSDictionary *cmdData = [dic objectForKey:gKaraoke_KEY_CMD_DATA];
+    NSString *cmd = [cmdData objectForKey:gKaraoke_KEY_CMD_CMD];
+    NSString *content = [cmdData objectForKey:gKaraoke_KEY_CMD_SEATNUMBER];
+    int roomID = [[cmdData objectForKey:gKaraoke_KEY_CMD_ROOMID] intValue];
     if ([self.mRoomId intValue] != roomID) {
         TRTCLog(@"room id is not right");
         return;
@@ -1106,7 +1109,7 @@
     } fail:^(int code, NSString *desc) {
         @strongify(self)
         if (!self) { return; }
-        if (code == ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
+        if (code == gERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
             TRTCLog(@"modify group attrs conflict, now get group attrs");
             [self getGroupAttrsWithCallBack:^(int code, NSString * _Nonnull message) {
                 TRTCLog(@"gorup has benn created. join group success");
@@ -1201,7 +1204,7 @@
             callback(0, @"modify group attrs success");
         }
     } fail:^(int code, NSString *desc) {
-        if (code == ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
+        if (code == gERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
             @strongify(self)
             TRTCLog(@"modify group attrs conflict, now get group attrs");
             [self getGroupAttrsWithCallBack:nil];

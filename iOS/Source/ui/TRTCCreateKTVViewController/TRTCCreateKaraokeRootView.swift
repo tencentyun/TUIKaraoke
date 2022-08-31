@@ -37,7 +37,7 @@ class TRTCCreateKaraokeRootView: UIView {
         let textView = UITextView(frame: .zero)
         textView.font = UIFont(name: "PingFangSC-Regular", size: 16)
         textView.textContainerInset = UIEdgeInsets(top: 20, left: 20, bottom: 20, right: 20)
-        textView.text = LocalizeReplaceXX(.defaultCreateText, viewModel.userName).subString(toByteLength: createRoomTextMaxByteLength)
+        textView.text = localizeReplaceXX(.defaultCreateText, viewModel.userName).subString(toByteLength: createRoomTextMaxByteLength)
         textView.textColor = .black
         textView.layer.cornerRadius = 20
         textView.backgroundColor = UIColor(hex: "F4F5F9")
@@ -75,7 +75,8 @@ class TRTCCreateKaraokeRootView: UIView {
         self.viewModel = viewModel
         super.init(frame: frame)
         bindInteraction()
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardFrameChange(noti:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardFrameChange(noti:)),
+         name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
     }
     
     deinit {
@@ -187,7 +188,7 @@ class TRTCCreateKaraokeRootView: UIView {
     
     private func enterRoom() {
         if textView.text == String.placeholderTitleText {
-            viewModel.roomName = LocalizeReplaceXX(.defaultCreateText, viewModel.userName)
+            viewModel.roomName = localizeReplaceXX(.defaultCreateText, viewModel.userName)
         }
         else {
             viewModel.roomName = textView.text
@@ -288,8 +289,8 @@ extension TRTCCreateKaraokeRootView : TRTCCreateKaraokeViewResponder {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let titleText = KaraokeLocalize("Demo.TRTC.Karaoke.roomsubject")
-    static let placeholderTitleText = KaraokeLocalize("Demo.TRTC.Karaoke.enterroomsubject")
-    static let createText = KaraokeLocalize("Demo.TRTC.Karaoke.join")
-    static let defaultCreateText = KaraokeLocalize("Demo.TRTC.Karaoke.xxxsroom")
+    static let titleText = karaokeLocalize("Demo.TRTC.Karaoke.roomsubject")
+    static let placeholderTitleText = karaokeLocalize("Demo.TRTC.Karaoke.enterroomsubject")
+    static let createText = karaokeLocalize("Demo.TRTC.Karaoke.join")
+    static let defaultCreateText = karaokeLocalize("Demo.TRTC.Karaoke.xxxsroom")
 }

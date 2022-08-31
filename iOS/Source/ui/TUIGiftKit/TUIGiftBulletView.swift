@@ -14,7 +14,7 @@ class TUIGiftBulletView: UIView {
         didSet {
             guard let giftInfo = giftInfo else { return }
             if let url = URL.init(string: giftInfo.sendUserHeadIcon) {
-                avatarView.kf.setImage(with: .network(url), placeholder: UIImage.init(named: "gift", in: KaraokeBundle(), compatibleWith: nil))
+                avatarView.kf.setImage(with: .network(url), placeholder: UIImage.init(named: "gift", in: karaokeBundle(), compatibleWith: nil))
             }
             nickNameLabel.text = giftInfo.sendUser
             giftNameLabel.text = "送出了\(giftInfo.giftModel.title)"

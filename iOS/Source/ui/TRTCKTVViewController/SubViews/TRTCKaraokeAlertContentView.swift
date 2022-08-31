@@ -131,8 +131,8 @@ class TRTCKaraokeAudienceAlert: TRTCKaraokeAlertContentView {
     
     lazy var unlockBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "lock", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
-        btn.setImage(UIImage(named: "unlock", in: KaraokeBundle(), compatibleWith: nil), for: .selected)
+        btn.setImage(UIImage(named: "lock", in: karaokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "unlock", in: karaokeBundle(), compatibleWith: nil), for: .selected)
         btn.setTitle(.lockText, for: .normal)
         btn.setTitle(.unlockText, for: .selected)
         btn.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 14)
@@ -356,12 +356,12 @@ extension TRTCKaraokeAudienceAlert : UITableViewDelegate {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let audienceText = KaraokeLocalize("Demo.TRTC.Karaoke.audience")
-    static let unlockText = KaraokeLocalize("Demo.TRTC.Karaoke.unlock")
-    static let lockText = KaraokeLocalize("Demo.TRTC.Karaoke.lock")
-    static let agreeText = KaraokeLocalize("Demo.TRTC.Karaoke.agree")
-    static let inviteText = KaraokeLocalize("Demo.TRTC.Karaoke.invite")
-    static let earMonitorText = KaraokeLocalize("Demo.TRTC.Karaoke.earmonitor")
-    static let backText = KaraokeLocalize("Demo.TRTC.Karaoke.back")
-    static let bgmText = KaraokeLocalize("ASKit.MainMenu.BGM")
+    static let audienceText = karaokeLocalize("Demo.TRTC.Karaoke.audience")
+    static let unlockText = karaokeLocalize("Demo.TRTC.Karaoke.unlock")
+    static let lockText = karaokeLocalize("Demo.TRTC.Karaoke.lock")
+    static let agreeText = karaokeLocalize("Demo.TRTC.Karaoke.agree")
+    static let inviteText = karaokeLocalize("Demo.TRTC.Karaoke.invite")
+    static let earMonitorText = karaokeLocalize("Demo.TRTC.Karaoke.earmonitor")
+    static let backText = karaokeLocalize("Demo.TRTC.Karaoke.back")
+    static let bgmText = karaokeLocalize("ASKit.MainMenu.BGM")
 }

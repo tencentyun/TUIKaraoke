@@ -11,7 +11,7 @@ class TRTCLyricView: UIView {
     public var currentMusicID: Int32 = 0
     private var isRequestSelectedMusicList: Bool = false
     lazy var bgView: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "lkyric_bg", in: KaraokeBundle(), compatibleWith: nil))
+        let imageView = UIImageView(image: UIImage(named: "lkyric_bg", in: karaokeBundle(), compatibleWith: nil))
         imageView.contentMode = .scaleAspectFill
         return imageView
     }()
@@ -31,7 +31,7 @@ class TRTCLyricView: UIView {
     }()
 
     lazy var musicIcon: UIImageView = {
-        let imageView = UIImageView(image: UIImage(named: "musicIcon", in: KaraokeBundle(), compatibleWith: nil))
+        let imageView = UIImageView(image: UIImage(named: "musicIcon", in: karaokeBundle(), compatibleWith: nil))
         return imageView
     }()
 
@@ -58,22 +58,22 @@ class TRTCLyricView: UIView {
     // 原生或者伴奏切换
     lazy var originalOrAccompanyChangeBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "room_original_icon", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
-        btn.setImage(UIImage(named: "room_accompany_icon", in: KaraokeBundle(), compatibleWith: nil), for: .selected)
+        btn.setImage(UIImage(named: "room_original_icon", in: karaokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "room_accompany_icon", in: karaokeBundle(), compatibleWith: nil), for: .selected)
         btn.adjustsImageWhenHighlighted = false
         return btn
     }()
 
     lazy var voiceChangeBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "voiceChange_kongling_nor", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "voiceChange_kongling_nor", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
         return btn
     }()
 
     lazy var soundEffectBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "tuning", in: KaraokeBundle(), compatibleWith: nil), for: .normal)
+        btn.setImage(UIImage(named: "tuning", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
         return btn
     }()
@@ -133,7 +133,7 @@ class TRTCLyricView: UIView {
             if currentMusicID != music.musicID {
                 setMusicDetail(show: true)
                 originalOrAccompanyChangeBtn.isHidden = !(music.music.userId == TRTCKaraokeIMManager.shared.curUserID)
-                seatIndexLabel.text = LocalizeReplaceXX(.seatIndexText, "\(music.seatIndex + 1)")
+                seatIndexLabel.text = localizeReplaceXX(.seatIndexText, "\(music.seatIndex + 1)")
                 userNameLabel.text = music.bookUserName
                 musicNameLabel.text = music.musicName
                 currentMusicID = music.musicID
@@ -380,8 +380,8 @@ extension TRTCLyricView {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let songSelectorText = KaraokeLocalize("Demo.TRTC.Karaoke.selectsong")
-    static let voiceChangeTitleText = KaraokeLocalize("ASKit.MainMenu.VoiceChangeTitle")
-    static let placeholderText = KaraokeLocalize("Demo.TRTC.Karaoke.nosongs")
-    static let seatIndexText = KaraokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    static let voiceChangeTitleText = karaokeLocalize("ASKit.MainMenu.VoiceChangeTitle")
+    static let placeholderText = karaokeLocalize("Demo.TRTC.Karaoke.nosongs")
+    static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
 }
