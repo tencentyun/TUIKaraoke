@@ -28,16 +28,19 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
     private   RoomInfoController      mRoomInfoController;
 
     //点歌列表歌曲封面
-    private final int[] MUSIC_ICON_ARRAY = {
+    private static final int[] MUSIC_ICON_ARRAY = {
             R.drawable.trtckaraoke_changetype_child_normal,
             R.drawable.trtckaraoke_changetype_dashu_normal,
             R.drawable.trtckaraoke_changetype_luoli_normal
     };
-    private final int   NORMAL_TYPE      = 0;    //列表布局
-    private final int   FOOT_TYPE        = 1111; //底部布局
+    private static final int   NORMAL_TYPE      = 0;    //列表布局
+    private static final int   FOOT_TYPE        = 1111; //底部布局
     private       int   mFootStatus      = KaraokeSearchMusicActivity.STATE_NONE; //底部布局状态
 
-    public KaraokeMusicSearchAdapter(Context context, RoomInfoController roomInfoController, List<KaraokeMusicModel> searchList, OnPickItemClickListener onPickItemClickListener) {
+    public KaraokeMusicSearchAdapter(Context context,
+                                     RoomInfoController roomInfoController,
+                                     List<KaraokeMusicModel> searchList,
+                                     OnPickItemClickListener onPickItemClickListener) {
         this.mContext = context;
         this.mSearchList = searchList;
         this.mRoomInfoController = roomInfoController;

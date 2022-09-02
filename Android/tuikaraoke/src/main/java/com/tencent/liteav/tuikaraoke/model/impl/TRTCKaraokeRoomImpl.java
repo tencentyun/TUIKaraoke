@@ -1078,24 +1078,24 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void onRoomInfoChange(final TXRoomInfo tXRoomInfo) {
+    public void onRoomInfoChange(final TXRoomInfo txRoomInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
                 TRTCKaraokeRoomDef.RoomInfo roomInfo = new TRTCKaraokeRoomDef.RoomInfo();
-                roomInfo.roomName = tXRoomInfo.roomName;
+                roomInfo.roomName = txRoomInfo.roomName;
                 int translateRoomId = 0;
                 try {
-                    translateRoomId = Integer.parseInt(tXRoomInfo.roomId);
+                    translateRoomId = Integer.parseInt(txRoomInfo.roomId);
                 } catch (NumberFormatException e) {
                     TRTCLogger.e(TAG, e.getMessage());
                 }
                 roomInfo.roomId = translateRoomId;
-                roomInfo.ownerId = tXRoomInfo.ownerId;
-                roomInfo.ownerName = tXRoomInfo.ownerName;
-                roomInfo.coverUrl = tXRoomInfo.cover;
-                roomInfo.memberCount = tXRoomInfo.memberCount;
-                roomInfo.needRequest = (tXRoomInfo.needRequest == 1);
+                roomInfo.ownerId = txRoomInfo.ownerId;
+                roomInfo.ownerName = txRoomInfo.ownerName;
+                roomInfo.coverUrl = txRoomInfo.cover;
+                roomInfo.memberCount = txRoomInfo.memberCount;
+                roomInfo.needRequest = (txRoomInfo.needRequest == 1);
                 if (mDelegate != null) {
                     mDelegate.onRoomInfoChange(roomInfo);
                 }
@@ -1104,12 +1104,12 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void onSeatInfoListChange(final List<TXSeatInfo> tXSeatInfoList) {
+    public void onSeatInfoListChange(final List<TXSeatInfo> txSeatInfoList) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
                 List<TRTCKaraokeRoomDef.SeatInfo> seatInfoList = new ArrayList<>();
-                for (TXSeatInfo seatInfo : tXSeatInfoList) {
+                for (TXSeatInfo seatInfo : txSeatInfoList) {
                     TRTCKaraokeRoomDef.SeatInfo info = new TRTCKaraokeRoomDef.SeatInfo();
                     info.userId = seatInfo.user;
                     info.mute = seatInfo.mute;

@@ -6,8 +6,11 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+
 import com.google.android.material.tabs.TabLayout;
+
 import androidx.viewpager.widget.PagerAdapter;
+
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,12 +61,6 @@ public class KaraokeMusicDialog extends Dialog {
     }
 
     private void initData(Context context) {
-        String[] TITLE_LIST = new String[]{
-                context.getString(R.string.trtckaraoke_btn_choose_song),
-                context.getString(R.string.trtckaraoke_btn_choosed_song),
-        };
-        List<String> titleList = Arrays.asList(TITLE_LIST);
-
         ArrayList<View> viewList = new ArrayList<>();
         viewList.add(mKTVLibraryView);
         viewList.add(mKTVSelectView);
@@ -72,6 +69,11 @@ public class KaraokeMusicDialog extends Dialog {
 
         PagerAdapter pagerAdapter = new KaraokeMusicPagerAdapter(viewList);
         mContentVp.setAdapter(pagerAdapter);
+        String[] titleArray = new String[]{
+                context.getString(R.string.trtckaraoke_btn_choose_song),
+                context.getString(R.string.trtckaraoke_btn_choosed_song),
+        };
+        List<String> titleList = Arrays.asList(titleArray);
         for (int i = 0; i < titleList.size(); i++) {
             TabLayout.Tab tab = mTopTl.getTabAt(i);
             if (tab != null) {
@@ -96,8 +98,8 @@ public class KaraokeMusicDialog extends Dialog {
     }
 
     public static int getScreenHeight(Context context) {
-        WindowManager wm    = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Point         point = new Point();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Point point = new Point();
         if (wm == null) {
             TRTCLogger.d(TAG, " the wm is null");
             return 0;

@@ -31,8 +31,8 @@ import static com.tencent.liteav.tuikaraoke.ui.gift.Constant.GIFT_PANEL_TYPE_SIN
 public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelView {
     private static final String TAG = "GiftPanelViewImp";
 
-    private int COLUMNS = 4;
-    private int ROWS    = 2;
+    private static int COLUMNS = 4;
+    private static int ROWS    = 2;
 
     private Context             mContext;
     private List<View>          mGiftViews;     //每页显示的礼物view
@@ -166,7 +166,8 @@ public class GiftPanelViewImp extends BottomSheetDialog implements IGiftPanelVie
                 mDotsLayout.getChildAt(i).setSelected(false);
             }
             mDotsLayout.getChildAt(position).setSelected(true);
-            for (int i = 0; i < mGiftViews.size(); i++) {//清除选中，当礼物页面切换到另一个礼物页面
+            for (int i = 0; i < mGiftViews.size(); i++) {
+                //清除选中，当礼物页面切换到另一个礼物页面
                 RecyclerView view = (RecyclerView) mGiftViews.get(i);
                 GiftPanelAdapter adapter = (GiftPanelAdapter) view.getAdapter();
                 if (mGiftController != null) {

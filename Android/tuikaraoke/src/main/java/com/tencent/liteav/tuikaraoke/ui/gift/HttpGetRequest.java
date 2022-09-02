@@ -24,10 +24,10 @@ public class HttpGetRequest implements Runnable {
     }
 
     private void request() {
-        InputStream    inputStream = null;
-        BufferedReader br          = null;
+        InputStream inputStream = null;
+        BufferedReader br = null;
         try {
-            URL               url  = new URL(mUrl);
+            URL url = new URL(mUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(TIMEOUT);
@@ -51,8 +51,12 @@ public class HttpGetRequest implements Runnable {
             mHttpListener.onFailed(e.getMessage());
         } finally {
             try {
-                if (inputStream != null) inputStream.close();
-                if (br != null) br.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+                if (br != null) {
+                    br.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

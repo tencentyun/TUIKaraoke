@@ -42,22 +42,22 @@ public class IMProtocol {
         public static final String KEY_CMD_ACTION    = "action";
 
 
-        public static final int CODE_UNKNOWN      = 0;
-        public static final int CODE_ROOM_DESTROY = 200;
+        public static final int CODE_UNKNOWN         = 0;
+        public static final int CODE_ROOM_DESTROY    = 200;
         public static final int CODE_ROOM_CUSTOM_MSG = 301;
     }
 
     public static class SignallingDefine {
-        public static String  KEY_VERSION        = "version";
-        public static String  KEY_BUSINESS_ID    = "businessID";
-        public static String  KEY_DATA           = "data";
-        public static String  KEY_ROOM_ID        = "room_id";
-        public static String  KEY_CMD            = "cmd";
-        public static String  KEY_SEAT_NUMBER    = "seat_number";
-        public static String  KEY_INSTRUCTION    = "instruction";
-        public static String  KEY_CONTENT        = "content";
-        public static String  KEY_MUSICID        = "music_id";
-        public static String  KEY_PLATFORM       = "platform";
+        public static String KEY_VERSION     = "version";
+        public static String KEY_BUSINESS_ID = "businessID";
+        public static String KEY_DATA        = "data";
+        public static String KEY_ROOM_ID     = "room_id";
+        public static String KEY_CMD         = "cmd";
+        public static String KEY_SEAT_NUMBER = "seat_number";
+        public static String KEY_INSTRUCTION = "instruction";
+        public static String KEY_CONTENT     = "content";
+        public static String KEY_MUSICID     = "music_id";
+        public static String KEY_PLATFORM    = "platform";
 
 
         public static final int    VALUE_VERSION     = 1;
@@ -65,57 +65,57 @@ public class IMProtocol {
         public static final String VALUE_PLATFORM    = "Android";   //当前平台
     }
 
-    public static HashMap<String, String> getInitRoomMap(TXRoomInfo TXRoomInfo, List<TXSeatInfo> TXSeatInfoList) {
-        Gson                    gson    = new Gson();
+    public static HashMap<String, String> getInitRoomMap(TXRoomInfo txRoomInfo, List<TXSeatInfo> txSeatInfoList) {
+        Gson gson = new Gson();
         HashMap<String, String> jsonMap = new HashMap<>();
         jsonMap.put(KEY_ATTR_VERSION, VALUE_ATTR_VERSION);
-        jsonMap.put(KEY_ROOM_INFO, gson.toJson(TXRoomInfo));
-        for (int i = 0; i < TXSeatInfoList.size(); i++) {
-            String json = gson.toJson(TXSeatInfoList.get(i), TXSeatInfo.class);
+        jsonMap.put(KEY_ROOM_INFO, gson.toJson(txRoomInfo));
+        for (int i = 0; i < txSeatInfoList.size(); i++) {
+            String json = gson.toJson(txSeatInfoList.get(i), TXSeatInfo.class);
             jsonMap.put(KEY_SEAT + i, json);
         }
         return jsonMap;
     }
 
-    public static HashMap<String, String> getSeatInfoListJsonStr(List<TXSeatInfo> TXSeatInfoList) {
-        Gson                    gson    = new Gson();
+    public static HashMap<String, String> getSeatInfoListJsonStr(List<TXSeatInfo> txSeatInfoList) {
+        Gson gson = new Gson();
         HashMap<String, String> jsonMap = new HashMap<>();
-        for (int i = 0; i < TXSeatInfoList.size(); i++) {
-            String json = gson.toJson(TXSeatInfoList.get(i), TXSeatInfo.class);
+        for (int i = 0; i < txSeatInfoList.size(); i++) {
+            String json = gson.toJson(txSeatInfoList.get(i), TXSeatInfo.class);
             jsonMap.put(KEY_SEAT + i, json);
         }
         return jsonMap;
     }
 
     public static HashMap<String, String> getSeatInfoJsonStr(int index, TXSeatInfo info) {
-        Gson                    gson = new Gson();
-        String                  json = gson.toJson(info, TXSeatInfo.class);
-        HashMap<String, String> map  = new HashMap<>();
+        Gson gson = new Gson();
+        String json = gson.toJson(info, TXSeatInfo.class);
+        HashMap<String, String> map = new HashMap<>();
         map.put(KEY_SEAT + index, json);
         return map;
     }
 
     public static TXRoomInfo getRoomInfoFromAttr(Map<String, String> map) {
-        TXRoomInfo TXRoomInfo;
-        Gson       gson = new Gson();
-        String     json = map.get(KEY_ROOM_INFO);
+        TXRoomInfo txRoomInfo;
+        Gson gson = new Gson();
+        String json = map.get(KEY_ROOM_INFO);
         if (TextUtils.isEmpty(json)) {
             return null;
         }
         try {
-            TXRoomInfo = gson.fromJson(json, TXRoomInfo.class);
+            txRoomInfo = gson.fromJson(json, TXRoomInfo.class);
         } catch (Exception e) {
             TRTCLogger.e(TAG, "parse room info json error! " + json);
-            TXRoomInfo = null;
+            txRoomInfo = null;
         }
-        return TXRoomInfo;
+        return txRoomInfo;
     }
 
     public static List<TXSeatInfo> getSeatListFromAttr(Map<String, String> map, int seatSize) {
-        Gson             gson        = new Gson();
+        Gson gson = new Gson();
         List<TXSeatInfo> txSeatInfoList = new ArrayList<>();
         for (int i = 0; i < seatSize; i++) {
-            String     json = map.get(KEY_SEAT + i);
+            String json = map.get(KEY_SEAT + i);
             TXSeatInfo txSeatInfo;
             if (TextUtils.isEmpty(json)) {
                 txSeatInfo = new TXSeatInfo();
@@ -181,7 +181,7 @@ public class IMProtocol {
             if (dataMap.containsKey(SignallingDefine.KEY_CMD)) {
                 Object cmd = dataMap.get(SignallingDefine.KEY_CMD);
                 if (cmd instanceof String) {
-                    dataInfo.setCmd((String)cmd);
+                    dataInfo.setCmd((String) cmd);
                 } else {
                     TRTCLogger.e(TAG, "cmd is not string, value is :" + cmd);
                 }
@@ -197,7 +197,7 @@ public class IMProtocol {
             if (dataMap.containsKey(SignallingDefine.KEY_SEAT_NUMBER)) {
                 Object seatNumber = dataMap.get(SignallingDefine.KEY_SEAT_NUMBER);
                 if (seatNumber instanceof String) {
-                    dataInfo.setSeatNumber((String)seatNumber);
+                    dataInfo.setSeatNumber((String) seatNumber);
                 } else {
                     TRTCLogger.e(TAG, "seatNumber is not string, value is :" + seatNumber);
                 }
@@ -233,7 +233,7 @@ public class IMProtocol {
     }
 
     public static Pair<String, String> parseCusMsg(JSONObject jsonObject) {
-        String cmd     = jsonObject.optString("command");
+        String cmd = jsonObject.optString("command");
         String message = jsonObject.optString("message");
         return new Pair<>(cmd, message);
     }

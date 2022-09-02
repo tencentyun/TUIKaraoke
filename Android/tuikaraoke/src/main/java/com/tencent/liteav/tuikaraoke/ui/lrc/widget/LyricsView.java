@@ -36,8 +36,8 @@ public class LyricsView extends AbstractLrcView {
     }
 
     private void init(Context context) {
-        WindowManager  wm             = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display        display        = wm.getDefaultDisplay();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = wm.getDefaultDisplay();
         DisplayMetrics displayMetrics = new DisplayMetrics();
         display.getMetrics(displayMetrics);
         int screensWidth = displayMetrics.widthPixels;
@@ -49,36 +49,37 @@ public class LyricsView extends AbstractLrcView {
 
     @Override
     protected void onDrawLrcView(Canvas canvas) {
-        LyricsReader                     lyricsReader         = getLyricsReader();
-        TreeMap<Integer, LyricsLineInfo> lrcLineInfos         = getLrcLineInfos();
-        int                              lyricsLineNum        = getLyricsLineNum();
-        int                              splitLyricsLineNum   = getSplitLyricsLineNum();
-        int                              splitLyricsWordIndex = getSplitLyricsWordIndex();
-        float                            lyricsWordHLTime     = getLyricsWordHLTime();
-        Paint                            paint                = getPaint();
-        Paint                            paintHL              = getPaintHL();
-        Paint                            paintOutline         = getPaintOutline();
+        LyricsReader lyricsReader = getLyricsReader();
+        TreeMap<Integer, LyricsLineInfo> lrcLineInfos = getLrcLineInfos();
+        int lyricsLineNum = getLyricsLineNum();
+        int splitLyricsLineNum = getSplitLyricsLineNum();
+        int splitLyricsWordIndex = getSplitLyricsWordIndex();
+        float lyricsWordHLTime = getLyricsWordHLTime();
+        Paint paint = getPaint();
+        Paint paintHL = getPaintHL();
+        Paint paintOutline = getPaintOutline();
 
-        int[] paintColors        = getPaintColors();
-        int[] paintHLColors      = getPaintHLColors();
-        float spaceLineHeight    = getSpaceLineHeight();
+        int[] paintColors = getPaintColors();
+        int[] paintHLColors = getPaintHLColors();
+        float spaceLineHeight = getSpaceLineHeight();
         float paddingLeftOrRight = getPaddingLeftOrRight();
 
         // 先设置当前歌词，之后再根据索引判断是否放在左边还是右边
         List<LyricsLineInfo> splitLyricsLineInfos = lrcLineInfos.get(lyricsLineNum).getSplitLyricsLineInfos();
-        LyricsLineInfo       lyricsLineInfo       = splitLyricsLineInfos.get(splitLyricsLineNum);
+        LyricsLineInfo lyricsLineInfo = splitLyricsLineInfos.get(splitLyricsLineNum);
         //获取行歌词高亮宽度
         float lineLyricsHLWidth = LyricsUtils.getLineLyricsHLWidth(lyricsReader.getLyricsType(), paint,
                 lyricsLineInfo, splitLyricsWordIndex, lyricsWordHLTime);
         // 当行歌词
-        String curLyrics       = lyricsLineInfo.getLineLyrics();
-        float  curLrcTextWidth = LyricsUtils.getTextWidth(paint, curLyrics);
+        String curLyrics = lyricsLineInfo.getLineLyrics();
+        float curLrcTextWidth = LyricsUtils.getTextWidth(paint, curLyrics);
         // 当前歌词行的x坐标,y坐标
         float textX = 0;
         float textY = 0;
 
-        int   splitLyricsRealLineNum = LyricsUtils.getSplitLyricsRealLineNum(lrcLineInfos, lyricsLineNum, splitLyricsLineNum);
-        float topPadding             = (getHeight() - spaceLineHeight - 2 * LyricsUtils.getTextHeight(paint)) / 2;
+        int splitLyricsRealLineNum = LyricsUtils.getSplitLyricsRealLineNum(lrcLineInfos,
+                lyricsLineNum, splitLyricsLineNum);
+        float topPadding = (getHeight() - spaceLineHeight - 2 * LyricsUtils.getTextHeight(paint)) / 2;
         if (splitLyricsRealLineNum % 2 == 0) {
             textY = topPadding + LyricsUtils.getTextHeight(paint);
             float nextLrcTextY = textY + spaceLineHeight + LyricsUtils.getTextHeight(paint);
@@ -92,10 +93,11 @@ public class LyricsView extends AbstractLrcView {
                 if ((lyricsLineNum + 1) == lrcLineInfos.size()) {
                     return;
                 }
-                List<LyricsLineInfo> nextSplitLyricsLineInfos = lrcLineInfos.get(lyricsLineNum + 1).getSplitLyricsLineInfos();
-                String               lrcRightText             = nextSplitLyricsLineInfos.get(0).getLineLyrics();
-                float                lrcRightTextWidth        = LyricsUtils.getTextWidth(paint, lrcRightText);
-                float                textRightX               = 0;
+                List<LyricsLineInfo> nextSplitLyricsLineInfos = lrcLineInfos
+                        .get(lyricsLineNum + 1).getSplitLyricsLineInfos();
+                String lrcRightText = nextSplitLyricsLineInfos.get(0).getLineLyrics();
+                float lrcRightTextWidth = LyricsUtils.getTextWidth(paint, lrcRightText);
+                float textRightX = 0;
 
                 textRightX = getWidth() - lrcRightTextWidth - paddingLeftOrRight;
 
@@ -107,11 +109,11 @@ public class LyricsView extends AbstractLrcView {
             float preLrcTextY = topPadding + LyricsUtils.getTextHeight(paint);
             textY = preLrcTextY + spaceLineHeight + LyricsUtils.getTextHeight(paint);
             if (lyricsLineNum + 1 <= lrcLineInfos.size()) {
-                int tempNum = (lyricsLineNum - 1) < 0 ? 0 : (lyricsLineNum - 1) ;
+                int tempNum = (lyricsLineNum - 1) < 0 ? 0 : (lyricsLineNum - 1);
                 // 画下一句的歌词，该下一句不在该行分割歌词里面，需要从原始上一行的歌词里面找
                 List<LyricsLineInfo> nextSplitLyricsLineInfos = lrcLineInfos.get(tempNum).getSplitLyricsLineInfos();
-                String               lrcLeftText              = nextSplitLyricsLineInfos.get(0).getLineLyrics();
-                float                lrcLeftTextWidth         = LyricsUtils.getTextWidth(paint, lrcLeftText);
+                String lrcLeftText = nextSplitLyricsLineInfos.get(0).getLineLyrics();
+                float lrcLeftTextWidth = LyricsUtils.getTextWidth(paint, lrcLeftText);
 
                 float textLeftX = paddingLeftOrRight;
 
@@ -129,7 +131,7 @@ public class LyricsView extends AbstractLrcView {
 
     @Override
     public void updateView(long playProgress) {
-        LyricsReader                     lyricsReader = getLyricsReader();
+        LyricsReader lyricsReader = getLyricsReader();
         TreeMap<Integer, LyricsLineInfo> lrcLineInfos = getLrcLineInfos();
 
         int lyricsLineNum = LyricsUtils.getLineNumber(lyricsReader.getLyricsType(),
@@ -182,6 +184,7 @@ public class LyricsView extends AbstractLrcView {
     public void setLyricsReader(LyricsReader lyricsReader) {
         super.setLyricsReader(lyricsReader);
         if (lyricsReader != null && lyricsReader.getLyricsType() == LyricsInfo.DYNAMIC) {
+            return;
         } else {
             setLrcStatus(AbstractLrcView.LRCSTATUS_NONSUPPORT);
         }

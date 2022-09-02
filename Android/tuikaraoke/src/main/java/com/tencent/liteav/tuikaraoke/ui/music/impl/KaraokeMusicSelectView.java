@@ -1,8 +1,10 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
 import android.content.Context;
+
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,7 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KaraokeMusicSelectView extends CoordinatorLayout implements KaraokeMusicServiceDelegate {
-    private final String  TAG = "KaraokeMusicSelectView";
+    private static final String TAG = "KaraokeMusicSelectView";
+
     private final Context mContext;
 
     private KaraokeMusicSelectedAdapter mSelectedAdapter;
@@ -50,35 +53,38 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
 
     private void initView(View rootView) {
         mRvList = (SlideRecyclerView) rootView.findViewById(R.id.rl_select);
-        mSelectedAdapter = new KaraokeMusicSelectedAdapter(mContext, mRoomInfoController, mSelectedList, new KaraokeMusicSelectedAdapter.OnUpdateItemClickListener() {
-            @Override
-            public void onNextSongClick(KaraokeMusicInfo musicInfo) {
-                if (lastClickTime > 0) {
-                    long current = System.currentTimeMillis();
-                    if (current - lastClickTime < 300) {
-                        return;
-                    }
-                }
-                lastClickTime = System.currentTimeMillis();
-                mKtvMusicImpl.nextMusic(musicInfo, new KaraokeMusicCallback.ActionCallback() {
+        mSelectedAdapter = new KaraokeMusicSelectedAdapter(mContext,
+                mRoomInfoController,
+                mSelectedList,
+                new KaraokeMusicSelectedAdapter.OnUpdateItemClickListener() {
                     @Override
-                    public void onCallback(int code, String msg) {
-                        Log.d(TAG, "nextMusic onProgress: code = " + code);
-                    }
-                });
-            }
-
-            @Override
-            public void onSetTopClick(KaraokeMusicInfo musicInfo) {
-                mKtvMusicImpl.topMusic(musicInfo, new KaraokeMusicCallback.ActionCallback() {
-                    @Override
-                    public void onCallback(int code, String msg) {
-                        Log.d(TAG, "topMusic: code = " + code);
+                    public void onNextSongClick(KaraokeMusicInfo musicInfo) {
+                        if (lastClickTime > 0) {
+                            long current = System.currentTimeMillis();
+                            if (current - lastClickTime < 300) {
+                                return;
+                            }
+                        }
+                        lastClickTime = System.currentTimeMillis();
+                        mKtvMusicImpl.nextMusic(musicInfo, new KaraokeMusicCallback.ActionCallback() {
+                            @Override
+                            public void onCallback(int code, String msg) {
+                                Log.d(TAG, "nextMusic onProgress: code = " + code);
+                            }
+                        });
                     }
 
+                    @Override
+                    public void onSetTopClick(KaraokeMusicInfo musicInfo) {
+                        mKtvMusicImpl.topMusic(musicInfo, new KaraokeMusicCallback.ActionCallback() {
+                            @Override
+                            public void onCallback(int code, String msg) {
+                                Log.d(TAG, "topMusic: code = " + code);
+                            }
+
+                        });
+                    }
                 });
-            }
-        });
         mSelectedAdapter.setOnDeleteClickListener(new KaraokeMusicSelectedAdapter.OnDeleteClickLister() {
             @Override
             public void onDeleteClick(View view, int position) {
@@ -98,7 +104,7 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
     }
 
     @Override
-    public void OnMusicListChange(List<KaraokeMusicModel> musicInfoList) {
+    public void onMusicListChange(List<KaraokeMusicModel> musicInfoList) {
         mSelectedList.clear();
         mSelectedList.addAll(musicInfoList);
         mSelectedAdapter.notifyDataSetChanged();

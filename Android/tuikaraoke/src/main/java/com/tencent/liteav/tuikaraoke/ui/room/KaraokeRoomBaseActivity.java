@@ -89,7 +89,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     protected static final String KTVROOM_USER_AVATAR   = "user_avatar";
     protected static final String KTVROOM_ROOM_COVER    = "room_cover";
 
-    private static final int MESSAGE_USERNAME_COLOR_ARR[] = {
+    private static final int[] MESSAGE_USERNAME_COLOR_ARR = {
             R.color.trtckaraoke_color_msg_1,
             R.color.trtckaraoke_color_msg_2,
             R.color.trtckaraoke_color_msg_3,
@@ -221,7 +221,6 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         mBtnReport = (AppCompatImageButton) findViewById(R.id.btn_report);
 
         mConfirmDialogFragment = new ConfirmDialogFragment();
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 4);
         mInputTextMsgDialog = new InputTextMsgDialog(this, R.style.TRTCKTVRoomInputDialog);
         mInputTextMsgDialog.setmOnTextSendListener(this);
         mMsgEntityList = new ArrayList<>();
@@ -246,6 +245,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
         //座位表
         mKaraokeRoomSeatAdapter = new KaraokeRoomSeatAdapter(this, mKaraokeRoomSeatEntityList, this);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 4);
         mRvSeat.setLayoutManager(gridLayoutManager);
         mRvSeat.setAdapter(mKaraokeRoomSeatAdapter);
 
@@ -549,8 +549,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         if (msg.length() == 0) {
             return;
         }
-        byte[] byte_num = msg.getBytes(StandardCharsets.UTF_8);
-        if (byte_num.length > 160) {
+        byte[] byteNum = msg.getBytes(StandardCharsets.UTF_8);
+        if (byteNum.length > 160) {
             Toast.makeText(this, getString(R.string.trtckaraoke_toast_please_enter_content), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -952,7 +952,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     @Override
     public void onMusicProgressUpdate(String musicID, long progress, long total) {
         KaraokeMusicModel topModel = mRoomInfoController.getTopModel();
-        if (topModel == null && musicID == null) {
+        if (topModel == null || musicID == null) {
             return;
         }
 

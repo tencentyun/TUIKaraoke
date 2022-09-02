@@ -1,6 +1,7 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,7 +28,7 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
     private   RoomInfoController      mRoomInfoController;
 
     //点歌列表歌曲封面
-    private final int[] MUSIC_ICON_ARRAY = {
+    private static final int[] MUSIC_ICON_ARRAY = {
             R.drawable.trtckaraoke_changetype_child_normal,
             R.drawable.trtckaraoke_changetype_dashu_normal,
             R.drawable.trtckaraoke_changetype_luoli_normal
@@ -45,9 +46,9 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context        context  = parent.getContext();
+        Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-        View           view     = inflater.inflate(R.layout.trtckaraoke_fragment_library_itemview, parent, false);
+        View view = inflater.inflate(R.layout.trtckaraoke_fragment_library_itemview, parent, false);
         return new ViewHolder(view);
     }
 

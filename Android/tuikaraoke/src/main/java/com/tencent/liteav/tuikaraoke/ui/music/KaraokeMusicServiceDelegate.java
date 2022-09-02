@@ -14,7 +14,7 @@ public interface KaraokeMusicServiceDelegate {
      *
      * @param musicInfoList 歌曲列表
      */
-    void OnMusicListChange(List<KaraokeMusicModel> musicInfoList);
+    void onMusicListChange(List<KaraokeMusicModel> musicInfoList);
 
     /**
      * 歌词设置回调

@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private TRTCKaraokeRoom mTRTCKaraokeRoom;
 
 
-    private static final String ROOM_COVER_ARRAY[] = {
+    private static final String[] ROOM_COVER_ARRAY = {
             "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover1.png",
             "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover2.png",
             "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover3.png",
@@ -147,21 +147,23 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         final UserModel userModel = UserModelManager.getInstance().getUserModel();
         mTRTCKaraokeRoom = TRTCKaraokeRoom.sharedInstance(this);
-        mTRTCKaraokeRoom.login(GenerateTestUserSig.SDKAPPID, userModel.userId, userModel.userSig, new TRTCKaraokeRoomCallback.ActionCallback() {
-            @Override
-            public void onCallback(int code, String msg) {
-                if (code == 0) {
-                    mTRTCKaraokeRoom.setSelfProfile(userModel.userName, userModel.userAvatar, new TRTCKaraokeRoomCallback.ActionCallback() {
-                        @Override
-                        public void onCallback(int code, String msg) {
-                            if (code == 0) {
-                                Log.d(TAG, "setSelfProfile success");
-                            }
+        mTRTCKaraokeRoom.login(GenerateTestUserSig.SDKAPPID, userModel.userId, userModel.userSig,
+                new TRTCKaraokeRoomCallback.ActionCallback() {
+                    @Override
+                    public void onCallback(int code, String msg) {
+                        if (code == 0) {
+                            mTRTCKaraokeRoom.setSelfProfile(userModel.userName, userModel.userAvatar,
+                                    new TRTCKaraokeRoomCallback.ActionCallback() {
+                                        @Override
+                                        public void onCallback(int code, String msg) {
+                                            if (code == 0) {
+                                                Log.d(TAG, "setSelfProfile success");
+                                            }
+                                        }
+                                    });
                         }
-                    });
-                }
-            }
-        });
+                    }
+                });
     }
 
     private void createRoom() {
@@ -251,8 +253,9 @@ public class MainActivity extends AppCompatActivity {
         String filename = savePath + "/" + name;
         File dir = new File(savePath);
         // 如果目录不存在，创建这个目录
-        if (!dir.exists())
+        if (!dir.exists()) {
             dir.mkdir();
+        }
         try {
             if (!(new File(filename)).exists()) {
                 InputStream is = context.getResources().getAssets().open(name);

@@ -11,7 +11,7 @@ import android.provider.Settings;
 public class FloatActivity extends Activity {
 
     private static PermissionListener mPermissionListener;
-    private        int                REQUEST_CODE = 9876;
+    private static int                REQUEST_CODE = 9876;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

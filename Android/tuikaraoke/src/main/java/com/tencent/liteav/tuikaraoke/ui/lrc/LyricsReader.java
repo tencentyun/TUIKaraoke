@@ -58,7 +58,7 @@ public class LyricsReader {
 
         this.mLrcFilePath = lyricsFile.getPath();
         LyricsFileReader lyricsFileReader = LyricsIOUtils.getLyricsFileReader(lyricsFile);
-        LyricsInfo       lyricsInfo       = lyricsFileReader.readFile(lyricsFile);
+        LyricsInfo lyricsInfo = lyricsFileReader.readFile(lyricsFile);
         parser(lyricsInfo);
     }
 
@@ -77,10 +77,11 @@ public class LyricsReader {
      * @param fileName
      */
     public void loadLrc(byte[] base64ByteArray, File saveLrcFile, String fileName) throws Exception {
-        if (saveLrcFile != null)
+        if (saveLrcFile != null) {
             mLrcFilePath = saveLrcFile.getPath();
+        }
         LyricsFileReader lyricsFileReader = LyricsIOUtils.getLyricsFileReader(fileName);
-        LyricsInfo       lyricsInfo       = lyricsFileReader.readLrcText(base64ByteArray, saveLrcFile);
+        LyricsInfo lyricsInfo = lyricsFileReader.readLrcText(base64ByteArray, saveLrcFile);
         parser(lyricsInfo);
 
     }

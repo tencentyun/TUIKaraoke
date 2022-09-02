@@ -26,10 +26,17 @@ public class KaraokeRoomSeatEntity {
 
     @Override
     public String toString() {
-        return "KaraokeRoomSeatEntity{" +
-                "userId='" + userId + '\'' +
-                ", userName='" + userName + '\'' +
-                ", userAvatar='" + userAvatar + '\'' +
-                '}';
+        return "KaraokeRoomSeatEntity{"
+                + "index=" + index
+                + ", userId='" + userId + '\''
+                + ", userName='" + userName + '\''
+                + ", userAvatar='" + userAvatar + '\''
+                + ", isUsed=" + isUsed
+                + ", isClose=" + isClose
+                + ", isSeatMute=" + isSeatMute
+                + ", isUserMute=" + isUserMute
+                + ", isTalk=" + isTalk
+                + ", quality=" + quality
+                + '}';
     }
 }

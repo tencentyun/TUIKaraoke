@@ -77,7 +77,8 @@ public class GiftPanelAdapter extends RecyclerView.Adapter<GiftPanelAdapter.View
         final GiftInfo giftInfo = mGiftInfoList.get(position);
         ImageLoader.loadImage(mContext, holder.mImageGift, giftInfo.giftPicUrl);
         holder.mTextGiftName.setText(giftInfo.title);
-        holder.mTextGiftPrice.setText(String.format(mContext.getString(R.string.trtckaraoke_gift_game_currency), giftInfo.price));
+        holder.mTextGiftPrice.setText(String.format(mContext.getString(R.string.trtckaraoke_gift_game_currency),
+                giftInfo.price));
         if (GIFT_PANEL_TYPE_MULTIROW.equals(mDefalutPanelType) && giftInfo.isSelected) {
             holder.mLayoutRootView.setBackgroundResource(R.drawable.trtckaraoke_gift_shape_normal);
             holder.mTextGiftName.setVisibility(View.GONE);

@@ -50,7 +50,7 @@ public class FloatWindow implements IFloatWindowCallback {
 
     public String mRoomUrl = "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover1.png";
 
-    public synchronized static FloatWindow getInstance() {
+    public static synchronized FloatWindow getInstance() {
         if (sInstance == null) {
             sInstance = new FloatWindow();
         }
@@ -69,9 +69,9 @@ public class FloatWindow implements IFloatWindowCallback {
 
     public void createDemoApplication(Context context, IFloatWindowCallback callback) {
         try {
-            Class  clz    = Class.forName("com.tencent.liteav.demo.DemoApplication");
+            Class clz = Class.forName("com.tencent.liteav.demo.DemoApplication");
             Method method = clz.getMethod("setCallback", IFloatWindowCallback.class);
-            Object obj    = method.invoke(context, callback);
+            Object obj = method.invoke(context, callback);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -228,6 +228,7 @@ public class FloatWindow implements IFloatWindowCallback {
                     curY = event.getRawY();
                     updateViewPosition();//更新悬浮窗口位置
                     if (Math.abs(curX - oldX) <= 5 && Math.abs(curY - oldY) <= 5) {
+                        isMove = false;
                     } else {
                         isMove = true;
                     }
@@ -243,6 +244,8 @@ public class FloatWindow implements IFloatWindowCallback {
                     move();
                     oldX = (int) event.getRawX();
                     oldY = (int) event.getRawY();
+                    break;
+                default:
                     break;
             }
             return true;
@@ -272,7 +275,8 @@ public class FloatWindow implements IFloatWindowCallback {
             return;
         }
 
-        for (int i = 0; i < mWindowManager.getDefaultDisplay().getWidth(); i++) {//一毫秒更新一次，直到达到边缘了
+        for (int i = 0; i < mWindowManager.getDefaultDisplay().getWidth(); i++) {
+            //一毫秒更新一次，直到达到边缘了
             mHandler.sendEmptyMessageDelayed(i, 300);
         }
 

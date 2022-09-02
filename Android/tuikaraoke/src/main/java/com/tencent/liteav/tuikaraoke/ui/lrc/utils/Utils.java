@@ -25,8 +25,9 @@ public class Utils {
 
     public static String getFileExt(String fileName) {
         int pos = fileName.lastIndexOf(".");
-        if (pos == -1)
+        if (pos == -1) {
             return LRC_TYPE;
+        }
         return fileName.substring(pos + 1).toLowerCase();
     }
 

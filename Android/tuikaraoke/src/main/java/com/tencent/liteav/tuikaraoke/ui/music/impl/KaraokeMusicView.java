@@ -182,7 +182,8 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
 
             if (seatEntity != null) {
                 mTvUserName.setText(seatEntity.userName);
-                mTvSeatName.setText(getResources().getString(R.string.trtckaraoke_tv_seat_id, String.valueOf(seatEntity.index + 1)));
+                mTvSeatName.setText(getResources().getString(R.string.trtckaraoke_tv_seat_id,
+                        String.valueOf(seatEntity.index + 1)));
             }
         }
     }
@@ -260,7 +261,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     }
 
     @Override
-    public void OnMusicListChange(List<KaraokeMusicModel> musicInfoList) {
+    public void onMusicListChange(List<KaraokeMusicModel> musicInfoList) {
         mSelectedList.clear();
         mSelectedList.addAll(musicInfoList);
 
