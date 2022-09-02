@@ -41,33 +41,33 @@ public class KaraokeMusicImplement: NSObject {
 
     private lazy var ktvMusicList: [KaraokeMusicInfo] = {
         let model1 = KaraokeMusicInfo(musicId: "1001", musicName: "后来", singers: ["刘若英"], userId: "", performId: "1001", status: .wait)
-        model1.lrcLocalPath = KaraokeBundle().path(forResource: "后来_歌词", ofType: "vtt") ?? ""
-        model1.muscicLocalPath = KaraokeBundle().path(forResource: "后来_原唱", ofType: "mp3") ?? ""
-        model1.accompanyLocalPath = KaraokeBundle().path(forResource: "后来_伴奏", ofType: "mp3") ?? "";
+        model1.lrcLocalPath = karaokeBundle().path(forResource: "后来_歌词", ofType: "vtt") ?? ""
+        model1.muscicLocalPath = karaokeBundle().path(forResource: "后来_原唱", ofType: "mp3") ?? ""
+        model1.accompanyLocalPath = karaokeBundle().path(forResource: "后来_伴奏", ofType: "mp3") ?? ""
         
         
         let model2 = KaraokeMusicInfo(musicId: "1002", musicName: "情非得已", singers: ["庾澄庆"], userId: "", performId: "1002", status: .wait)
-        model2.lrcLocalPath = KaraokeBundle().path(forResource: "情非得已_歌词", ofType: "vtt") ?? ""
-        model2.muscicLocalPath = KaraokeBundle().path(forResource: "情非得已_原唱", ofType: "mp3") ?? ""
-        model2.accompanyLocalPath = KaraokeBundle().path(forResource: "情非得已_伴奏", ofType: "mp3") ?? "";
+        model2.lrcLocalPath = karaokeBundle().path(forResource: "情非得已_歌词", ofType: "vtt") ?? ""
+        model2.muscicLocalPath = karaokeBundle().path(forResource: "情非得已_原唱", ofType: "mp3") ?? ""
+        model2.accompanyLocalPath = karaokeBundle().path(forResource: "情非得已_伴奏", ofType: "mp3") ?? ""
 
         
         let model3 = KaraokeMusicInfo(musicId: "1003", musicName: "星晴", singers: ["周杰伦"], userId: "", performId: "1003", status: .wait)
-        model3.lrcLocalPath = KaraokeBundle().path(forResource: "星晴_歌词", ofType: "vtt") ?? ""
-        model3.muscicLocalPath = KaraokeBundle().path(forResource: "星晴_原唱", ofType: "mp3") ?? ""
-        model3.accompanyLocalPath = KaraokeBundle().path(forResource: "星晴_伴奏", ofType: "mp3") ?? "";
+        model3.lrcLocalPath = karaokeBundle().path(forResource: "星晴_歌词", ofType: "vtt") ?? ""
+        model3.muscicLocalPath = karaokeBundle().path(forResource: "星晴_原唱", ofType: "mp3") ?? ""
+        model3.accompanyLocalPath = karaokeBundle().path(forResource: "星晴_伴奏", ofType: "mp3") ?? ""
   
         
         let model4 = KaraokeMusicInfo(musicId: "1004", musicName: "暖暖", singers: ["梁静茹"], userId: "", performId: "1004", status: .wait)
-        model4.lrcLocalPath = KaraokeBundle().path(forResource: "暖暖_歌词", ofType: "vtt") ?? ""
-        model4.muscicLocalPath = KaraokeBundle().path(forResource: "暖暖_原唱", ofType: "mp3") ?? ""
-        model4.accompanyLocalPath = KaraokeBundle().path(forResource: "暖暖_伴奏", ofType: "mp3") ?? "";
+        model4.lrcLocalPath = karaokeBundle().path(forResource: "暖暖_歌词", ofType: "vtt") ?? ""
+        model4.muscicLocalPath = karaokeBundle().path(forResource: "暖暖_原唱", ofType: "mp3") ?? ""
+        model4.accompanyLocalPath = karaokeBundle().path(forResource: "暖暖_伴奏", ofType: "mp3") ?? ""
         
         
         let model5 = KaraokeMusicInfo(musicId: "1005", musicName: "简单爱", singers: ["梁静茹"], userId: "", performId: "1005", status: .wait)
-        model5.lrcLocalPath = KaraokeBundle().path(forResource: "简单爱_歌词", ofType: "vtt") ?? ""
-        model5.muscicLocalPath = KaraokeBundle().path(forResource: "简单爱_原唱", ofType: "mp3") ?? ""
-        model5.accompanyLocalPath = KaraokeBundle().path(forResource: "简单爱_伴奏", ofType: "mp3") ?? "";
+        model5.lrcLocalPath = karaokeBundle().path(forResource: "简单爱_歌词", ofType: "vtt") ?? ""
+        model5.muscicLocalPath = karaokeBundle().path(forResource: "简单爱_原唱", ofType: "mp3") ?? ""
+        model5.accompanyLocalPath = karaokeBundle().path(forResource: "简单爱_伴奏", ofType: "mp3") ?? ""
         var ktvMusicList: [KaraokeMusicInfo] = []
         ktvMusicList.append(model1)
         ktvMusicList.append(model2)
@@ -93,32 +93,32 @@ extension KaraokeMusicImplement {
     
     // 准备播放，发通知，收到通知后应准备好歌词
     func notiPrepare(musicID: String) {
-        sendNoti(instruction: Karaoke_VALUE_CMD_INSTRUCTION_MPREPARE, content: musicID)
+        sendNoti(instruction: gKaraoke_VALUE_CMD_INSTRUCTION_MPREPARE, content: musicID)
     }
     
     // 播放完成时，应给房主发送complete消息
     func notiComplete(musicID: String) {
         serviceDelegate?.onShouldSetLyric(musicID: "0")
-        sendNoti(instruction: Karaoke_VALUE_CMD_INSTRUCTION_MCOMPLETE, content: musicID)
+        sendNoti(instruction: gKaraoke_VALUE_CMD_INSTRUCTION_MCOMPLETE, content: musicID)
     }
     
     // 给某人发送应该播放音乐了（下一个是你）
     func sendShouldPlay(userID: String, musicID: String) {
-        sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MPLAYMUSIC, userID: userID, musicID: musicID)
+        sendInstruction(gKaraoke_VALUE_CMD_INSTRUCTION_MPLAYMUSIC, userID: userID, musicID: musicID)
     }
     
     // 给某人发送应该停止了（被切歌了）
     func sendShouldStop(userID: String, musicID: String) {
-        sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MSTOP, userID: userID, musicID: musicID)
+        sendInstruction(gKaraoke_VALUE_CMD_INSTRUCTION_MSTOP, userID: userID, musicID: musicID)
     }
     
     // 发送请求已点列表
     func sendRequestSelectedList() {
-        sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MGETLIST, userID: ownerID, musicID: "")
+        sendInstruction(gKaraoke_VALUE_CMD_INSTRUCTION_MGETLIST, userID: ownerID, musicID: "")
     }
     
     func sendDeleteAll() {
-        sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MDELETEALL, userID: ownerID, musicID: "")
+        sendInstruction(gKaraoke_VALUE_CMD_INSTRUCTION_MDELETEALL, userID: ownerID, musicID: "")
     }
     
     // 广播通知列表发生变化
@@ -136,7 +136,7 @@ extension KaraokeMusicImplement {
         
         guard let data = try? JSONSerialization.data(withJSONObject: list, options: .prettyPrinted) else { return }
         guard let message = String(data: data, encoding: .utf8) else { return }
-        sendNoti(instruction: Karaoke_VALUE_CMD_INSTRUCTION_MLISTCHANGE, content: message)
+        sendNoti(instruction: gKaraoke_VALUE_CMD_INSTRUCTION_MLISTCHANGE, content: message)
     }
 }
 
@@ -151,31 +151,31 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
     
     private func getSignallingHeader() -> [String : Any] {
         return [
-            Karaoke_KEY_CMD_VERSION : Karaoke_VALUE_CMD_VERSION,
-            Karaoke_KEY_CMD_BUSINESSID : Karaoke_VALUE_CMD_BUSINESSID,
-            Karaoke_KEY_CMD_PLATFORM : Karaoke_VALUE_CMD_PLATFORM,
+            gKaraoke_KEY_CMD_VERSION : gKaraoke_VALUE_CMD_VERSION,
+            gKaraoke_KEY_CMD_BUSINESSID : gKaraoke_VALUE_CMD_BUSINESSID,
+            gKaraoke_KEY_CMD_PLATFORM : gKaraoke_VALUE_CMD_PLATFORM,
         ]
     }
     
     private func makeInviteSignalling(instruction: String, musicID: String) -> [String : Any] {
         var header = getSignallingHeader()
         let data: [String : Any] = [
-            Karaoke_KEY_CMD_ROOMID : roomInfo.roomID,
-            Karaoke_KEY_CMD_INSTRUCTION : instruction,
-            Karaoke_KEY_CMD_CONTENT : musicID
+            gKaraoke_KEY_CMD_ROOMID : roomInfo.roomID,
+            gKaraoke_KEY_CMD_INSTRUCTION : instruction,
+            gKaraoke_KEY_CMD_CONTENT : musicID,
         ]
-        header[Karaoke_KEY_CMD_DATA] = data
+        header[gKaraoke_KEY_CMD_DATA] = data
         return header
     }
     
     private func makeSignalling(instruction: String, content: String) -> [String : Any] {
         var header = getSignallingHeader()
         let data: [String : Any] = [
-            Karaoke_KEY_CMD_ROOMID : roomInfo.roomID,
-            Karaoke_KEY_CMD_INSTRUCTION : instruction,
-            Karaoke_KEY_CMD_CONTENT : content
+            gKaraoke_KEY_CMD_ROOMID : roomInfo.roomID,
+            gKaraoke_KEY_CMD_INSTRUCTION : instruction,
+            gKaraoke_KEY_CMD_CONTENT : content,
         ]
-        header[Karaoke_KEY_CMD_DATA] = data
+        header[gKaraoke_KEY_CMD_DATA] = data
         return header
     }
     
@@ -208,17 +208,17 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             debugPrint("___ signalling validate failed")
             return
         }
-        guard let instruction = dic[Karaoke_KEY_CMD_INSTRUCTION] as? String else {
+        guard let instruction = dic[gKaraoke_KEY_CMD_INSTRUCTION] as? String else {
             debugPrint("___ not contains instruction key")
             return
         }
         debugPrint("___ recv instruction: \(instruction)")
-        guard let musicID = dic[Karaoke_KEY_CMD_CONTENT] as? String else {
+        guard let musicID = dic[gKaraoke_KEY_CMD_CONTENT] as? String else {
             debugPrint("___ music_id error")
             return
         }
         switch instruction {
-        case Karaoke_VALUE_CMD_INSTRUCTION_MPICK:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MPICK:
             guard isOwner else { return }
             var music: KaraokeMusicModel?
             for m in ktvMusicList {
@@ -259,7 +259,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             else {
                 debugPrint("___ not found music")
             }
-        case Karaoke_VALUE_CMD_INSTRUCTION_MPLAYMUSIC:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MPLAYMUSIC:
             var model: KaraokeMusicModel?
             lockSelectedList()
             let list = ktvMusicSelectedList
@@ -286,7 +286,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             else {
                 debugPrint("___ not found music")
             }
-        case Karaoke_VALUE_CMD_INSTRUCTION_MGETLIST:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MGETLIST:
             guard isOwner else { return }
             lockSelectedList()
             let list = ktvMusicSelectedList
@@ -300,7 +300,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             if let first = list.first {
                 notiPrepare(musicID: String(first.musicID))
             }
-        case Karaoke_VALUE_CMD_INSTRUCTION_MSTOP:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MSTOP:
             var model: KaraokeMusicModel?
             lockSelectedList()
             for selected in ktvMusicSelectedList {
@@ -312,7 +312,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             unlockSelectedList()
             guard let music = model else { return }
             serviceDelegate?.onShouldStopPlay(music)
-        case Karaoke_VALUE_CMD_INSTRUCTION_MDELETE:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MDELETE:
             lockSelectedList()
             let list = ktvMusicSelectedList
             unlockSelectedList()
@@ -325,7 +325,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
                     break
                 }
             }
-        case Karaoke_VALUE_CMD_INSTRUCTION_MDELETEALL:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MDELETEALL:
             guard isOwner else { return }
             var index = IndexSet()
             lockSelectedList()
@@ -350,21 +350,21 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             debugPrint("___ signalling validate failed")
             return
         }
-        guard let instruction = dic[Karaoke_KEY_CMD_INSTRUCTION] as? String else {
+        guard let instruction = dic[gKaraoke_KEY_CMD_INSTRUCTION] as? String else {
             debugPrint("___ not contains instruction key")
             return
         }
         debugPrint("___ recv noti: \(instruction)")
-        guard let content = dic[Karaoke_KEY_CMD_CONTENT] as? String else {
+        guard let content = dic[gKaraoke_KEY_CMD_CONTENT] as? String else {
             debugPrint("___ content error")
             return
         }
         switch instruction {
-        case Karaoke_VALUE_CMD_INSTRUCTION_MPREPARE:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MPREPARE:
             debugPrint("___ recv prepare content: \(content)")
             serviceDelegate?.onShouldSetLyric(musicID: content)
             currentLrc = content
-        case Karaoke_VALUE_CMD_INSTRUCTION_MLISTCHANGE:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MLISTCHANGE:
             guard let data = content.data(using: .utf8) else { return }
             guard let list = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [ [String:Any] ] else {
                 return
@@ -388,7 +388,7 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
             ktvMusicSelectedList = selectedList
             unlockSelectedList()
             serviceDelegate?.onMusicListChange(musicInfoList: selectedList, reason: 0)
-        case Karaoke_VALUE_CMD_INSTRUCTION_MCOMPLETE:
+        case gKaraoke_VALUE_CMD_INSTRUCTION_MCOMPLETE:
             debugPrint("___ recv complete content: \(content)")
             if let current = currentLrc {
                 if current == content {
@@ -433,21 +433,21 @@ extension KaraokeMusicImplement: V2TIMSimpleMsgListener {
     
     func validateSignallingHeader(data: Data) -> [String:Any]? {
         guard let obj = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String : Any] else { return nil }
-        if obj.keys.contains(Karaoke_KEY_CMD_VERSION) {
-            guard let version = obj[Karaoke_KEY_CMD_VERSION] as? Int else {
+        if obj.keys.contains(gKaraoke_KEY_CMD_VERSION) {
+            guard let version = obj[gKaraoke_KEY_CMD_VERSION] as? Int else {
                 return nil
             }
-            if version < Karaoke_VALUE_CMD_BASIC_VERSION {
-                return nil
-            }
-        }
-        if obj.keys.contains(Karaoke_KEY_CMD_BUSINESSID) {
-            guard let businessID = obj[Karaoke_KEY_CMD_BUSINESSID] as? String, businessID == Karaoke_VALUE_CMD_BUSINESSID else {
+            if version < gKaraoke_VALUE_CMD_BASIC_VERSION {
                 return nil
             }
         }
-        if obj.keys.contains(Karaoke_KEY_CMD_DATA) {
-            guard let data = obj[Karaoke_KEY_CMD_DATA] as? [String : Any] else {
+        if obj.keys.contains(gKaraoke_KEY_CMD_BUSINESSID) {
+            guard let businessID = obj[gKaraoke_KEY_CMD_BUSINESSID] as? String, businessID == gKaraoke_VALUE_CMD_BUSINESSID else {
+                return nil
+            }
+        }
+        if obj.keys.contains(gKaraoke_KEY_CMD_DATA) {
+            guard let data = obj[gKaraoke_KEY_CMD_DATA] as? [String : Any] else {
                 return [:]
             }
             return data
@@ -541,7 +541,7 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             callback(0,"")
         }
         else {
-            sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MPICK, userID: ownerID, musicID: musicID)
+            sendInstruction(gKaraoke_VALUE_CMD_INSTRUCTION_MPICK, userID: ownerID, musicID: musicID)
             callback(0,"")
         }
     }
@@ -565,7 +565,7 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             callback(0,"")
         }
         else {
-            sendInstruction(Karaoke_VALUE_CMD_INSTRUCTION_MDELETE, userID: ownerID, musicID: musicID)
+            sendInstruction(gKaraoke_VALUE_CMD_INSTRUCTION_MDELETE, userID: ownerID, musicID: musicID)
         }
     }
     public func topMusic(musicInfo: KaraokeMusicInfo, callback: @escaping ActionCallback) {
