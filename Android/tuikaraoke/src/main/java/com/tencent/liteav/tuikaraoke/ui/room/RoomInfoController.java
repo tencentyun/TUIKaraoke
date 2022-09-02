@@ -34,8 +34,8 @@ public class RoomInfoController {
         mRoomOwnerId = roomOwnerId;
     }
 
-    public void setRoomSeatEntityList(List<KaraokeRoomSeatEntity> KaraokeRoomSeatEntityList) {
-        mKaraokeRoomSeatEntityList = KaraokeRoomSeatEntityList;
+    public void setRoomSeatEntityList(List<KaraokeRoomSeatEntity> karaokeRoomSeatEntityList) {
+        mKaraokeRoomSeatEntityList = karaokeRoomSeatEntityList;
     }
 
     public List<KaraokeRoomSeatEntity> getRoomSeatEntityList() {
@@ -63,8 +63,8 @@ public class RoomInfoController {
         return false;
     }
 
-    public void setMusicImpl(KaraokeMusicService KaraokeMusicService) {
-        mKaraokeMusicServiceImpl = KaraokeMusicService;
+    public void setMusicImpl(KaraokeMusicService karaokeMusicService) {
+        mKaraokeMusicServiceImpl = karaokeMusicService;
     }
 
     public KaraokeMusicService getMusicServiceImpl() {
@@ -90,13 +90,14 @@ public class RoomInfoController {
     public KaraokeMusicModel getTopModel() {
         return mTopModel;
     }
+
     //key:musicId value:model
     public void setUserSelectMap(Map<String, KaraokeMusicModel> map) {
         this.mUserSelectMap = map;
     }
 
     public Map<String, KaraokeMusicModel> getUserSelectMap() {
-        if(mUserSelectMap == null){
+        if (mUserSelectMap == null) {
             mUserSelectMap = new HashMap<>();
         }
         return mUserSelectMap;

@@ -51,7 +51,7 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
     private static final int     TYPE_ACCOMPANY = 1;     //伴奏
     private              boolean mIsOrigin      = true;  //true:原唱;false:伴奏
 
-    public synchronized static TUIKaraokeAudioManager getInstance() {
+    public static synchronized  TUIKaraokeAudioManager getInstance() {
         if (sInstance == null) {
             sInstance = new TUIKaraokeAudioManager();
         }
@@ -120,9 +120,9 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
     }
 
     public void resumeMusic() {
-        if (MUSIC_PLAYING != getCurrentStatus() &&
-                MUSIC_STOP != getCurrentStatus() &&
-                MUSIC_PAUSING != getCurrentStatus()) {
+        if (MUSIC_PLAYING != getCurrentStatus()
+                && MUSIC_STOP != getCurrentStatus()
+                && MUSIC_PAUSING != getCurrentStatus()) {
             mTRTCKaraokeRoom.resumePlayMusic();
             setCurrentStatus(MUSIC_PLAYING);
         }
@@ -196,7 +196,8 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
     }
 
     private TXAudioEffectManager.TXVoiceChangerType translateChangerType(int type) {
-        TXAudioEffectManager.TXVoiceChangerType changerType = TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_0;
+        TXAudioEffectManager.TXVoiceChangerType changerType = TXAudioEffectManager
+                .TXVoiceChangerType.TXLiveVoiceChangerType_0;
         switch (type) {
             case AUDIO_VOICECHANGER_TYPE_0:
                 changerType = TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_0;
@@ -234,12 +235,14 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
             case AUDIO_VOICECHANGER_TYPE_11:
                 changerType = TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_11;
                 break;
+            default:break;
         }
         return changerType;
     }
 
     private TXAudioEffectManager.TXVoiceReverbType translateReverbType(int type) {
-        TXAudioEffectManager.TXVoiceReverbType reverbType = TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_0;
+        TXAudioEffectManager.TXVoiceReverbType reverbType = TXAudioEffectManager
+                .TXVoiceReverbType.TXLiveVoiceReverbType_0;
         switch (type) {
             case AUDIO_REVERB_TYPE_0:
                 reverbType = TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_0;
@@ -265,6 +268,7 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
             case AUDIO_REVERB_TYPE_7:
                 reverbType = TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_7;
                 break;
+            default:break;
         }
         return reverbType;
     }

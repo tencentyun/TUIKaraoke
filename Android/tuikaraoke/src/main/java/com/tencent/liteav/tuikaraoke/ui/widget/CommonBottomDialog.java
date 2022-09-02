@@ -43,9 +43,11 @@ public class CommonBottomDialog extends BottomSheetDialog {
         mViewContainer.removeAllViews();
         for (int i = 0; i < mButtonSize; i++) {
             TextView                  textView = createButton(i, textList[i]);
-            LinearLayout.LayoutParams lp       = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp2px(getContext(), 57));
+            LinearLayout.LayoutParams lp       = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    dp2px(getContext(), 57));
             lp.setMargins(dp2px(getContext(), 10), 0, dp2px(getContext(), 10), dp2px(getContext(), 8));
-            textView.setPadding(dp2px(getContext(), 5), dp2px(getContext(), 10), dp2px(getContext(), 5), dp2px(getContext(), 10));
+            textView.setPadding(dp2px(getContext(), 5), dp2px(getContext(), 10),
+                    dp2px(getContext(), 5), dp2px(getContext(), 10));
             textView.setLayoutParams(lp);
             textView.setGravity(Gravity.CENTER);
             mViewContainer.addView(textView);

@@ -215,7 +215,7 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout implements Karaok
     }
 
     @Override
-    public void OnMusicListChange(List<KaraokeMusicModel> musicInfoList) {
+    public void onMusicListChange(List<KaraokeMusicModel> musicInfoList) {
         if (mLibraryLists == null || musicInfoList == null) {
             Log.d(TAG, "OnMusicListChange: list is error");
             return;

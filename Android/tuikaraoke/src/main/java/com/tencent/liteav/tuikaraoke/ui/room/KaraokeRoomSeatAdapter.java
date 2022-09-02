@@ -1,8 +1,10 @@
 package com.tencent.liteav.tuikaraoke.ui.room;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,7 +41,7 @@ public class KaraokeRoomSeatAdapter extends
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context        context  = parent.getContext();
+        Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
         View view = inflater.inflate(R.layout.trtckaraoke_item_seat_layout, parent, false);
@@ -105,7 +107,8 @@ public class KaraokeRoomSeatAdapter extends
             if (!model.isUsed) {
                 // 占位图片
                 mImgSeatHead.setImageResource(R.drawable.trtckaraoke_add_seat);
-                mTvName.setText(context.getResources().getString(R.string.trtckaraoke_tv_seat_id, String.valueOf(position + 1)));
+                mTvName.setText(context.getResources().getString(R.string.trtckaraoke_tv_seat_id,
+                        String.valueOf(position + 1)));
                 mIvMute.setVisibility(View.GONE);
                 mIvTalkBorder.setVisibility(View.GONE);
             } else {

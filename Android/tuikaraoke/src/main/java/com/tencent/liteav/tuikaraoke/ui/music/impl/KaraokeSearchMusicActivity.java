@@ -152,8 +152,10 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
             if (view instanceof EditText) {
                 int[] location = {0, 0};
                 view.getLocationInWindow(location);
-                int left = location[0], top = location[1], right = left
-                        + view.getWidth(), bottom = top + view.getHeight();
+                int left = location[0];
+                int top = location[1];
+                int right = left + view.getWidth();
+                int bottom = top + view.getHeight();
                 // 判断焦点位置坐标是否在空间内，如果位置在控件外，则隐藏键盘
                 if (event.getRawX() < left || event.getRawX() > right
                         || event.getY() < top || event.getRawY() > bottom) {
@@ -366,36 +368,37 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
             return;
         }
         mProgressBar.setVisibility(View.VISIBLE);
-        mMusicServiceImpl.ktvSearchMusicByKeyWords(offest, MUSIC_NUM_INTERNAL, keyWords, new KaraokeMusicCallback.MusicListCallback() {
-            @Override
-            public void onCallback(int code, String msg, List<KaraokeMusicInfo> list) {
-                if (code != 0) {
-                    Log.d(TAG, "search music failed");
-                    setFooterViewState(STATE_ERROR);
-                    return;
-                }
+        mMusicServiceImpl.ktvSearchMusicByKeyWords(offest, MUSIC_NUM_INTERNAL,
+                keyWords, new KaraokeMusicCallback.MusicListCallback() {
+                    @Override
+                    public void onCallback(int code, String msg, List<KaraokeMusicInfo> list) {
+                        if (code != 0) {
+                            Log.d(TAG, "search music failed");
+                            setFooterViewState(STATE_ERROR);
+                            return;
+                        }
 
-                for (KaraokeMusicInfo info : list) {
-                    KaraokeMusicModel model = new KaraokeMusicModel();
-                    model.musicId = info.musicId;
-                    model.singers = info.singers;
-                    model.musicName = info.musicName;
-                    model.userId = info.userId;
-                    model.isSelected = false;
+                        for (KaraokeMusicInfo info : list) {
+                            KaraokeMusicModel model = new KaraokeMusicModel();
+                            model.musicId = info.musicId;
+                            model.singers = info.singers;
+                            model.musicName = info.musicName;
+                            model.userId = info.userId;
+                            model.isSelected = false;
 
-                    //从已点列表中查找当前歌曲是否已点
-                    KaraokeMusicModel selectModel = mSelectMap.get(model.musicId);
-                    if (selectModel != null) {
-                        model.isSelected = true;
-                        model.lrcUrl = selectModel.lrcUrl;
+                            //从已点列表中查找当前歌曲是否已点
+                            KaraokeMusicModel selectModel = mSelectMap.get(model.musicId);
+                            if (selectModel != null) {
+                                model.isSelected = true;
+                                model.lrcUrl = selectModel.lrcUrl;
+                            }
+                            mSearchList.add(model);
+                        }
+                        mSearchAdapter.notifyDataSetChanged();
+                        mProgressBar.setVisibility(View.GONE);
+                        updateLoadState();
                     }
-                    mSearchList.add(model);
-                }
-                mSearchAdapter.notifyDataSetChanged();
-                mProgressBar.setVisibility(View.GONE);
-                updateLoadState();
-            }
-        });
+                });
     }
 
     private void updateSearchList(KaraokeMusicInfo info) {

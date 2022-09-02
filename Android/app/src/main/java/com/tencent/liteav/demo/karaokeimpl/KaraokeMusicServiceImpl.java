@@ -493,7 +493,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     private void notiListChange() {
         if (mSelectDelegates != null) {
             for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                delegate.OnMusicListChange(mMusicSelectedList);
+                delegate.onMusicListChange(mMusicSelectedList);
             }
         }
 
@@ -692,7 +692,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         //收到列表变化的通知,去更新自己的界面信息
         if (mSelectDelegates != null && mSelectDelegates.size() > 0) {
             for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                delegate.OnMusicListChange(mMusicSelectedList);
+                delegate.onMusicListChange(mMusicSelectedList);
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
 import android.content.Context;
+
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
@@ -30,7 +31,10 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
     private   OnItemClickListener       mListener;
     private   RoomInfoController        mRoomInfoController;
 
-    public KaraokeMusicSelectedAdapter(Context context, RoomInfoController roomInfoController, List<KaraokeMusicModel> selectedList, OnUpdateItemClickListener listener) {
+    public KaraokeMusicSelectedAdapter(Context context,
+                                       RoomInfoController roomInfoController,
+                                       List<KaraokeMusicModel> selectedList,
+                                       OnUpdateItemClickListener listener) {
         this.mContext = context;
         this.mRoomInfoController = roomInfoController;
         this.mSelectedList = selectedList;
@@ -39,9 +43,9 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context        context  = parent.getContext();
+        Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
-        View           view     = inflater.inflate(R.layout.trtckaraoke_fragment_selected_itemview, parent, false);
+        View view = inflater.inflate(R.layout.trtckaraoke_fragment_selected_itemview, parent, false);
         view.setOnClickListener(this);
         return new ViewHolder(view);
     }

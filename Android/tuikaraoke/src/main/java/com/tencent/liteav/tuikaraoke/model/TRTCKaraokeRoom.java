@@ -42,7 +42,8 @@ public abstract class TRTCKaraokeRoom {
      * 您可以通过 TRTCKaraokeRoomDelegate 获得 TRTCKaraokeRoom 的各种状态通知
      *
      * @param delegate 回调接口
-     * @note TRTCKaraokeRoom 中的事件，默认是在 Main Thread 中回调给您；如果您需要指定事件回调所在的线程，可使用 {@link TRTCKaraokeRoom#setDelegateHandler(Handler)}
+     * @note TRTCKaraokeRoom 中的事件，默认是在 Main Thread 中回调给您；
+     * 如果您需要指定事件回调所在的线程，可使用 {@link TRTCKaraokeRoom#setDelegateHandler(Handler)}
      */
     public abstract void setDelegate(TRTCKaraokeRoomDelegate delegate);
 
@@ -61,7 +62,8 @@ public abstract class TRTCKaraokeRoom {
      * @param userSig  腾讯云设计的一种安全保护签名，获取方式请参考 [如何计算 UserSig](https://cloud.tencent.com/document/product/647/17275)。
      * @param callback 登录回调，成功时 code 为0
      */
-    public abstract void login(int sdkAppId, String userId, String userSig, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void login(int sdkAppId, String userId, String userSig,
+                               TRTCKaraokeRoomCallback.ActionCallback callback);
 
     /**
      * 退出登录
@@ -75,7 +77,8 @@ public abstract class TRTCKaraokeRoom {
      * @param avatarURL 用户头像
      * @param callback  是否设置成功的结果回调
      */
-    public abstract void setSelfProfile(String userName, String avatarURL, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void setSelfProfile(String userName, String avatarURL,
+                                        TRTCKaraokeRoomCallback.ActionCallback callback);
 
     //////////////////////////////////////////////////////////
     //
@@ -96,7 +99,8 @@ public abstract class TRTCKaraokeRoom {
      * @param roomParam 房间信息，用于房间描述的信息，例如房间名称，封面信息等。如果房间列表和房间信息都由您的服务器自行管理，可忽略该参数。
      * @param callback  创建房间的结果回调，成功时 code 为0.
      */
-    public abstract void createRoom(int roomId, TRTCKaraokeRoomDef.RoomParam roomParam, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void createRoom(int roomId, TRTCKaraokeRoomDef.RoomParam roomParam,
+                                    TRTCKaraokeRoomCallback.ActionCallback callback);
 
     /**
      * 销毁房间（房主调用）
@@ -132,7 +136,8 @@ public abstract class TRTCKaraokeRoom {
      *
      * @param userlistcallback 用户详细信息回调
      */
-    public abstract void getUserInfoList(List<String> userIdList, TRTCKaraokeRoomCallback.UserListCallback userlistcallback);
+    public abstract void getUserInfoList(List<String> userIdList,
+                                         TRTCKaraokeRoomCallback.UserListCallback userlistcallback);
 
     //////////////////////////////////////////////////////////
     //
@@ -325,7 +330,8 @@ public abstract class TRTCKaraokeRoom {
      * @param callback 发送结果回调
      * @return inviteId 用于标识此次邀请ID
      */
-    public abstract String sendInvitation(String cmd, String userId, String content, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract String sendInvitation(String cmd, String userId, String content,
+                                          TRTCKaraokeRoomCallback.ActionCallback callback);
 
     /**
      * 接受邀请

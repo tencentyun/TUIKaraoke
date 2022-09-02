@@ -314,21 +314,41 @@ public class AudioEffectPanel extends BottomSheetDialog {
 
     private List<ItemEntity> createAudioChangeItems() {
         List<ItemEntity> list = new ArrayList<>();
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_no_effect), R.drawable.trtckaraoke_changetype_no_select_nomal, R.drawable.trtckaraoke_changetype_no_select_hover, AUDIO_VOICECHANGER_TYPE_0));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_child), R.drawable.trtckaraoke_changetype_child_normal, R.drawable.trtckaraoke_changetype_child_hover, AUDIO_VOICECHANGER_TYPE_1));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_luoli), R.drawable.trtckaraoke_changetype_luoli_normal, R.drawable.trtckaraoke_changetype_luoli_hover, AUDIO_VOICECHANGER_TYPE_2));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_dashu), R.drawable.trtckaraoke_changetype_dashu_normal, R.drawable.trtckaraoke_changetype_dashu_hover, AUDIO_VOICECHANGER_TYPE_3));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_kongling), R.drawable.trtckaraoke_changetype_kongling_normal, R.drawable.trtckaraoke_changetype_kongling_hover, AUDIO_VOICECHANGER_TYPE_11));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_no_effect),
+                R.drawable.trtckaraoke_changetype_no_select_nomal,
+                R.drawable.trtckaraoke_changetype_no_select_hover, AUDIO_VOICECHANGER_TYPE_0));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_child),
+                R.drawable.trtckaraoke_changetype_child_normal,
+                R.drawable.trtckaraoke_changetype_child_hover, AUDIO_VOICECHANGER_TYPE_1));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_luoli),
+                R.drawable.trtckaraoke_changetype_luoli_normal,
+                R.drawable.trtckaraoke_changetype_luoli_hover, AUDIO_VOICECHANGER_TYPE_2));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_dashu),
+                R.drawable.trtckaraoke_changetype_dashu_normal,
+                R.drawable.trtckaraoke_changetype_dashu_hover, AUDIO_VOICECHANGER_TYPE_3));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_kongling),
+                R.drawable.trtckaraoke_changetype_kongling_normal,
+                R.drawable.trtckaraoke_changetype_kongling_hover, AUDIO_VOICECHANGER_TYPE_11));
         return list;
     }
 
     private List<ItemEntity> createReverbItems() {
         List<ItemEntity> list = new ArrayList<>();
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_no_effect), R.drawable.trtckaraoke_changetype_no_select_nomal, R.drawable.trtckaraoke_changetype_no_select_hover, AUDIO_REVERB_TYPE_0));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_ktv), R.drawable.trtckaraoke_reverbtype_ktv_normal, R.drawable.trtckaraoke_reverbtype_ktv_hover, AUDIO_REVERB_TYPE_1));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_lowdeep), R.drawable.trtckaraoke_reverbtype_lowdeep_normal, R.drawable.trtckaraoke_reverbtype_lowdeep_hover, AUDIO_REVERB_TYPE_4));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_heavymetal), R.drawable.trtckaraoke_reverbtype_heavymetal_normal, R.drawable.trtckaraoke_reverbtype_heavymetal_hover, AUDIO_REVERB_TYPE_6));
-        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_hongliang), R.drawable.trtckaraoke_reverbtype_hongliang_normal, R.drawable.trtckaraoke_reverbtype_hongliang_hover, AUDIO_REVERB_TYPE_5));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_no_effect),
+                R.drawable.trtckaraoke_changetype_no_select_nomal,
+                R.drawable.trtckaraoke_changetype_no_select_hover, AUDIO_REVERB_TYPE_0));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_ktv),
+                R.drawable.trtckaraoke_reverbtype_ktv_normal,
+                R.drawable.trtckaraoke_reverbtype_ktv_hover, AUDIO_REVERB_TYPE_1));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_lowdeep),
+                R.drawable.trtckaraoke_reverbtype_lowdeep_normal,
+                R.drawable.trtckaraoke_reverbtype_lowdeep_hover, AUDIO_REVERB_TYPE_4));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_heavymetal),
+                R.drawable.trtckaraoke_reverbtype_heavymetal_normal,
+                R.drawable.trtckaraoke_reverbtype_heavymetal_hover, AUDIO_REVERB_TYPE_6));
+        list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_reverb_type_hongliang),
+                R.drawable.trtckaraoke_reverbtype_hongliang_normal,
+                R.drawable.trtckaraoke_reverbtype_hongliang_hover, AUDIO_REVERB_TYPE_5));
         return list;
     }
 
@@ -454,9 +474,14 @@ public class AudioEffectPanel extends BottomSheetDialog {
     }
 
     private String formattedTime(long second) {
-        String hs, ms, ss, formatTime;
+        String hs;
+        String ms;
+        String ss;
+        String formatTime;
 
-        long h, m, s;
+        long h;
+        long m;
+        long s;
         h = second / 3600;
         m = (second % 3600) / 60;
         s = (second % 3600) % 60;

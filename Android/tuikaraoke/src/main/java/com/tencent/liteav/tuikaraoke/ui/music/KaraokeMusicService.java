@@ -21,7 +21,8 @@ public abstract class KaraokeMusicService {
      * @param page       页码
      * @param pageSize   每页大小
      */
-    public abstract void ktvGetMusicPage(String playlistId, int page, int pageSize, KaraokeMusicCallback.MusicListCallback callback);
+    public abstract void ktvGetMusicPage(String playlistId, int page,
+                                         int pageSize, KaraokeMusicCallback.MusicListCallback callback);
 
     /**
      * 获取搜索歌曲列表
@@ -30,7 +31,8 @@ public abstract class KaraokeMusicService {
      * @param pageSize 分页大小
      * @param keyWords 搜索词
      */
-    public abstract void ktvSearchMusicByKeyWords(int offset, int pageSize, String keyWords, KaraokeMusicCallback.MusicListCallback callback);
+    public abstract void ktvSearchMusicByKeyWords(int offset, int pageSize,
+                                                  String keyWords, KaraokeMusicCallback.MusicListCallback callback);
 
     /**
      * 获取已点歌曲列表

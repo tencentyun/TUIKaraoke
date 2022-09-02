@@ -6,21 +6,20 @@ public class KaraokeMusicModel extends KaraokeMusicInfo {
 
     @Override
     public String toString() {
-        return "KaraokeMusicModel{" +
-                "userId='" + userId + '\'' +
-                ", isSelected=" + isSelected +
-                ", musicId='" + musicId + '\'' +
-                ", musicName='" + musicName + '\'' +
-                ", singers=" + singers +
-                ", lrcUrl='" + lrcUrl + '\'' +
-                ", coverUrl='" + coverUrl + '\'' +
-                ", originUrl='" + originUrl + '\'' +
-                ", accompanyUrl='" + accompanyUrl + '\'' +
-                ", status=" + status +
-                ", userId='" + userId + '\'' +
-                ", performId='" + performId + '\'' +
-                ", pos=" + pos +
-                ", playToken='" + playToken + '\'' +
-                '}';
+        return "KaraokeMusicModel{"
+                + "musicId='" + musicId + '\''
+                + ", musicName='" + musicName + '\''
+                + ", singers=" + singers
+                + ", lrcUrl='" + lrcUrl + '\''
+                + ", coverUrl='" + coverUrl + '\''
+                + ", originUrl='" + originUrl + '\''
+                + ", accompanyUrl='" + accompanyUrl + '\''
+                + ", status=" + status
+                + ", userId='" + userId + '\''
+                + ", performId='" + performId + '\''
+                + ", pos=" + pos
+                + ", playToken='" + playToken + '\''
+                + ", isSelected=" + isSelected
+                + '}';
     }
 }
