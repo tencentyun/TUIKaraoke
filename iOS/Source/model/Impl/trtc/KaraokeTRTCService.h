@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "TXKaraokeBaseDef.h"
+#import <TXLiteAVSDK_Professional/TXAudioEffectManager.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,11 +28,19 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onNetWorkQuality:(TRTCQualityInfo *)trtcQuality arrayList:(NSArray<TRTCQualityInfo *> *)arrayList;
 - (void)onUserVoiceVolume:(NSArray<TRTCVolumeInfo *> *)userVolumes totalVolume:(NSInteger)totalVolume;
 - (void)onRecvSEIMsg:(NSString *)userId message:(NSData *)message;
+- (void)genUserSign:(NSString *)userId completion:(void (^)(NSString *userSign))completion;
+- (void)onMusicProgressUpdate:(int32_t)musicID progress:(NSInteger)progress duration:(NSInteger)durationMS;
+- (void)onReceiveAnchorSendChorusMsg:(NSString *)musicID startDelay:(NSInteger)startDelay;
+- (void)onMusicPrepareToPlay:(int32_t)musicID;
+- (void)onMusicCompletePlaying:(int32_t)musicID;
+
 @end
 
 @interface KaraokeTRTCService : NSObject
 
 @property (nonatomic, weak) id<KaraokeTRTCServiceDelegate> delegate;
+
+@property (nonatomic, copy) NSString *bgmUserId;
 
 + (instancetype)sharedInstance;
 
@@ -74,6 +83,17 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)sendSEIMsg:(NSData *)data;
 
 - (void)enableBlackStream:(BOOL)enable size:(CGSize)size;
+
+- (void)startTRTCPush;
+
+- (void)startChorus:(NSString *)musicId url:(NSString *)url isOwner:(BOOL)isOwner;
+
+- (void)stopChorus;
+
+- (TXAudioEffectManager *)getVoiceAudioEffectManager;
+
+- (TXAudioEffectManager *)getBGMAudioEffectManager;
+
 @end
 
 NS_ASSUME_NONNULL_END

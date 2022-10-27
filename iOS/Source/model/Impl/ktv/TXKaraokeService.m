@@ -22,7 +22,7 @@
 
 @property (nonatomic, strong) NSString *mRoomId;
 @property (nonatomic, strong) NSString *selfUserId;
-@property (nonatomic, strong) NSString *ownerUserId;
+
 @property (nonatomic, strong) TXKaraokeRoomInfo *roomInfo;
 @property (nonatomic, strong) NSArray<TXKaraokeSeatInfo *> *seatInfoList;
 @property (nonatomic, strong) NSString *selfUserName;

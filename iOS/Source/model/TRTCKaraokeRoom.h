@@ -266,7 +266,9 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * 音效控制相关
 */
-- (TXAudioEffectManager * _Nullable)getAudioEffectManager;
+- (TXAudioEffectManager *)getVoiceAudioEffectManager;
+
+- (TXAudioEffectManager *)getBGMAudioEffectManager;
 
 #pragma mark - 消发送接口
 /**

@@ -128,7 +128,7 @@
 "Demo.TRTC.Salon.userisspeaker" = "The user’s mic is already on.";
 "Demo.TRTC.Karaoke.createvoicechatroom" = "Create Audio Chat Room";
 
-"Demo.TRTC.Karaoke.alertdeleteallmusic" = "This will delete all selected songs. Are you sure you want to mic off?";
+"Demo.TRTC.Karaoke.alertdeleteallmusic" = "Are you sure you want to mic off?";
 "Demo.TRTC.Karaoke.micon" = "Mic On";
 "Demo.TRTC.Karaoke.lockseat" = "Lock";
 "Demo.TRTC.Karaoke.unlockseat" = "Unlock";
@@ -147,3 +147,5 @@
 "Demo.TRTC.Karaoke.searchlike" = "Search for a song";
 "Demo.TRTC.LiveRoom.searchback" = "Cancel";
 "Demo.TRTC.LiveRoom.searchnoresult" = "No results";
+
+"Demo.TRTC.Chorus.StartChorus" = "Start\nDuet";

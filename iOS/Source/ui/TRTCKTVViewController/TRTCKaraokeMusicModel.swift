@@ -42,7 +42,7 @@ public class KaraokePopularInfo: NSObject {
     public let musicNum: NSInteger // musicNum
     public let topic: String // topic
     public let playlistId: String // playlistId
-    public init(playlistId: String, topic: String, musicNum: NSInteger, description: String) {
+    public init(playlistId: String, topic: String, musicNum: NSInteger = 0, description: String = "") {
         self.playlistId = playlistId
         self.topic = topic
         self.musicNum = musicNum
@@ -51,11 +51,9 @@ public class KaraokePopularInfo: NSObject {
 
     // 推荐，json->model
     public static func jsonPopularInfo(_ json: [String: Any]) -> KaraokePopularInfo? {
-        guard let description = json["description"] as? String else { return nil }
-        guard let musicNum = json["musicNum"] as? NSInteger else { return nil }
         guard let topic = json["topic"] as? String else { return nil }
         guard let playlistId = json["playlistId"] as? String else { return nil }
-        let info = KaraokePopularInfo(playlistId: playlistId, topic: topic, musicNum: musicNum, description: description)
+        let info = KaraokePopularInfo(playlistId: playlistId, topic: topic)
         return info
     }
 }

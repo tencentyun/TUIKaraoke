@@ -8,27 +8,47 @@
 
 #import "KaraokeTRTCService.h"
 #import "TRTCCloud.h"
+#import "ChorusExtension.h"
+
+static NSString *const kAudioBgm = @"_bgm";
+static NSString *const kMixRobot = @"_robot";
 
 static const int TC_COMPONENT_KARAOKE = 8;
 static const int TC_TRTC_FRAMEWORK    = 1;
 
-@interface KaraokeTRTCService () <TRTCCloudDelegate>
+@interface KaraokeTRTCService () <TRTCCloudDelegate, ChorusExtensionDelegate>
 
 @property (nonatomic, assign) BOOL isInRoom;
-@property (nonatomic, strong) NSString *userId;
-@property (nonatomic, strong) NSString *roomId;
-@property (nonatomic, strong) TRTCParams *mTRTCParms;
+
+@property (nonatomic, copy) NSString *userId;
+@property (nonatomic, copy) NSString *roomId;
+@property (nonatomic, copy) NSString *mixTaskId;
+
+@property (nonatomic, copy) NSString *mixRobotUserId;
+@property (nonatomic, copy) NSString *bgmUserSign;
+
+
 @property (nonatomic, copy) TXKaraokeCallback enterRoomCallback;
 @property (nonatomic, copy) TXKaraokeCallback exitRoomCallback;
 
-@property (nonatomic, strong, readonly)TRTCCloud *mTRTCCloud;
+@property (nonatomic, strong) TRTCParams *voiceParams;
+@property (nonatomic, strong) TRTCParams *bgmParams;
+
+@property (nonatomic, weak) TRTCCloud *voiceCloud;
+@property (nonatomic, weak) TRTCCloud *bgmCloud;
+
+@property (nonatomic, strong) ChorusExtension *chorusService;
 
 @end
 
 @implementation KaraokeTRTCService
 
-- (TRTCCloud *)mTRTCCloud {
-    return [TRTCCloud sharedInstance];
+- (ChorusExtension *)chorusService {
+    if (!_chorusService) {
+        _chorusService = [[ChorusExtension alloc] init];
+        _chorusService.delegate = self;
+    }
+    return _chorusService;
 }
 
 + (instancetype)sharedInstance{
@@ -69,112 +89,177 @@ static const int TC_TRTC_FRAMEWORK    = 1;
     self.roomId = roomId;
     self.enterRoomCallback = callback;
     TRTCLog(@"enter room. app id:%u, room id: %@, userID: %@", (unsigned int)sdkAppId, roomId, userId);
-    TRTCParams * parms = [[TRTCParams alloc] init];
-    parms.sdkAppId = sdkAppId;
-    parms.userId = userId;
-    parms.userSig = userSign;
-    parms.role = role == 20 ? TRTCRoleAnchor : TRTCRoleAudience;
-    parms.roomId = roomIdIntValue;
-    self.mTRTCParms = parms;
+    
+    self.voiceParams = [[TRTCParams alloc] init];
+    self.voiceParams.sdkAppId = sdkAppId;
+    self.voiceParams.userId = userId;
+    self.voiceParams.userSig = userSign;
+    self.voiceParams.role = role == 20 ? TRTCRoleAnchor : TRTCRoleAudience;
+    self.voiceParams.roomId = roomIdIntValue;
+    self.voiceCloud = [self.chorusService createVoiceTRTCInstanceWith:self.voiceParams];
+    
+    if (role == TRTCRoleAnchor) {
+        NSString *bgmUserId = [NSString stringWithFormat:@"%@%@",userId,kAudioBgm];
+        TRTCLog(@"Generate BgmUserId = %@",bgmUserId);
+        if (self.delegate && [self.delegate respondsToSelector:@selector(genUserSign:completion:)]) {
+            
+            __weak typeof(self)weakSelf = self;
+            [self.delegate genUserSign:bgmUserId completion:^(NSString * _Nonnull userSign) {
+                __strong typeof(weakSelf)strongSelf = weakSelf;
+                strongSelf.bgmUserSign = userSign;
+                
+                strongSelf.bgmParams = [[TRTCParams alloc] init];
+                strongSelf.bgmParams.sdkAppId = sdkAppId;
+                strongSelf.bgmParams.userId = bgmUserId;
+                strongSelf.bgmParams.userSig = strongSelf.bgmUserSign;
+                strongSelf.bgmParams.role = TRTCRoleAnchor;
+                strongSelf.bgmParams.roomId = roomIdIntValue;
+                
+                strongSelf.bgmCloud = [strongSelf.chorusService createBGMTRTCInstanceWith:strongSelf.bgmParams];
+                strongSelf.mixRobotUserId = [NSString stringWithFormat:@"%@%@",roomId, kMixRobot];
+                [strongSelf startTRTCPush];
+            }];
+        }
+    }
     [self internalEnterRoom];
+}
+
+- (void)startTRTCPush {
+    int roomIdIntValue = [self.roomId intValue];
+    if (roomIdIntValue == 0) {
+        TRTCLog(@"startTRTCPush error roomId is %@",self.roomId);
+        return;
+    }
+    [self.chorusService createMixStreamRobot:self.mixRobotUserId roomId:roomIdIntValue taskId:self.mixTaskId];
 }
 
 - (void)exitRoom:(TXKaraokeCallback)callback {
     TRTCLog(@"exit trtc room.");
     self.userId = nil;
-    self.mTRTCParms = nil;
+    self.voiceParams = nil;
+    self.bgmParams = nil;
     self.enterRoomCallback = nil;
     self.exitRoomCallback = callback;
-    [self.mTRTCCloud exitRoom];
+    [self stopMicrophone];
+    [self.voiceCloud stopPublishMediaStream:self.mixTaskId];
+    [self.chorusService stopChorus];
+    self.chorusService = nil;
+    self.mixTaskId = nil;
+    self.isInRoom = NO;
 }
 
 - (void)muteLocalAudio:(BOOL)isMute {
-    [self.mTRTCCloud muteLocalAudio:isMute];
+    [self.voiceCloud muteLocalAudio:isMute];
     TRTCLog(@"mute local %d", isMute);
 }
 
 - (void)setVoiceEarMonitorEnable:(BOOL)enable {
-    [[self.mTRTCCloud getAudioEffectManager] enableVoiceEarMonitor:enable];
+    [[self.voiceCloud getAudioEffectManager] enableVoiceEarMonitor:enable];
     TRTCLog(@"ear monitor %@", enable ? @"enable" : @"disable");
 }
 
 - (void)muteRemoteAudioWithUserId:(NSString *)userId isMute:(BOOL)isMute {
-    [self.mTRTCCloud muteRemoteAudio:userId mute:isMute];
+    [self.voiceCloud muteRemoteAudio:userId mute:isMute];
 }
 
 - (void)muteAllRemoteAudio:(BOOL)isMute {
-    [self.mTRTCCloud muteAllRemoteAudio:isMute];
+    [self.voiceCloud muteAllRemoteAudio:isMute];
+}
+
+- (void)startChorus:(NSString *)musicId url:(NSString *)url isOwner:(BOOL)isOwner {
+    [self.chorusService startChorus:musicId url:url reason:isOwner ? ChorusStartReasonLocal : ChorusStartReasonRemote];
+}
+
+- (void)stopChorus {
+    if (self.isInRoom) {
+        [self.chorusService stopChorus];
+    }
+}
+
+- (TXAudioEffectManager *)getVoiceAudioEffectManager {
+    return [self.voiceCloud getAudioEffectManager];
+}
+
+- (TXAudioEffectManager *)getBGMAudioEffectManager {
+    if (self.bgmCloud) {
+        return [self.bgmCloud getAudioEffectManager];
+    }
+    return [self getVoiceAudioEffectManager];
 }
 
 - (void)setAudioQuality:(NSInteger)quality {
-    TRTCAudioQuality targetQuality = TRTCAudioQualityDefault;
-    switch (quality) {
-        case 1:
-            targetQuality = TRTCAudioQualitySpeech;
-            break;
-        case 3:
-            targetQuality = TRTCAudioQualityMusic;
-        default:
-            break;
-    }
-    [self.mTRTCCloud setAudioQuality:targetQuality];
+//    TRTCAudioQuality targetQuality = TRTCAudioQualityDefault;
+//    switch (quality) {
+//        case 1:
+//            targetQuality = TRTCAudioQualitySpeech;
+//            break;
+//        case 3:
+//            targetQuality = TRTCAudioQualityMusic;
+//        default:
+//            break;
+//    }
+//    [self.voiceCloud setAudioQuality:targetQuality];
 }
 
 - (void)startMicrophone {
-    [self.mTRTCCloud startLocalAudio];
+    if (self.voiceParams.role == TRTCRoleAnchor) {
+        [self.voiceCloud startLocalAudio:TRTCAudioQualityMusic];
+    }
 }
 
 - (void)stopMicrophone {
-    [self.mTRTCCloud stopLocalAudio];
+    [self.voiceCloud stopLocalAudio];
 }
 
 - (void)switchToAnchor {
-    [self.mTRTCCloud switchRole:TRTCRoleAnchor];
-    [self.mTRTCCloud startLocalAudio];
+    self.voiceParams.role = TRTCRoleAnchor;
+    [self.voiceCloud switchRole:TRTCRoleAnchor];
+    [self startMicrophone];
 }
 
 - (void)switchToAudience {
-    [self.mTRTCCloud stopLocalAudio];
-    [self.mTRTCCloud switchRole:TRTCRoleAudience];
+    self.voiceParams.role = TRTCRoleAudience;
+    [self stopMicrophone];
+    [self.voiceCloud switchRole:TRTCRoleAudience];
 }
 
 - (void)setSpeaker:(BOOL)userSpeaker {
-    [self.mTRTCCloud setAudioRoute:userSpeaker ? TRTCAudioModeSpeakerphone : TRTCAudioModeEarpiece];
+    [self.voiceCloud setAudioRoute:userSpeaker ? TRTCAudioModeSpeakerphone : TRTCAudioModeEarpiece];
 }
 
 - (void)setAudioCaptureVolume:(NSInteger)volume {
-    [self.mTRTCCloud setAudioCaptureVolume:volume];
+    [self.voiceCloud setAudioCaptureVolume:volume];
 }
 
 - (void)setAudioPlayoutVolume:(NSInteger)volume {
-    [self.mTRTCCloud setAudioPlayoutVolume:volume];
+    [self.voiceCloud setAudioPlayoutVolume:volume];
 }
 
 - (void)startFileDumping:(TRTCAudioRecordingParams *)params {
-    [self.mTRTCCloud startAudioRecording:params];
+    [self.voiceCloud startAudioRecording:params];
 }
 
 - (void)stopFileDumping {
-    [self.mTRTCCloud stopAudioRecording];
+    [self.voiceCloud stopAudioRecording];
 }
 
 - (void)enableAudioEvalutation:(BOOL)enable {
-    [self.mTRTCCloud enableAudioVolumeEvaluation:enable ? 300 : 0];
+    [self.voiceCloud enableAudioVolumeEvaluation:enable ? 300 : 0];
 }
 
 - (void)sendSEIMsg:(NSData *)data {
-    BOOL res = [self.mTRTCCloud sendSEIMsg:data repeatCount:1];
+    BOOL res = [self.voiceCloud sendSEIMsg:data repeatCount:1];
     if (!res) {
         TRTCLog(@"___ send SEI failed");
     }
 }
 
 - (void)startRemoteVideo:(NSString *)userId {
-    [self.mTRTCCloud startRemoteView:userId streamType:TRTCVideoStreamTypeSmall view:nil];
+    [self.voiceCloud startRemoteView:userId streamType:TRTCVideoStreamTypeSmall view:nil];
 }
 
 - (void)stopRemoteVideo:(NSString *)userId {
-    [self.mTRTCCloud stopRemoteView:userId streamType:TRTCVideoStreamTypeSmall];
+    [self.voiceCloud stopRemoteView:userId streamType:TRTCVideoStreamTypeSmall];
 }
 
 - (void)onUserVideoAvailable:(NSString *)userId available:(BOOL)available {
@@ -197,17 +282,16 @@ static const int TC_TRTC_FRAMEWORK    = 1;
     NSData *data = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&err];
     if (!err) {
         NSString *jsonStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        [self.mTRTCCloud callExperimentalAPI:jsonStr];
+        [self.voiceCloud callExperimentalAPI:jsonStr];
     }
 }
 
 #pragma mark - private method
-- (void)internalEnterRoom{
-    if (self.mTRTCParms) {
-        self.mTRTCCloud.delegate = self;
+- (void)internalEnterRoom {
+    if (self.voiceParams) {
+        self.voiceCloud.delegate = self;
         [self enableAudioEvalutation:YES];
         [self setFramework];
-        [self.mTRTCCloud enterRoom:self.mTRTCParms appScene:TRTCAppSceneVoiceChatRoom];
     }
 }
 
@@ -218,11 +302,50 @@ static const int TC_TRTC_FRAMEWORK    = 1;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDic options:NSJSONWritingPrettyPrinted error:nil];
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     TRTCLog(@"jsonString = %@",jsonString);
-    [self.mTRTCCloud callExperimentalAPI: jsonString];
+    [self.voiceCloud callExperimentalAPI: jsonString];
 }
 
 - (BOOL)canDelegateResponseMethod:(SEL)method {
     return self.delegate && [self.delegate respondsToSelector:method];
+}
+
+#pragma mark - ChorusExtensionDelegate
+// 合唱已开始
+- (void)onChorusStart:(ChorusStartReason)reason message:(NSString *)msg {
+    TRTCLog(@"onChorusStart reason = %ld message = %@",reason, msg);
+}
+
+// 合唱已停止
+- (void)onChorusStop:(ChorusStopReason)reason message:(NSString *)msg {
+    TRTCLog(@"onChorusStop reason = %ld message = %@",reason, msg);
+}
+
+// 准备播放音乐的回调
+- (void)onMusicPrepareToPlay:(int32_t)musicID {
+    if ([self canDelegateResponseMethod:@selector(onMusicPrepareToPlay:)]) {
+        [self.delegate onMusicPrepareToPlay:musicID];
+    }
+}
+
+// 音乐播放结束的回调
+- (void)onMusicCompletePlaying:(int32_t)musicID {
+    if ([self canDelegateResponseMethod:@selector(onMusicCompletePlaying:)]) {
+        [self.delegate onMusicCompletePlaying:musicID];
+    }
+}
+
+// 合唱音乐进度回调
+- (void)onMusicProgressUpdate:(int32_t)musicID progress:(NSInteger)progress duration:(NSInteger)durationMS {
+    if ([self canDelegateResponseMethod:@selector(onMusicProgressUpdate:progress:duration:)]) {
+        [self.delegate onMusicProgressUpdate:musicID progress:progress duration:durationMS];
+    }
+}
+
+// 接收到发起合唱的消息的回调
+- (void)onReceiveAnchorSendChorusMsg:(NSString *)musicID startDelay:(NSInteger)startDelay {
+    if ([self canDelegateResponseMethod:@selector(onReceiveAnchorSendChorusMsg:startDelay:)]) {
+        [self.delegate onReceiveAnchorSendChorusMsg:musicID startDelay:startDelay];
+    }
 }
 
 #pragma mark - TRTCCloudDelegate
@@ -297,5 +420,14 @@ static const int TC_TRTC_FRAMEWORK    = 1;
     if ([self canDelegateResponseMethod:@selector(onRecvSEIMsg:message:)]) {
         [self.delegate onRecvSEIMsg:userId message:message];
     }
+}
+
+- (void)onRecvCustomCmdMsgUserId:(NSString *)userId cmdID:(NSInteger)cmdID seq:(UInt32)seq message:(NSData *)message {
+    [self.chorusService onRecvCustomCmdMsgUserId:userId cmdID:cmdID seq:seq message:message];
+}
+
+- (void)onStartPublishMediaStream:(NSString *)taskId code:(int)code message:(NSString *)message extraInfo:(nullable NSDictionary *)extraInfo {
+    self.mixTaskId = taskId;
+    TRTCLog(@"onStartPublishMediaStream, taskId:%@, code: %d, message: %@, extraInfo:%@", taskId, code, message, extraInfo);
 }
 @end

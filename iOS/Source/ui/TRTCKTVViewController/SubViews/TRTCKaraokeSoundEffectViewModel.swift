@@ -24,6 +24,8 @@ protocol TRTCKaraokeSoundEffectViewResponder: AnyObject {
     func onSelectedMusicListChanged()
     func onMusicListChanged()
     func onManageSongBtnClick()
+    func showStartAnimationAndPlay(startDelay: Int)
+    func onStartChorusBtnClick()
 }
 
 class TRTCKaraokeSoundEffectViewModel: NSObject {
@@ -38,11 +40,15 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
         reloadSelectedMusicList(nil)
     }
 
-    lazy var manager: TXAudioEffectManager? = {
-        viewModel?.Karaoke.getAudioEffectManager()
+    lazy var voiceEffectManager: TXAudioEffectManager? = {
+        viewModel?.Karaoke.getVoiceAudioEffectManager()
+    }()
+    
+    lazy var bgmEffectManager: TXAudioEffectManager? = {
+        viewModel?.Karaoke.getBGMAudioEffectManager()
     }()
 
-    var currentMusicVolum: Int = 100
+    var currentMusicVolum: Int = 30
     var currentVocalVolume: Int = 100
     var currentPitchVolum: Double = 0
     var currentEarMonitor: Bool = false
@@ -62,7 +68,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
 
     public func setVolume(music: Int) {
         currentMusicVolum = music
-        guard let manager = manager else {
+        guard let manager = bgmEffectManager else {
             return
         }
         if bgmID != 0 {
@@ -72,7 +78,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
     }
 
     public func setEarMonitor(_ enable: Bool) {
-        guard let manager = manager else {
+        guard let manager = voiceEffectManager else {
             return
         }
         currentEarMonitor = enable
@@ -81,7 +87,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
 
     public func setVolume(person: Int) {
         currentVocalVolume = person
-        guard let manager = manager else {
+        guard let manager = voiceEffectManager else {
             return
         }
         manager.setVoiceVolume(person)
@@ -89,7 +95,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
 
     public func setPitch(person: Double) {
         currentPitchVolum = person
-        guard let manager = manager else {
+        guard let manager = bgmEffectManager else {
             return
         }
         if bgmID != 0 {
@@ -109,13 +115,17 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
     lazy var userSelectedSong: [String: Bool] = [:]
     lazy var listAction: ((_ v: KaraokeMusicModel, _ callBack: @escaping cellClickCallback) -> Void) = { [weak self] model, callBack in
         guard let `self` = self else { return }
-        if self.viewModel?.userType == .anchor {
-            self.viewModel?.cacheSelectd.setObject("1", forKey: model.music.getMusicId() as NSString)
-            self.viewModel?.musicDataSource?.pickMusic(musicInfo: model.music, callback: { [weak self] code, msg in
-                guard let self = self else { return }
-                self.viewModel?.cacheSelectd.removeObject(forKey: model.music.getMusicId() as NSString)
-                callBack(code, msg)
-            })
+        if let viewModel = self.viewModel {
+            if viewModel.isOwner {
+                viewModel.cacheSelectd.setObject("1", forKey: model.music.getMusicId() as NSString)
+                viewModel.musicDataSource?.pickMusic(musicInfo: model.music, callback: { [weak self] code, msg in
+                    guard let self = self else { return }
+                    viewModel.cacheSelectd.removeObject(forKey: model.music.getMusicId() as NSString)
+                    callBack(code, msg)
+                })
+            } else {
+                callBack(-1, .notInSeatText)
+            }
         } else {
             callBack(-1, .notInSeatText)
         }
@@ -190,7 +200,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
     }
 
     func resetMusicSeting() {
-        guard let manager = manager else {
+        guard let manager = voiceEffectManager else {
             return
         }
         manager.setVoiceVolume(currentVocalVolume)
@@ -223,7 +233,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             stopPlay()
             bgmID = 0
         }
-        setVolume(music: 100)
+        setVolume(music: 30)
         setVolume(person: 100)
     }
 
@@ -269,7 +279,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             model.action = { [weak self] in
                 guard let `self` = self else { return }
                 let type = self.switch2ReverbType(index)
-                self.manager?.setVoiceReverbType(type)
+                self.voiceEffectManager?.setVoiceReverbType(type)
                 self.currentReverb = type
             }
             if model.icon != nil {
@@ -319,7 +329,7 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
             model.action = { [weak self] in
                 guard let `self` = self else { return }
                 let type = self.switch2VoiceChangeType(index)
-                self.manager?.setVoiceChangerType(type)
+                self.voiceEffectManager?.setVoiceChangerType(type)
                 self.currentChangerType = type
             }
             if model.icon != nil {

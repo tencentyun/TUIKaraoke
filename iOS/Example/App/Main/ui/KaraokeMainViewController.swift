@@ -152,6 +152,11 @@ extension KaraokeMainViewController: KaraokeMainRootViewDelegate {
 }
 
 extension KaraokeMainViewController: TRTCKaraokeEnteryControlDelegate {
+    func genUserSign(userId: String, completion: @escaping (String) -> Void) {
+        let userSig = GenerateTestUserSig.genTestUserSig(identifier: userId)
+        completion(userSig)
+    }
+    
     func ktvCreateRoom(roomId: String, success: @escaping () -> Void, failed: @escaping (Int32, String) -> Void) {
         alert(roomId: roomId) {
             success()

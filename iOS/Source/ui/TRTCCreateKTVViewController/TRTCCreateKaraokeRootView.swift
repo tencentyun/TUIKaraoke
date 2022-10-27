@@ -272,7 +272,7 @@ extension UIView {
 extension TRTCCreateKaraokeRootView : TRTCCreateKaraokeViewResponder {
     func push(viewController: UIViewController) {
         rootViewController?.navigationController?.pushViewController(viewController, animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             guard let `self` = self else { return }
             guard let vc = self.rootViewController else { return }
             guard let vcs = vc.navigationController?.viewControllers else {

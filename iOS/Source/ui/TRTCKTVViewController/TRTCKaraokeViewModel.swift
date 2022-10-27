@@ -34,6 +34,7 @@ protocol TRTCKaraokeViewResponder: AnyObject {
     func recoveryVoiceSetting() // 恢复音效设置
     func showAudienceAlert(seat: SeatInfoModel)
     func showGiftAnimation(giftInfo: TUIGiftInfo)
+    func onUpdateDownloadMusic(musicId: String)
 }
 
 class TRTCKaraokeViewModel: NSObject {
@@ -43,6 +44,7 @@ class TRTCKaraokeViewModel: NSObject {
     private let giftManager = TUIGiftManager.sharedManager()
     private var roomType: KaraokeViewType = .audience
     public weak var viewResponder: TRTCKaraokeViewResponder?
+    var currentMusicModel: KaraokeMusicModel? = nil
     public weak var musicDataSource: KaraokeMusicService? {
         didSet {
             musicDataSource?.setRoomInfo(roomInfo: roomInfo)
@@ -328,6 +330,9 @@ extension TRTCKaraokeViewModel {
             if code == 0 {
                 self.viewResponder?.changeRoom(info: self.roomInfo)
                 self.getAudienceList()
+                if self.isOwner {
+                    self.startTakeSeat(seatIndex: 0)
+                }
             } else {
                 self.viewResponder?.showToast(message: .enterFailedText)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -661,6 +666,30 @@ extension TRTCKaraokeViewModel {
 
 // MARK:- room delegate
 extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
+    func genUserSign(_ userId: String, completion: @escaping (String) -> Void) {
+        if let delegate = dependencyContainer.delegate {
+            delegate.genUserSign(userId: userId, completion: completion)
+        }
+    }
+    
+    func onReceiveAnchorSendChorusMsg(musicId: String, startDelay: Int) {
+        guard let musicID = Int32(musicId) else {
+            return
+        }
+        if userType == .audience { return }
+        musicDataSource?.ktvGetSelectedMusicList({ [weak self] errorCode, errorMessage, list in
+            list.forEach { [weak self] musicModel in
+                guard let self = self else { return }
+                if musicModel.musicID == musicID {
+                    self.effectViewModel.viewResponder?.showStartAnimationAndPlay(startDelay: startDelay)
+                    self.effectViewModel.setVolume(music: self.effectViewModel.currentMusicVolum)
+                    self.Karaoke.startPlayMusic(musicID: musicModel.musicID, originalUrl: musicModel.contentUrl, accompanyUrl: "")
+                    return
+                }
+            }
+        })
+    }
+    
     func onError(code: Int32, message: String) {
         
     }
@@ -784,6 +813,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             userType = .anchor
             refreshView()
             mSelfSeatIndex = index
+            TRTCKaraokeIMManager.shared.seatIndex = index
             viewResponder?.recoveryVoiceSetting() // 自己上麦，恢复音效设置
         }
         userMuteMap[user.userId] = false
@@ -797,6 +827,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             refreshView()
             mSelfSeatIndex = -1
             isOwnerMute = false
+            TRTCKaraokeIMManager.shared.seatIndex = index
             // 自己下麦，停止音效播放
             effectViewModel.stopPlay()
             musicDataSource?.deleteAllMusic(userID: TRTCKaraokeIMManager.shared.curUserID, callback: { (code, msg) in
@@ -1009,6 +1040,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
     }
     
     func onMusicCompletePlaying(musicID: Int32) {
+        effectViewModel.currentPlayingModel = nil
         musicDataSource?.completePlaying(musicID: String(musicID))
     }
 }
@@ -1031,9 +1063,10 @@ extension TRTCKaraokeViewModel: KaraokeMusicServiceDelegate {
         effectViewModel.viewResponder?.bgmOnPrepareToPlay(performId: Int32(musicID) ?? 0)
     }
     
-    func onShouldPlay(_ music: KaraokeMusicModel) -> Bool{
+    func onShouldPlay(_ music: KaraokeMusicModel) -> Bool {
         if mSelfSeatIndex >= 0 {
-            effectViewModel.playMusic(music)
+            currentMusicModel = music
+            effectViewModel.viewResponder?.onStartChorusBtnClick()
             return true
         }
         return false
@@ -1053,6 +1086,13 @@ extension TRTCKaraokeViewModel: KaraokeMusicServiceDelegate {
             }
         }
         showSelectedMusic(music: music)
+    }
+    
+    func onDownloadMusicComplete(_ musicId: String) {
+        TRTCLog.out("____ onDownloadMusicComplete \(musicId)")
+        if let viewResponder = self.viewResponder {
+            viewResponder.onUpdateDownloadMusic(musicId: musicId)
+        }
     }
 }
 

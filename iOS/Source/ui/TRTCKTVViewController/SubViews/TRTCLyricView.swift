@@ -6,10 +6,22 @@
 //  Copyright © 2022 Tencent. All rights reserved.
 
 import Foundation
+import UIKit
 
 class TRTCLyricView: UIView {
-    public var currentMusicID: Int32 = 0
+    var currentMusicModel: KaraokeMusicModel? = nil
+    var isStartChorus: Bool = false // 是否正在合唱
+    
+    private var reciprocalThreeSecond = 3
+    private var currentLrcUrl: URL? = nil
     private var isRequestSelectedMusicList: Bool = false
+    
+    lazy var containerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }()
+    
     lazy var bgView: UIImageView = {
         let imageView = UIImageView(image: UIImage(named: "lkyric_bg", in: karaokeBundle(), compatibleWith: nil))
         imageView.contentMode = .scaleAspectFill
@@ -54,20 +66,23 @@ class TRTCLyricView: UIView {
         label.text = .placeholderText
         return label
     }()
-
-    // 原生或者伴奏切换
-    lazy var originalOrAccompanyChangeBtn: UIButton = {
-        let btn = UIButton(type: .custom)
-        btn.setImage(UIImage(named: "room_original_icon", in: karaokeBundle(), compatibleWith: nil), for: .normal)
-        btn.setImage(UIImage(named: "room_accompany_icon", in: karaokeBundle(), compatibleWith: nil), for: .selected)
-        btn.adjustsImageWhenHighlighted = false
-        return btn
+    
+    lazy var reciprocalLabel: UILabel = {
+        let label = UILabel(frame: .zero)
+        label.font = UIFont(name: "PingFangSC-Regular", size: 60)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.numberOfLines = 1
+        label.adjustsFontSizeToFitWidth = true
+        label.isHidden = true
+        return label
     }()
 
     lazy var voiceChangeBtn: UIButton = {
         let btn = UIButton(type: .custom)
         btn.setImage(UIImage(named: "voiceChange_kongling_nor", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
+        btn.isHidden = true
         return btn
     }()
 
@@ -75,6 +90,7 @@ class TRTCLyricView: UIView {
         let btn = UIButton(type: .custom)
         btn.setImage(UIImage(named: "tuning", in: karaokeBundle(), compatibleWith: nil), for: .normal)
         btn.adjustsImageWhenHighlighted = false
+        btn.isHidden = true
         return btn
     }()
 
@@ -86,9 +102,39 @@ class TRTCLyricView: UIView {
         btn.titleLabel?.textColor = .white
         return btn
     }()
+    
+    lazy var startChorusBtn: UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.setTitle(.startChorusText, for: .normal)
+        btn.clipsToBounds = true
+        btn.isHidden = true
+        btn.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 14)
+        btn.titleLabel?.numberOfLines = 2
+        btn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 2, bottom: 0, right: 2)
+        btn.titleLabel?.textAlignment = .center
+        btn.titleLabel?.textColor = .white
+        return btn
+    }()
+    
+    lazy var reciprocalTimer: Timer = {
+        let timer = Timer.scheduledTimer(timeInterval: 1,
+                                         target: self,
+                                         selector: #selector(reciprocalThreeSecondToPlay),
+                                         userInfo: nil,
+                                         repeats: true)
+        return timer
+    }()
+    
+    lazy var startChorusBtnLayer: CAGradientLayer = {
+        let startChorusBtnLayer = startChorusBtn.gradient(colors: [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor])
+        startChorusBtnLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        startChorusBtnLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        return startChorusBtnLayer
+    }()
 
     public lazy var lrcView: TUIVTTView = {
         let view = TUIVTTView()
+        view.isHidden = true
         return view
     }()
 
@@ -99,8 +145,13 @@ class TRTCLyricView: UIView {
         super.init(frame: frame)
         clipsToBounds = true
         layer.cornerRadius = 12
-
+        currentLrcUrl = nil
         viewModel.effectViewModel.viewResponder = self
+    }
+    
+    deinit {
+        currentLrcUrl = nil
+        debugPrint("\(self) deinit")
     }
 
     required init?(coder: NSCoder) {
@@ -109,10 +160,12 @@ class TRTCLyricView: UIView {
 
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        let selectBtnLayer = songSelectorBtn.gradient(colors: [UIColor(hex: "FF88DD")!.cgColor, UIColor(hex: "7D00BD")!.cgColor])
+        let selectBtnLayer = songSelectorBtn.gradient(colors: [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor])
         selectBtnLayer.startPoint = CGPoint(x: 0, y: 0.5)
         selectBtnLayer.endPoint = CGPoint(x: 1, y: 0.5)
         songSelectorBtn.layer.cornerRadius = songSelectorBtn.frame.height * 0.5
+        
+        startChorusBtn.layer.cornerRadius = startChorusBtn.frame.height * 0.5
     }
 
     private var isViewReady = false
@@ -125,24 +178,36 @@ class TRTCLyricView: UIView {
         constructViewHierarchy()
         activateConstraints()
         bindInteraction()
-        config(music: viewModel.effectViewModel.currentPlayingModel)
+        updateLrcView(music: viewModel.effectViewModel.currentPlayingModel)
+        setLrcURL(lrcString: viewModel.effectViewModel.currentPlayingModel?.lrcUrl)
     }
-
-    func config(music: KaraokeMusicModel?) {
+    
+    func setLrcURL(lrcString: String?) {
+        if let lrcString = lrcString {
+            lrcView.lrcFileUrl = URL(fileURLWithPath: lrcString)
+        } else {
+            lrcView.lrcFileUrl = nil
+        }
+    }
+    
+    func updateLrcView(music: KaraokeMusicModel?) {
         if let music = music {
-            if currentMusicID != music.musicID {
-                setMusicDetail(show: true)
-                originalOrAccompanyChangeBtn.isHidden = !(music.music.userId == TRTCKaraokeIMManager.shared.curUserID)
-                seatIndexLabel.text = localizeReplaceXX(.seatIndexText, "\(music.seatIndex + 1)")
-                userNameLabel.text = music.bookUserName
-                musicNameLabel.text = music.musicName
-                currentMusicID = music.musicID
-                lrcView.lrcFileUrl = URL(fileURLWithPath: music.lrcUrl)
+            setMusicDetail(show: true)
+            let seatIndex = viewModel.getSeatIndexByUserId(userId: music.userId)
+            seatIndexLabel.text = localizeReplaceXX(.seatIndexText, "\(seatIndex)")
+            userNameLabel.text = music.bookUserName
+            musicNameLabel.text = music.musicName
+            currentMusicModel = music
+            if music.music.isContentReady {
+                startChorusBtnLayer.colors = [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor]
+                startChorusBtn.isUserInteractionEnabled = true
+            } else {
+                startChorusBtnLayer.colors = [UIColor.gray.cgColor,UIColor.gray.cgColor]
+                startChorusBtn.isUserInteractionEnabled = false
             }
         } else {
-            currentMusicID = 0
+            currentMusicModel = nil
             setMusicDetail(show: false)
-            lrcView.lrcFileUrl = nil
         }
     }
 
@@ -154,23 +219,29 @@ class TRTCLyricView: UIView {
                     make.top.equalToSuperview().offset(8)
                     make.size.equalTo(CGSize(width: 76, height: 38))
                 }
+                containerView.snp.remakeConstraints { make in
+                    make.trailing.equalToSuperview().offset(-8)
+                    make.top.equalToSuperview().offset(8)
+                    make.size.equalTo(CGSize(width: 76, height: 38))
+                }
             } else {
                 songSelectorBtn.snp.remakeConstraints { make in
                     make.centerX.equalToSuperview()
                     make.top.equalTo(self.snp.centerY).offset(10)
                     make.size.equalTo(CGSize(width: 76, height: 38))
                 }
+                containerView.snp.remakeConstraints { make in
+                    make.trailing.equalToSuperview().offset(-8)
+                    make.top.equalToSuperview().offset(8)
+                    make.size.equalTo(CGSize(width: 0, height: 38))
+                }
             }
             songSelectorBtn.setNeedsLayout()
         }
-        lrcView.isHidden = !show
         seatIndexLabel.isHidden = !show
         userNameLabel.isHidden = !show
         musicNameLabel.isHidden = !show
         musicIcon.isHidden = !show
-        voiceChangeBtn.isHidden = !show
-        originalOrAccompanyChangeBtn.isHidden = !show
-        soundEffectBtn.isHidden = !show
         placeholderLabel.isHidden = show
     }
 
@@ -210,26 +281,111 @@ class TRTCLyricView: UIView {
         }
         songSelectorAlert.show()
     }
+    
+    @objc
+    func startChorusBtnClick() {
+        if viewModel.isOwner {
+            if let musicModel = viewModel.currentMusicModel {
+                startChorusBtn.isHidden = true
+                reciprocalLabel.isHidden = false
+                viewModel.effectViewModel.playMusic(musicModel)
+                reciprocalTimer.fireDate = .distantPast
+                isStartChorus = true
+            }
+        } else {
+            viewModel.effectViewModel.bgmID = currentMusicModel?.musicID ?? 0
+            startChorusBtn.isHidden = true
+            reciprocalLabel.isHidden = false
+            reciprocalTimer.fireDate = .distantPast
+        }
+        if viewModel.userType == .anchor {
+            voiceChangeBtn.isHidden = false
+            soundEffectBtn.isHidden = false
+        } else {
+            voiceChangeBtn.isHidden = true
+            soundEffectBtn.isHidden = true
+        }
+    }
+    
+    @objc
+    func reciprocalThreeSecondToPlay() {
+        if reciprocalThreeSecond < 1 {
+            resetReciprocalStatus()
+        } else {
+            reciprocalLabel.isHidden = false
+            lrcView.isHidden = true
+            reciprocalLabel.text = "\(reciprocalThreeSecond)"
+            reciprocalThreeSecond -= 1
+        }
+    }
+    
+    private func resetReciprocalStatus() {
+        reciprocalTimer.fireDate = .distantFuture
+        reciprocalThreeSecond = 3
+        reciprocalLabel.isHidden = true
+        startChorusBtn.isHidden = true
+        lrcView.isHidden = false
+        placeholderLabel.text = .placeholderText
+        reciprocalLabel.text = "\(reciprocalThreeSecond)"
+    }
+    
+    func cleanTimer() {
+        reciprocalTimer.fireDate = .distantFuture
+        reciprocalTimer.invalidate()
+    }
+    
+    func checkBtnShouldHidden() {
+        if viewModel.userType == .audience {
+            voiceChangeBtn.isHidden = true
+            soundEffectBtn.isHidden = true
+        }
+    }
+    
+    func updateChorusBtnStatus(musicId: String) {
+        guard let currentMusicModel = currentMusicModel else {
+            TRTCLog.out("___ currentMusicModel is nil")
+            return
+        }
 
-    @objc func originalOrAccompanyChangeBtnClick() {
-        originalOrAccompanyChangeBtn.isSelected = !originalOrAccompanyChangeBtn.isSelected
-        viewModel.Karaoke.switchToOriginalVolume(isOriginal: !originalOrAccompanyChangeBtn.isSelected)
-        viewModel.effectViewModel.isOriginalVolume = !originalOrAccompanyChangeBtn.isSelected
+        if currentMusicModel.music.getMusicId() == musicId {
+            startChorusBtnLayer.colors = [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor]
+            startChorusBtn.isUserInteractionEnabled = true
+        } else {
+            TRTCLog.out("___ currentMusicModel.music.getMusicId() is \(currentMusicModel.music.getMusicId()), musicId = \(musicId)")
+        }
     }
 }
 
 extension TRTCLyricView: TRTCKaraokeSoundEffectViewResponder {
+    
+    func showStartAnimationAndPlay(startDelay: Int) {
+        if reciprocalLabel.isHidden == true {
+            reciprocalThreeSecond = startDelay >= 0 ? startDelay : 0
+            reciprocalThreeSecond = (reciprocalThreeSecond + 500) / 1000
+            startChorusBtnClick()
+        }
+    }
+    
     func onSelectedMusicListChanged() {
         songSelectorAlert.reloadSelectedSongView(dataSource: viewModel.effectViewModel.musicSelectedList)
     }
 
     func onMusicListChanged() {
         songSelectorAlert.reloadSongSelectorView(dataSource: viewModel.effectViewModel.musicList)
+        if viewModel.isOwner && viewModel.effectViewModel.currentPlayingModel == nil {
+            startChorusBtn.isHidden = false
+        }
+        updateLrcView(music: viewModel.effectViewModel.musicSelectedList.first)
+        if viewModel.effectViewModel.musicSelectedList.count == 0 {
+            isStartChorus = false
+            voiceChangeBtn.isHidden = true
+            soundEffectBtn.isHidden = true
+        }
     }
 
     func bgmOnPrepareToPlay(performId: Int32) {
         guard performId != 0 else {
-            config(music: nil)
+            setLrcURL(lrcString:nil)
             return
         }
         var model: KaraokeMusicModel?
@@ -255,16 +411,13 @@ extension TRTCLyricView: TRTCKaraokeSoundEffectViewResponder {
             }
         }
         if model != nil {
-            model?.seatIndex = viewModel.getSeatIndexByUserId(userId: model?.music.userId ?? "")
-            let seatUser = viewModel.getSeatUserByUserId(userId: model?.music.userId ?? "")
-            model?.bookUserName = seatUser?.userName ?? ""
-            model!.bookUserAvatar = seatUser?.userAvatar ?? ""
-            config(music: model)
+            setLrcURL(lrcString:model?.lrcUrl)
         }
     }
 
     func bgmOnPlaying(performId: Int32, current: Double, total: Double) {
-        if performId == currentMusicID {
+        if performId == currentMusicModel?.musicID {
+            lrcView.isHidden = false
             lrcView.currentTime = current
         } else {
             if isRequestSelectedMusicList {
@@ -279,6 +432,9 @@ extension TRTCLyricView: TRTCKaraokeSoundEffectViewResponder {
     }
 
     func bgmOnCompletePlaying() {
+        lrcView.isHidden = true
+        voiceChangeBtn.isHidden = true
+        soundEffectBtn.isHidden = true
     }
 
     func onManageSongBtnClick() {
@@ -290,6 +446,12 @@ extension TRTCLyricView: TRTCKaraokeSoundEffectViewResponder {
             songSelectorAlert.layoutIfNeeded()
         }
         songSelectorAlert.show(index: 1)
+    }
+    
+    func onStartChorusBtnClick() {
+        if isStartChorus {
+            startChorusBtnClick()
+        }
     }
 }
 
@@ -305,11 +467,12 @@ extension TRTCLyricView {
 
         addSubview(placeholderLabel)
 
-        addSubview(originalOrAccompanyChangeBtn)
         addSubview(voiceChangeBtn)
         addSubview(soundEffectBtn)
+        addSubview(containerView)
+        addSubview(startChorusBtn)
         addSubview(songSelectorBtn)
-
+        addSubview(reciprocalLabel)
         addSubview(lrcView)
     }
 
@@ -335,31 +498,41 @@ extension TRTCLyricView {
             make.leading.equalTo(musicIcon.snp.trailing).offset(4)
             make.centerY.equalTo(musicIcon)
         }
-
-        songSelectorBtn.snp.makeConstraints { make in
+        containerView.snp.makeConstraints { make in
+            make.trailing.equalToSuperview().offset(-8)
+            make.top.equalToSuperview().offset(8)
+            make.size.equalTo(CGSize(width: 0, height: 38))
+        }
+        startChorusBtn.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(self.snp.centerY).offset(10)
+            make.size.equalTo(CGSize(width: 76, height: 38))
+        }
+        songSelectorBtn.snp.makeConstraints { (make) in
             make.trailing.equalToSuperview().offset(-8)
             make.top.equalToSuperview().offset(8)
             make.size.equalTo(CGSize(width: 76, height: 38))
         }
-        soundEffectBtn.snp.makeConstraints { make in
-            make.trailing.equalTo(songSelectorBtn.snp.leading).offset(-10)
-            make.centerY.equalTo(songSelectorBtn)
+        soundEffectBtn.snp.makeConstraints { (make) in
+            make.trailing.equalTo(containerView.snp.leading).offset(-10)
+            make.centerY.equalTo(containerView)
             make.size.equalTo(CGSize(width: 32, height: 32))
         }
-        voiceChangeBtn.snp.makeConstraints { make in
+        voiceChangeBtn.snp.makeConstraints { (make) in
             make.trailing.equalTo(soundEffectBtn.snp.leading).offset(-10)
             make.centerY.size.equalTo(soundEffectBtn)
         }
-        originalOrAccompanyChangeBtn.snp.makeConstraints { make in
-            make.trailing.equalTo(voiceChangeBtn.snp.leading).offset(-10)
-            make.centerY.size.equalTo(soundEffectBtn)
-        }
-
         placeholderLabel.snp.makeConstraints { make in
             make.bottom.equalTo(self.snp.centerY)
             make.centerX.equalToSuperview()
             make.leading.equalToSuperview().offset(20)
             make.trailing.equalToSuperview().offset(-20)
+        }
+        
+        reciprocalLabel.snp.makeConstraints { make in
+            make.centerX.equalTo(startChorusBtn.snp.centerX)
+            make.centerY.equalTo(startChorusBtn.snp.centerY)
+            make.size.equalTo(CGSize(width: 44, height: 44))
         }
 
         lrcView.snp.makeConstraints { make in
@@ -373,7 +546,7 @@ extension TRTCLyricView {
         voiceChangeBtn.addTarget(self, action: #selector(voiceChangeBtnClick), for: .touchUpInside)
         soundEffectBtn.addTarget(self, action: #selector(soundEffectBtnClick), for: .touchUpInside)
         songSelectorBtn.addTarget(self, action: #selector(songSelectorBtnClick), for: .touchUpInside)
-        originalOrAccompanyChangeBtn.addTarget(self, action: #selector(originalOrAccompanyChangeBtnClick), for: .touchUpInside)
+        startChorusBtn.addTarget(self, action: #selector(startChorusBtnClick), for: .touchUpInside)
     }
 }
 
@@ -384,4 +557,5 @@ fileprivate extension String {
     static let voiceChangeTitleText = karaokeLocalize("ASKit.MainMenu.VoiceChangeTitle")
     static let placeholderText = karaokeLocalize("Demo.TRTC.Karaoke.nosongs")
     static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    static let startChorusText = karaokeLocalize("Demo.TRTC.Chorus.StartChorus")
 }

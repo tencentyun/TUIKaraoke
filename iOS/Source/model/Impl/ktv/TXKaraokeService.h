@@ -37,7 +37,7 @@ static int gKaraoke_SERVICE_CODE_ERROR = -1;
 
 @property (nonatomic, weak) id<ITXRoomServiceDelegate> delegate;
 @property (nonatomic, assign, readonly)BOOL isOwner;
-
+@property (nonatomic, strong) NSString *ownerUserId;
 
 + (instancetype)sharedInstance;
 

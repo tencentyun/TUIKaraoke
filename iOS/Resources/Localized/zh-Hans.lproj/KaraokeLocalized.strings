@@ -129,7 +129,7 @@
 "Demo.TRTC.Salon.userisspeaker" = "该用户已经是上麦主播了";
 "Demo.TRTC.Karaoke.createvoicechatroom" = "创建语音聊天室";
 
-"Demo.TRTC.Karaoke.alertdeleteallmusic" = "所有已点歌曲都会删除，确认下麦吗？";
+"Demo.TRTC.Karaoke.alertdeleteallmusic" = "确认下麦吗？";
 "Demo.TRTC.Karaoke.micon" = "上麦";
 "Demo.TRTC.Karaoke.lockseat" = "锁定座位";
 "Demo.TRTC.Karaoke.unlockseat" = "解锁座位";
@@ -148,3 +148,5 @@
 "Demo.TRTC.Karaoke.searchlike" = "搜索你想唱的歌曲";
 "Demo.TRTC.LiveRoom.searchback" = "取消";
 "Demo.TRTC.LiveRoom.searchnoresult" = "抱歉，没有找到你想唱的歌曲";
+
+"Demo.TRTC.Chorus.StartChorus" = "开始合唱";
