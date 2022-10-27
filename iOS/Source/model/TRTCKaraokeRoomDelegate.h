@@ -166,6 +166,17 @@ NS_SWIFT_NAME(onMusicPrepareToPlay(musicID:));
 - (void)onMusicCompletePlaying:(int32_t)musicID
 NS_SWIFT_NAME(onMusicCompletePlaying(musicID:));
 
+/// 接收到房主发送的合唱消息回调
+/// @param musicId    合唱的歌曲 music ID
+/// @param startDelay 合唱的歌曲 延迟多少秒播放
+- (void)onReceiveAnchorSendChorusMsg:(NSString *)musicId startDelay:(NSInteger)startDelay
+NS_SWIFT_NAME(onReceiveAnchorSendChorusMsg(musicId:startDelay:));
+
+/// 获取UserSign
+/// @param userId UserId
+- (void)genUserSign:(NSString *)userId completion:(void (^)(NSString *userSign))completion
+NS_SWIFT_NAME(genUserSign(userId: completion:));
+
 @end
 
 NS_ASSUME_NONNULL_END

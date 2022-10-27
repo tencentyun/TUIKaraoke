@@ -68,6 +68,7 @@ public class KaraokeMusicImplement: NSObject {
         model5.lrcLocalPath = karaokeBundle().path(forResource: "简单爱_歌词", ofType: "vtt") ?? ""
         model5.muscicLocalPath = karaokeBundle().path(forResource: "简单爱_原唱", ofType: "mp3") ?? ""
         model5.accompanyLocalPath = karaokeBundle().path(forResource: "简单爱_伴奏", ofType: "mp3") ?? ""
+
         var ktvMusicList: [KaraokeMusicInfo] = []
         ktvMusicList.append(model1)
         ktvMusicList.append(model2)
@@ -494,16 +495,14 @@ extension KaraokeMusicImplement: KaraokeMusicService {
     }
     
     public func ktvGetSelectedMusicList(_ callback: @escaping MusicSelectedListCallback) {
-        if isOwner {
-            lockSelectedList()
-            let list = ktvMusicSelectedList
-            unlockSelectedList()
-            callback(0,"",list)
-            if let first = list.first {
-                serviceDelegate?.onShouldSetLyric(musicID: String(first.musicID))
-            }
+        lockSelectedList()
+        let list = ktvMusicSelectedList
+        unlockSelectedList()
+        callback(0,"",list)
+        if let first = list.first {
+            serviceDelegate?.onShouldSetLyric(musicID: String(first.musicID))
         }
-        else {
+        if !isOwner {
             getSelectedListCallback = callback
             sendRequestSelectedList()
         }
@@ -601,6 +600,7 @@ extension KaraokeMusicImplement: KaraokeMusicService {
         }
         else {
             sendShouldStop(userID: current.userId, musicID: String(current.musicID))
+            callback(0,"")
         }
     }
     
@@ -652,15 +652,11 @@ extension KaraokeMusicImplement: KaraokeMusicService {
             if let next = newList.first {
                 if next.userId == ownerID {
                     serviceDelegate?.onShouldPlay(next)
-                    serviceDelegate?.onShouldSetLyric(musicID: String(next.musicID))
                 }
                 else {
                     sendShouldPlay(userID: next.userId, musicID: String(next.musicID))
                 }
             }
-        }
-        else {
-            notiComplete(musicID: musicID)
         }
     }
 

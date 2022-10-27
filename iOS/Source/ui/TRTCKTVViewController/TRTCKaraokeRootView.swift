@@ -104,6 +104,7 @@ class TRTCKaraokeRootView: UIView {
     }()
     
     deinit {
+        lyricView.cleanTimer()
         TRTCLog.out("reset audio settings")
     }
     
@@ -203,6 +204,10 @@ extension TRTCKaraokeRootView: TRTCKaraokeMainMenuDelegate {
 // MARK: - collection view delegate
 extension TRTCKaraokeRootView: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if indexPath.item == 0 {
+            /// 默认1号麦序不允许下麦
+            return
+        }
         let model = viewModel.anchorSeatList[indexPath.item]
         model.action?(indexPath.item) // 转换座位号输入
     }
@@ -270,6 +275,10 @@ extension TRTCKaraokeRootView {
 }
 
 extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
+    
+    func onUpdateDownloadMusic(musicId: String) {
+        lyricView.updateChorusBtnStatus(musicId: musicId)
+    }
     
     func showGiftAnimation(giftInfo: TUIGiftInfo) {
         giftAnimator.show(giftInfo: giftInfo)
@@ -397,6 +406,7 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
             viewModel.userType = .anchor
             mainMenuView.anchorType()
         }
+        lyricView.checkBtnShouldHidden()
     }
     
     func changeRoom(info: RoomInfo) {

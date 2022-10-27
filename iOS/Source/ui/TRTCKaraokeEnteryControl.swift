@@ -11,6 +11,7 @@ import UIKit
 public protocol TRTCKaraokeEnteryControlDelegate: NSObject {
     func ktvCreateRoom(roomId: String, success: @escaping () -> Void, failed: @escaping (Int32, String) -> Void)
     func ktvDestroyRoom(roomId: String, success: @escaping () -> Void, failed: @escaping (Int32, String) -> Void)
+    func genUserSign(userId: String, completion:@escaping (String) -> Void)
 }
 
 /// ViewModel可视为MVC架构中的Controller层

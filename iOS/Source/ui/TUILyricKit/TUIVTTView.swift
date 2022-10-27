@@ -43,13 +43,12 @@ class TUIVTTView: UIView {
                 if model.startTime > currentTime {
                     if i > 0 {
                         return i - 1
-                    }
-                    else {
+                    } else {
                         return i
                     }
                 }
             }
-            return 0
+            return vttModel.vttLineModels.count - 1
         }
     }
     
@@ -75,10 +74,13 @@ class TUIVTTView: UIView {
                 leftView.lineModel = currentlineModel
                 currentLabel = leftView
                 if let nextLineModel = nextLineModel {
+                    rightView.isHidden = false
                     rightView.lineModel = nextLineModel
+                } else {
+                    rightView.isHidden = true
                 }
-            }
-            else {
+            } else {
+                rightView.isHidden = false
                 rightView.lineModel = currentlineModel
                 currentLabel = rightView
                 

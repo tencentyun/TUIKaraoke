@@ -186,4 +186,10 @@ public protocol KaraokeMusicServiceDelegate: AnyObject {
      * - parameter music   音乐model
      */
     func onShouldShowMessage(_ music: KaraokeMusicModel)
+    
+    /**
+     * 歌曲下载成功
+     * - parameter musicId   音乐Id
+     */
+    func onDownloadMusicComplete(_ musicId: String)
 }
