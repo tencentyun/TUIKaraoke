@@ -4,12 +4,9 @@ import static com.tencent.liteav.TXLiteAVCode.ERR_TRTC_USER_SIG_CHECK_FAILED;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.TextUtils;
 
 import com.tencent.liteav.audio.TXAudioEffectManager;
-import com.tencent.liteav.beauty.TXBeautyManager;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TXCallback;
 import com.tencent.rtmp.ui.TXCloudVideoView;
@@ -21,42 +18,74 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class TRTCKtvRoomService extends TRTCCloudListener {
-    private static final String TAG                   = "TRTCKtvRoomService";
-    private static final long   PLAY_TIME_OUT         = 5000;
-    private static final int    KTC_COMPONENT_KARAOKE = 8;
+    private static final String TAG = "TRTCKtvRoomService";
 
-    private static TRTCKtvRoomService sInstance;
+    private static final int KTC_COMPONENT_KARAOKE = 8;
+    public static final  int AUDIO_VOICE           = 0;
+    public static final  int AUDIO_BGM_MUSIC       = 1;
 
     private TRTCCloud                  mTRTCCloud;
-    private TXBeautyManager            mTXBeautyManager;
+    private TRTCCloud                  mMainCloud;
     private boolean                    mIsInRoom;
     private TRTCKtvRoomServiceDelegate mDelegate;
-    private String                     mUserId;
-    private TRTCCloudDef.TRTCParams    mTRTCParams;
-    private Handler                    mMainHandler;
     private TXCallback                 mEnterRoomCallback;
     private TXCallback                 mExitRoomCallback;
+    private String                     mTaskId;
+    private int                        mAudioType;
 
-    public static synchronized TRTCKtvRoomService getInstance() {
-        if (sInstance == null) {
-            sInstance = new TRTCKtvRoomService();
-        }
-        return sInstance;
-    }
-
-    public void init(Context context) {
+    public TRTCKtvRoomService(Context context, int audioType) {
         mTRTCCloud = TRTCCloud.sharedInstance(context);
         TRTCLogger.i(TAG, "init context:" + context);
-        mTXBeautyManager = mTRTCCloud.getBeautyManager();
-        mMainHandler = new Handler(Looper.getMainLooper());
+        mAudioType = audioType;
+    }
+
+    public TRTCKtvRoomService(TRTCCloud mainCloud, int audioType) {
+        mMainCloud = mainCloud;
+        if (mainCloud != null) {
+            mTRTCCloud = mainCloud.createSubCloud();
+        }
+        mAudioType = audioType;
+    }
+
+    public TRTCCloud getMainCloud() {
+        if (mMainCloud != null) {
+            return mMainCloud;
+        }
+        return mTRTCCloud;
+    }
+
+    public TRTCCloud getSubCloud() {
+        if (mMainCloud != null) {
+            return mTRTCCloud;
+        }
+        return null;
     }
 
     public void setDelegate(TRTCKtvRoomServiceDelegate delegate) {
         TRTCLogger.i(TAG, "init delegate:" + delegate);
         mDelegate = delegate;
     }
+
+    public void destroySubCloud() {
+        if (mMainCloud != null && mTRTCCloud != null) {
+            mMainCloud.destroySubCloud(mTRTCCloud);
+        }
+    }
+
+    @Override
+    public void onStartPublishMediaStream(String taskId, int code, String message, Bundle extraInfo) {
+        mTaskId = taskId;
+        TRTCLogger.i(TAG, "onStartPublishMediaStream taskId:" + taskId + " code:" + code + " message:" + message);
+    }
+
+    @Override
+    public void onUpdatePublishMediaStream(String taskId, int code, String message, Bundle extraInfo) {
+        TRTCLogger.i(TAG, "onUpdatePublishMediaStream taskId:" + taskId + " code:" + code + " message:" + message);
+    }
+
 
     public void enterRoom(int sdkAppId, int roomId, String userId, String userSign, int role, TXCallback callback) {
         if (sdkAppId == 0 || roomId == 0 || TextUtils.isEmpty(userId) || TextUtils.isEmpty(userSign)) {
@@ -69,17 +98,55 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
             }
             return;
         }
-        mUserId = userId;
         mEnterRoomCallback = callback;
         TRTCLogger.i(TAG, "enter room, app id:" + sdkAppId + " room id:" + roomId + " user id:"
                 + userId + " sign:" + TextUtils.isEmpty(userId));
-        mTRTCParams = new TRTCCloudDef.TRTCParams();
-        mTRTCParams.sdkAppId = sdkAppId;
-        mTRTCParams.userId = userId;
-        mTRTCParams.userSig = userSign;
-        mTRTCParams.role = role;
-        mTRTCParams.roomId = roomId;
-        internalEnterRoom();
+        TRTCCloudDef.TRTCParams params = new TRTCCloudDef.TRTCParams();
+        params.sdkAppId = sdkAppId;
+        params.userId = userId;
+        params.userSig = userSign;
+        params.role = role;
+        params.roomId = roomId;
+        internalEnterRoom(params);
+    }
+
+    public boolean startTRTCPush(int roomId, String mixUserId, boolean update) {
+        TRTCLogger.i(TAG, "startTRTCPush  roomId:" + roomId + " mixUserId:" + mixUserId + " update:" + update);
+        TRTCCloudDef.TRTCUser mixStreamIdentity = new TRTCCloudDef.TRTCUser();
+        //混流机器人的id
+        mixStreamIdentity.userId = mixUserId;
+        mixStreamIdentity.intRoomId = roomId;
+        TRTCCloudDef.TRTCPublishTarget publishTarget = new TRTCCloudDef.TRTCPublishTarget();
+        publishTarget.mixStreamIdentity = mixStreamIdentity;
+        publishTarget.mode = TRTCCloudDef.TRTC_PublishMixStream_ToRoom;
+
+        TRTCCloudDef.TRTCStreamEncoderParam streamEncoderParam = new TRTCCloudDef.TRTCStreamEncoderParam();
+        streamEncoderParam.videoEncodedFPS = 15;
+        streamEncoderParam.videoEncodedGOP = 3;
+        streamEncoderParam.videoEncodedKbps = 30;
+        streamEncoderParam.audioEncodedSampleRate = 48000;
+        streamEncoderParam.audioEncodedChannelNum = 2;
+        streamEncoderParam.audioEncodedKbps = 64;
+        streamEncoderParam.audioEncodedCodecType = 2;
+        TRTCCloudDef.TRTCStreamMixingConfig streamMixingConfig = new TRTCCloudDef.TRTCStreamMixingConfig();
+        if (update) {
+            if (mTaskId != null) {
+                mTRTCCloud.updatePublishMediaStream(mTaskId, publishTarget, streamEncoderParam, streamMixingConfig);
+            }
+        } else {
+            mTRTCCloud.startPublishMediaStream(publishTarget, streamEncoderParam, streamMixingConfig);
+        }
+        return true;
+    }
+
+    public void setDefaultStreamRecvMode(boolean autoRecvAudio, boolean autoRecvVideo) {
+        mTRTCCloud.setDefaultStreamRecvMode(autoRecvAudio, autoRecvAudio);
+    }
+
+    public void stopTRTCPublish() {
+        if (mTaskId != null) {
+            mTRTCCloud.stopPublishMediaStream(mTaskId);
+        }
     }
 
     private void setFramework() {
@@ -96,25 +163,29 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
         }
     }
 
-    private void internalEnterRoom() {
+    private void internalEnterRoom(TRTCCloudDef.TRTCParams params) {
         // 进房前设置一下监听，不然可能会被其他信息打断
-        if (mTRTCParams == null) {
+        if (params == null) {
             return;
         }
         setFramework();
         mTRTCCloud.setListener(this);
-        mTRTCCloud.enterRoom(mTRTCParams, TRTCCloudDef.TRTC_APP_SCENE_VOICE_CHATROOM);
+        mTRTCCloud.enterRoom(params, TRTCCloudDef.TRTC_APP_SCENE_LIVE);
+        if (params.role == TRTCCloudDef.TRTCRoleAnchor) {
+            enableChorus(true);
+            setLowLatencyMode(true);
+            startMicrophone();
+        }
         // enable volume callback
         enableAudioEvaluation(true);
     }
 
     public void exitRoom(TXCallback callback) {
         TRTCLogger.i(TAG, "exit room.");
-        mUserId = null;
-        mTRTCParams = null;
         mEnterRoomCallback = null;
         mExitRoomCallback = callback;
-        mMainHandler.removeCallbacksAndMessages(null);
+        enableChorus(false);
+        setLowLatencyMode(false);
         mTRTCCloud.exitRoom();
     }
 
@@ -224,16 +295,15 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
         TRTCLogger.i(TAG, "on set mix transcoding, code:" + i + " msg:" + s);
     }
 
-    public TXBeautyManager getTXBeautyManager() {
-        return mTXBeautyManager;
-    }
-
     public void setAudioQuality(int quality) {
         mTRTCCloud.setAudioQuality(quality);
     }
 
     public void startMicrophone() {
-        mTRTCCloud.startLocalAudio();
+        if (mAudioType == AUDIO_VOICE) {
+            mTRTCCloud.startLocalAudio(TRTCCloudDef.TRTC_AUDIO_QUALITY_MUSIC);
+        }
+        mTRTCCloud.setSystemVolumeType(TRTCCloudDef.TRTCSystemVolumeTypeMedia);
     }
 
     public void enableAudioEarMonitoring(boolean enable) {
@@ -241,13 +311,45 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
     }
 
     public void switchToAnchor() {
+        enableChorus(true);
+        setLowLatencyMode(true);
         mTRTCCloud.switchRole(TRTCCloudDef.TRTCRoleAnchor);
-        mTRTCCloud.startLocalAudio();
+        startMicrophone();
     }
 
+
     public void switchToAudience() {
-        mTRTCCloud.stopLocalAudio();
+        enableChorus(false);
+        setLowLatencyMode(false);
+        stopMicrophone();
         mTRTCCloud.switchRole(TRTCCloudDef.TRTCRoleAudience);
+    }
+
+    private void enableChorus(boolean enable) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("api", "enableChorus");
+            JSONObject params = new JSONObject();
+            params.put("enable", enable);
+            params.put("audioSource", mAudioType);
+            jsonObject.put("params", params);
+            mTRTCCloud.callExperimentalAPI(String.format(Locale.ENGLISH, jsonObject.toString()));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setLowLatencyMode(boolean enable) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("api", "setLowLatencyModeEnabled");
+            JSONObject params = new JSONObject();
+            params.put("enable", enable);
+            jsonObject.put("params", params);
+            mTRTCCloud.callExperimentalAPI(String.format(Locale.ENGLISH, jsonObject.toString()));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void stopMicrophone() {
@@ -255,8 +357,8 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
     }
 
     public void setSpeaker(boolean useSpeaker) {
-        mTRTCCloud.setAudioRoute(useSpeaker
-                ? TRTCCloudDef.TRTC_AUDIO_ROUTE_SPEAKER : TRTCCloudDef.TRTC_AUDIO_ROUTE_EARPIECE);
+        mTRTCCloud.setAudioRoute(useSpeaker ? TRTCCloudDef.TRTC_AUDIO_ROUTE_SPEAKER :
+                TRTCCloudDef.TRTC_AUDIO_ROUTE_EARPIECE);
     }
 
     public void setAudioCaptureVolume(int volume) {
@@ -265,14 +367,6 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
 
     public void setAudioPlayoutVolume(int volume) {
         mTRTCCloud.setAudioPlayoutVolume(volume);
-    }
-
-    public void startFileDumping(TRTCCloudDef.TRTCAudioRecordingParams trtcAudioRecordingParams) {
-        mTRTCCloud.startAudioRecording(trtcAudioRecordingParams);
-    }
-
-    public void stopFileDumping() {
-        mTRTCCloud.stopAudioRecording();
     }
 
     public void enableAudioEvaluation(boolean enable) {
@@ -285,6 +379,10 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
 
     public boolean sendSEIMsg(byte[] data, int repeatCount) {
         return mTRTCCloud.sendSEIMsg(data, repeatCount);
+    }
+
+    public boolean sendCustomCmdMsg(int cmdID, byte[] data, boolean reliable, boolean ordered) {
+        return mTRTCCloud.sendCustomCmdMsg(cmdID, data, reliable, ordered);
     }
 
     public void enableBlackStream(boolean enable) {
@@ -304,6 +402,13 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
     public void onRecvSEIMsg(String userId, byte[] data) {
         if (mDelegate != null && data != null) {
             mDelegate.onRecvSEIMsg(userId, data);
+        }
+    }
+
+    @Override
+    public void onRecvCustomCmdMsg(String userId, int cmdID, int seq, byte[] message) {
+        if (mDelegate != null && message != null) {
+            mDelegate.onRecvCustomCmdMsg(userId, cmdID, seq, message);
         }
     }
 

@@ -424,7 +424,6 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
             mCurrentRole = TRTCCloudDef.TRTCRoleAnchor;
             mSelfSeatIndex = index;
             showTakingSeatLoading(false);
-            refreshView();
         }
     }
 
@@ -434,7 +433,6 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
         if (user.userId.equals(mSelfUserId)) {
             mCurrentRole = TRTCCloudDef.TRTCRoleAudience;
             mSelfSeatIndex = -1;
-            refreshView();
         }
     }
 
@@ -442,7 +440,6 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     public void onRoomDestroy(String roomId) {
         super.onRoomDestroy(roomId);
         ToastUtils.showLong(R.string.trtckaraoke_msg_close_room);
-        mTRTCKaraokeRoom.exitRoom(null);
         //房主销毁房间,其他人退出房间,并清除自己的信息
         UserModelManager.getInstance().getUserModel().userType = UserModel.UserType.NONE;
         if (mTUIKaraokeAudioManager != null) {

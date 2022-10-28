@@ -17,7 +17,7 @@
     <item android:state_enabled="false">
         <shape android:shape="rectangle"
             android:useLevel="false">
-            <solid android:color="@color/trtckaraoke_color_bg_grey" />
+            <solid android:color="#A3A3A3" />
             <corners android:radius="28dp"/>
         </shape>
     </item>

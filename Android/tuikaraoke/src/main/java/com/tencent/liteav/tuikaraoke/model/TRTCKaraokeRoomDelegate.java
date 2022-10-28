@@ -180,4 +180,6 @@ public interface TRTCKaraokeRoomDelegate {
      * @param musicID 播放时传入的 music ID
      */
     void onMusicCompletePlaying(String musicID);
+
+    void onReceiveAnchorSendChorusMsg(String musicID);
 }

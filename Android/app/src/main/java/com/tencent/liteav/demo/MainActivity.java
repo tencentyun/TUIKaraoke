@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 new TRTCKaraokeRoomCallback.ActionCallback() {
                     @Override
                     public void onCallback(int code, String msg) {
+                        Log.d(TAG, "login callback code: " + code + " msg: " + msg);
                         if (code == 0) {
                             mTRTCKaraokeRoom.setSelfProfile(userModel.userName, userModel.userAvatar,
                                     new TRTCKaraokeRoomCallback.ActionCallback() {

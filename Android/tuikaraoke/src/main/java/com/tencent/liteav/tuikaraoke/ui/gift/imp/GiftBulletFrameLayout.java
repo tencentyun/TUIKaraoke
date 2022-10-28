@@ -52,7 +52,7 @@ public class GiftBulletFrameLayout extends FrameLayout implements Handler.Callba
     public GiftBulletFrameLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
         mInflater = LayoutInflater.from(context);
-        mContext = context;
+        mContext = context.getApplicationContext();
         initView();
     }
 
@@ -122,16 +122,15 @@ public class GiftBulletFrameLayout extends FrameLayout implements Handler.Callba
             return;
         }
         this.setVisibility(View.VISIBLE);
-        ImageLoader.loadImage(mContext.getApplicationContext(), mImageSendUserIcon,
+        ImageLoader.loadImage(mContext, mImageSendUserIcon,
                 mGift.sendUserHeadIcon, R.drawable.trtckaraoke_ic_head);
-        ImageLoader.loadImage(mContext.getApplicationContext(), mImageGiftIcon,
+        ImageLoader.loadImage(mContext, mImageGiftIcon,
                 mGift.giftPicUrl, R.drawable.trtckaraoke_ic_head);
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        ImageLoader.clear(mContext.getApplicationContext());
     }
 
     private void startAnimationForMsg() {

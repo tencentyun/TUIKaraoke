@@ -1,13 +1,18 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -15,6 +20,7 @@ import android.widget.TextView;
 import com.blankj.utilcode.util.ToastUtils;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
+import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.ui.audio.AudioEffectPanel;
 import com.tencent.liteav.tuikaraoke.ui.audio.impl.TUIKaraokeAudioManager;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
@@ -30,9 +36,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicServiceDelegate {
-    private static String          TAG = "KaraokeMusicView";
-    private final  Context         mContext;
-    private final  TRTCKaraokeRoom mTRTCKaraokeRoom;
+    private static String TAG = "KaraokeMusicView";
+
+    private static final int CHORUS_START_DELAY = 3000;
+
+    private final Context         mContext;
+    private final TRTCKaraokeRoom mTRTCKaraokeRoom;
 
     private LinearLayout mLayoutInfo;
     private LinearLayout mLayoutSongInfo;
@@ -40,11 +49,13 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     private TextView     mTvSeatName;
     private TextView     mTvUserName;
     private TextView     mTvSongName;
+    private TextView     mTVTimer;
     private Button       mBtnChooseSong;
     private Button       mBtnEffect;
     private Button       mBtnChangeVoice;
     private Button       mBtnSwitchMusic;
     private Button       mBtnEmptyChoose;
+    private Button       mBtnStartChorus;
 
     private KaraokeMusicService         mMusicManagerImpl;
     private List<KaraokeMusicModel>     mSelectedList;
@@ -57,6 +68,10 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     private RoomInfoController          mRoomInfoController;
     private boolean                     mIsOrigin; //是否是原唱
     private String                      mCurrentLrcPath;
+    private ValueAnimator               mStartAnimator;
+    private KaraokeMusicModel           mCurMusicModel;
+    private boolean                     mIsStartChorus;
+    private Handler                     mHandler = new Handler(Looper.getMainLooper());
 
     public KaraokeMusicView(Context context) {
         this(context, null);
@@ -144,23 +159,43 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         mTvSeatName = (TextView) view.findViewById(R.id.tv_seat_name);
         mTvUserName = (TextView) view.findViewById(R.id.tv_user_name);
         mTvSongName = (TextView) view.findViewById(R.id.tv_song_name);
+        mTVTimer = (TextView) view.findViewById(R.id.tv_timer);
         mBtnChooseSong = (Button) view.findViewById(R.id.btn_choose_song);
         mBtnSwitchMusic = (Button) view.findViewById(R.id.btn_switch_music);
         mBtnEffect = (Button) view.findViewById(R.id.btn_effect);
         mBtnChangeVoice = (Button) view.findViewById(R.id.btn_change_voice);
+        mBtnStartChorus = (Button) view.findViewById(R.id.btn_start_chorus);
     }
 
     private void updateSongTableView(int size) {
         if (size == 0) {
+            mBtnStartChorus.setVisibility(GONE);
             mLayoutSongInfo.setVisibility(View.GONE);
             mLayoutInfo.setVisibility(View.GONE);
             mLayoutEmpty.setVisibility(View.VISIBLE);
+            mBtnChangeVoice.setVisibility(GONE);
+            mBtnEffect.setVisibility(GONE);
             //空界面清空歌词
             mLrcDelegate.setLrcPath(null);
+            mIsStartChorus = false;
         } else if (size > 0) {
             mLayoutSongInfo.setVisibility(View.VISIBLE);
             mLayoutInfo.setVisibility(View.VISIBLE);
             mLayoutEmpty.setVisibility(View.GONE);
+            if (mRoomInfoController.isRoomOwner()) {
+                if (mIsStartChorus) {
+                    mBtnChangeVoice.setVisibility(VISIBLE);
+                    mBtnEffect.setVisibility(VISIBLE);
+                }
+            } else if (mRoomInfoController.isAnchor()) {
+                mBtnChangeVoice.setVisibility(VISIBLE);
+                mBtnEffect.setVisibility(VISIBLE);
+            }
+
+            if (mRoomInfoController.isRoomOwner()
+                    && mTUIKaraokeAudioManager.getCurrentStatus() != TUIKaraokeAudioManager.MUSIC_PLAYING) {
+                mBtnStartChorus.setVisibility(VISIBLE);
+            }
 
             KaraokeMusicModel songEntity = mSelectedList.get(0);
             mTvSongName.setText(songEntity.musicName);
@@ -238,6 +273,78 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
                 }
             }
         });
+
+        mBtnStartChorus.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mCurMusicModel == null) {
+                    return;
+                }
+                if (!mCurMusicModel.isReady) {
+                    return;
+                }
+                //开始合唱
+                mBtnStartChorus.setVisibility(GONE);
+                mBtnChangeVoice.setVisibility(VISIBLE);
+                mBtnEffect.setVisibility(VISIBLE);
+                //开始倒计时
+                showStartAnimAndPlay(mCurMusicModel, CHORUS_START_DELAY);
+                mIsStartChorus = true;
+            }
+        });
+    }
+
+    private void showStartAnimAndPlay(final KaraokeMusicModel model, long delay) {
+        mTUIKaraokeAudioManager.startPlayMusic(model);
+        mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_PLAYING);
+        mTVTimer.setVisibility(VISIBLE);
+        delay = delay >= 0 ? delay : 0;
+        //副唱开始延迟会略低于3s，若大于2.5s按3s计时
+        int delayMs = (int) ((delay + 500) / 1000);
+        mStartAnimator = ValueAnimator.ofInt(delayMs, 0);
+        mStartAnimator.setInterpolator(new LinearInterpolator());
+        mStartAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mTVTimer.setText(String.valueOf(animation.getAnimatedValue()));
+                Log.i(TAG, "onAnimationUpdate: " + animation.getAnimatedValue());
+            }
+        });
+        mStartAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                mTVTimer.setVisibility(View.GONE);
+                if (null == model || null == model.lrcUrl) {
+                    return;
+                }
+                mLrcDelegate.setLrcPath(model.lrcUrl);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+
+            }
+        });
+        mStartAnimator.setDuration(delay);
+        mStartAnimator.start();
+    }
+
+    public void hideStartAnim() {
+        mTVTimer.setVisibility(View.GONE);
+        if (mStartAnimator != null && mStartAnimator.isRunning()) {
+            mStartAnimator.removeAllListeners();
+            mStartAnimator.cancel();
+        }
     }
 
     //打开点歌/已点面板
@@ -275,21 +382,23 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         }
 
         //不是当前主播在播放,不能切换原唱/伴奏
-        String userId = mRoomInfoController.getSelfUserId();
-        if (topModel == null || userId == null || !userId.equals(topModel.userId)) {
-            mBtnSwitchMusic.setVisibility(GONE);
-        } else {
-            mBtnSwitchMusic.setVisibility(VISIBLE);
-        }
+//        String userId = mRoomInfoController.getSelfUserId();
+//        if (topModel == null || userId == null || !userId.equals(topModel.userId)) {
+//            mBtnSwitchMusic.setVisibility(GONE);
+//        } else {
+//            mBtnSwitchMusic.setVisibility(VISIBLE);
+//        }
     }
+
 
     @Override
     public void onShouldSetLyric(final KaraokeMusicModel model) {
-        Log.d(TAG, "onShouldSetLyric: model = " + model);
+        TRTCLogger.i(TAG, "onShouldSetLyric: model = " + model);
         if (model == null) {
             mLrcDelegate.setLrcPath(null);
             return;
         }
+
         if (model.lrcUrl == null) {
             //如果歌词为空,则请求下载
             mMusicManagerImpl.downLoadMusic(model, new KaraokeMusicCallback.MusicLoadingCallback() {
@@ -317,6 +426,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
                     }
 
                     model.lrcUrl = musicInfo.lrcUrl;
+                    model.originUrl = musicInfo.originUrl;
                     mLrcDelegate.setLrcPath(model.lrcUrl);
                 }
             });
@@ -327,25 +437,35 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     }
 
     @Override
-    public void onShouldPlay(KaraokeMusicModel model) {
+    public void onShouldPlay(final KaraokeMusicModel model) {
         // 收到播放歌曲的通知后,如果是主播才播放,听众不能播放
-        Log.d(TAG, "onShouldPlay: model = " + model);
-        if ((mRoomInfoController.isAnchor())) {
-            mIsOrigin = true;
-            mLrcDelegate.setLrcPath(model.lrcUrl);
-            mTUIKaraokeAudioManager.startPlayMusic(model);
-            mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_PLAYING);
-        }
+        TRTCLogger.i(TAG, "onShouldPlay: model = " + model);
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mBtnStartChorus.setEnabled(true);
+                if ((mRoomInfoController.isAnchor())) {
+                    mCurMusicModel = model;
+                    mIsOrigin = true;
+                    if (mIsStartChorus) {
+                        showStartAnimAndPlay(model, CHORUS_START_DELAY);
+                    }
+                } else {
+                    onShouldSetLyric(model);
+                }
+            }
+        });
     }
 
     @Override
     public void onShouldStopPlay(KaraokeMusicModel model) {
-        Log.d(TAG, "onShouldStopPlay: model = " + model);
+        TRTCLogger.i(TAG, "onShouldStopPlay: model = " + model);
         if ((mRoomInfoController.isAnchor())) {
             mIsOrigin = false;
             mTUIKaraokeAudioManager.stopPlayMusic(model);
             mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_STOP);
         }
+        mLrcDelegate.setLrcPath(null);
     }
 
     @Override

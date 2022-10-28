@@ -61,7 +61,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
     private Map<String, KaraokeMusicModel> mSelectMap;
     private List<KaraokeMusicModel>        mSearchList;
     private long                           lastClickTime = -1;
-    private int                            mPageOffset   = 0;
+    private String                         mScrollToke;
     private String                         mKeyWord;
     private Handler                        mMainHandler;
     private boolean                        mHasMore; //还有数据
@@ -177,7 +177,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    mPageOffset = 0;
+                    mScrollToke = null;
                     mHasMore = true;
                     if (mSearchList != null) {
                         mSearchList.clear();
@@ -187,7 +187,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                         ToastUtils.showShort(R.string.trtckaraoke_input_keywords);
                         return false;
                     }
-                    searchMusic(mPageOffset, mKeyWord);
+                    searchMusic(mScrollToke, mKeyWord);
                     return true;
                 }
                 return false;
@@ -260,9 +260,8 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                             && lastCompletelyVisibleItemPos == mSearchAdapter.getItemCount() - 1) {
                         //加载更多
                         if (mHasMore) {
-                            mPageOffset = mSearchList.size();
                             if (!TextUtils.isEmpty(mKeyWord)) {
-                                searchMusic(mPageOffset, mKeyWord);
+                                searchMusic(mScrollToke, mKeyWord);
                             }
                         } else {
                             //没有更多数据可加载了
@@ -275,15 +274,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
 
     //更新加载状态
     private void updateLoadState() {
-        int interval = mSearchList.size() - mPageOffset;
-        //后台没有更多数据了
-        if (interval >= 0 && interval < MUSIC_NUM_INTERNAL) {
-            mHasMore = false;
-            setFooterViewState(STATE_LASTED);
-        } else {
-            mHasMore = true;
-            setFooterViewState(STATE_LOADING);
-        }
+        setFooterViewState(mHasMore ? STATE_LOADING : STATE_LASTED);
     }
 
     //更新底部显示
@@ -362,22 +353,26 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
         });
     }
 
-    private void searchMusic(int offest, String keyWords) {
+    private void searchMusic(String scrollToken, String keyWords) {
         if (mMusicServiceImpl == null) {
             Log.d(TAG, "searchMusic: can not search music");
             return;
         }
         mProgressBar.setVisibility(View.VISIBLE);
-        mMusicServiceImpl.ktvSearchMusicByKeyWords(offest, MUSIC_NUM_INTERNAL,
-                keyWords, new KaraokeMusicCallback.MusicListCallback() {
+        mMusicServiceImpl.ktvSearchMusicByKeyWords(scrollToken, MUSIC_NUM_INTERNAL, keyWords,
+                new KaraokeMusicCallback.MusicListPagingCallback() {
                     @Override
-                    public void onCallback(int code, String msg, List<KaraokeMusicInfo> list) {
+                    public void onCallback(int code, String msg, List<KaraokeMusicInfo> list, String scrollToke) {
                         if (code != 0) {
                             Log.d(TAG, "search music failed");
                             setFooterViewState(STATE_ERROR);
                             return;
                         }
-
+                        if (TextUtils.isEmpty(scrollToke) && list.isEmpty()) {
+                            mHasMore = false;
+                        } else {
+                            mScrollToke = scrollToke;
+                        }
                         for (KaraokeMusicInfo info : list) {
                             KaraokeMusicModel model = new KaraokeMusicModel();
                             model.musicId = info.musicId;
