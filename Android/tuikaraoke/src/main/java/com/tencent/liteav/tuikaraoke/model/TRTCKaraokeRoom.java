@@ -288,9 +288,14 @@ public abstract class TRTCKaraokeRoom {
     public abstract void muteAllRemoteAudio(boolean mute);
 
     /**
-     * 音效控制相关
+     * 人声音效控制相关
      */
-    public abstract TXAudioEffectManager getAudioEffectManager();
+    public abstract TXAudioEffectManager getVoiceAudioEffectManager();
+
+    /**
+     * 背景音乐音效控制相关
+     */
+    public abstract TXAudioEffectManager getBgmMusicAudioEffectManager();
 
     //////////////////////////////////////////////////////////
     //
@@ -363,9 +368,8 @@ public abstract class TRTCKaraokeRoom {
      *
      * @param musicID      音乐的表演ID
      * @param originalUrl  音乐的原唱
-     * @param accompanyUrl 音乐的伴奏
      */
-    public abstract void startPlayMusic(int musicID, String originalUrl, String accompanyUrl);
+    public abstract void startPlayMusic(int musicID, String originalUrl);
 
     /**
      * 停止播放音乐
@@ -381,12 +385,4 @@ public abstract class TRTCKaraokeRoom {
      * 恢复播放音乐
      */
     public abstract void resumePlayMusic();
-
-    /**
-     * 切换原声/伴奏
-     *
-     * @param isOriginal true : 原声, false : 伴奏
-     */
-    public abstract void switchToOriginalVolume(boolean isOriginal);
-
 }

@@ -35,7 +35,7 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
     };
     private static final int   NORMAL_TYPE      = 0;    //列表布局
     private static final int   FOOT_TYPE        = 1111; //底部布局
-    private       int   mFootStatus      = KaraokeSearchMusicActivity.STATE_NONE; //底部布局状态
+    private              int   mFootStatus      = KaraokeSearchMusicActivity.STATE_NONE; //底部布局状态
 
     public KaraokeMusicSearchAdapter(Context context,
                                      RoomInfoController roomInfoController,
@@ -45,12 +45,16 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
         this.mSearchList = searchList;
         this.mRoomInfoController = roomInfoController;
         this.onPickItemClickListener = onPickItemClickListener;
+        this.mContext = context;
+        this.mSearchList = searchList;
+        this.mRoomInfoController = roomInfoController;
+        this.onPickItemClickListener = onPickItemClickListener;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context        context  = parent.getContext();
+        Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         if (NORMAL_TYPE == viewType) {
             View view = inflater.inflate(R.layout.trtckaraoke_fragment_library_itemview, parent, false);
@@ -121,6 +125,10 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
             mBtnChoose.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (!mRoomInfoController.isRoomOwner()) {
+                        ToastUtils.showLong(R.string.trtckaraoke_toast_room_owner_can_operate_it);
+                        return;
+                    }
                     if (!mRoomInfoController.isAnchor()) {
                         ToastUtils.showLong(R.string.trtckaraoke_toast_anchor_can_only_operate_it);
                         return;

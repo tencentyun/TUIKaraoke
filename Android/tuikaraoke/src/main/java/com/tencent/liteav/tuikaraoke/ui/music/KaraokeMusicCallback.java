@@ -29,6 +29,13 @@ public class KaraokeMusicCallback {
     }
 
     /**
+     * 歌曲信息分页回调
+     */
+    public interface MusicListPagingCallback {
+        void onCallback(int code, String msg, List<KaraokeMusicInfo> list, String scrollToken);
+    }
+
+    /**
      * 已选列表回调
      */
     public interface MusicSelectedListCallback {

@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.tencent.liteav.audio.TXAudioEffectManager;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
+import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.ui.audio.IAudioEffectPanelDelegate;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 
@@ -33,6 +34,7 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
     private static final int AUDIO_VOICECHANGER_TYPE_9  = 9;
     private static final int AUDIO_VOICECHANGER_TYPE_10 = 10;
     private static final int AUDIO_VOICECHANGER_TYPE_11 = 11;
+    private static final int VOICE_MAX_VOLUME           = 117;
 
     public static final int MUSIC_PLAYING  = 111;
     public static final int MUSIC_PAUSING  = 112;
@@ -40,10 +42,10 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
     public static final int MUSIC_STOP     = 114;
 
     public        int                    mCurrentStatus = -1;
-    private       TXAudioEffectManager   mAudioEffectManager;
     private       int                    mBGMId         = -1;
     private       float                  mPitch;
-    private       int                    mBGMVolume     = 100;
+    private       int                    mBGMVolume     = 30;
+    private       int                    mMicVolume     = VOICE_MAX_VOLUME;
     public static TUIKaraokeAudioManager sInstance;
     public        TRTCKaraokeRoom        mTRTCKaraokeRoom;
 
@@ -51,7 +53,7 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
     private static final int     TYPE_ACCOMPANY = 1;     //伴奏
     private              boolean mIsOrigin      = true;  //true:原唱;false:伴奏
 
-    public static synchronized  TUIKaraokeAudioManager getInstance() {
+    public  static synchronized TUIKaraokeAudioManager getInstance() {
         if (sInstance == null) {
             sInstance = new TUIKaraokeAudioManager();
         }
@@ -60,16 +62,15 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
 
     public void setTRTCKaraokeRoom(TRTCKaraokeRoom room) {
         mTRTCKaraokeRoom = room;
-        mAudioEffectManager = mTRTCKaraokeRoom.getAudioEffectManager();
     }
 
     public void startPlayMusic(final KaraokeMusicInfo model) {
-        mBGMId = isOriginMusic() ? TYPE_ORIGIN : TYPE_ACCOMPANY;
+        mBGMId = Integer.parseInt(model.performId);
         resetVolume(mBGMId);
 
         Log.d(TAG, "startPlayMusic: model = " + model + " , status =  " + getCurrentStatus());
         if (model != null && model.performId != null) {
-            mTRTCKaraokeRoom.startPlayMusic(Integer.parseInt(model.performId), model.originUrl, model.accompanyUrl);
+            mTRTCKaraokeRoom.startPlayMusic(Integer.parseInt(model.performId), model.originUrl);
         }
     }
 
@@ -78,7 +79,6 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
         //如果开启原唱,则调节原唱的音量,否则调节伴奏的音量
         mBGMId = mIsOrigin ? TYPE_ORIGIN : TYPE_ACCOMPANY;
         resetVolume(mBGMId);
-//        mTRTCKaraokeRoom.switchToOriginalVolume(origin);
     }
 
     public boolean isOriginMusic() {
@@ -87,20 +87,14 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
 
     private void resetVolume(int id) {
         // 开始播放音乐时，无论是否首次均需重新设置变调和音量，因为音乐id发生了变化
-        if (id == TYPE_ORIGIN) {
-            mAudioEffectManager.setMusicPitch(TYPE_ORIGIN, mPitch);
-            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ORIGIN, mBGMVolume);
-            mAudioEffectManager.setMusicPublishVolume(TYPE_ORIGIN, mBGMVolume);
-            mAudioEffectManager.setMusicPitch(TYPE_ACCOMPANY, 0);
-            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ACCOMPANY, 0);
-            mAudioEffectManager.setMusicPublishVolume(TYPE_ACCOMPANY, 0);
-        } else {
-            mAudioEffectManager.setMusicPitch(TYPE_ORIGIN, 0);
-            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ORIGIN, 0);
-            mAudioEffectManager.setMusicPublishVolume(TYPE_ORIGIN, 0);
-            mAudioEffectManager.setMusicPitch(TYPE_ACCOMPANY, mPitch);
-            mAudioEffectManager.setMusicPlayoutVolume(TYPE_ACCOMPANY, mBGMVolume);
-            mAudioEffectManager.setMusicPublishVolume(TYPE_ACCOMPANY, mBGMVolume);
+        TXAudioEffectManager voiceEffectManager = mTRTCKaraokeRoom.getVoiceAudioEffectManager();
+        TXAudioEffectManager musicEffectManager = mTRTCKaraokeRoom.getBgmMusicAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.setVoiceCaptureVolume(mMicVolume);
+        }
+        if (musicEffectManager != null) {
+            musicEffectManager.setMusicPlayoutVolume(id, mBGMVolume);
+            musicEffectManager.setMusicPublishVolume(id, mBGMVolume);
         }
     }
 
@@ -138,41 +132,61 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
 
 
     @Override
-    public void onMicVolumChanged(int progress) {
-        if (mAudioEffectManager != null) {
-            mAudioEffectManager.setVoiceCaptureVolume(progress);
+    public void onMicVolumeChanged(int progress) {
+        mMicVolume = VOICE_MAX_VOLUME * progress / 100;
+        TXAudioEffectManager effectManager = mTRTCKaraokeRoom.getVoiceAudioEffectManager();
+        if (effectManager != null) {
+            TRTCLogger.i(TAG, "setVoiceCaptureVolume: mBGMId -> " + mBGMId + ", progress -> " + progress);
+            effectManager.setVoiceCaptureVolume(mMicVolume);
+        } else {
+            TRTCLogger.e(TAG, "onMicVolumeChanged effect manager is null" + mBGMId);
         }
     }
 
     @Override
-    public void onMusicVolumChanged(int progress) {
+    public void onMusicVolumeChanged(int progress) {
         mBGMVolume = progress;
-        if (mAudioEffectManager != null && mBGMId != -1) {
-            mAudioEffectManager.setMusicPlayoutVolume(mBGMId, progress);
-            mAudioEffectManager.setMusicPublishVolume(mBGMId, progress);
+        TXAudioEffectManager effectManager = mTRTCKaraokeRoom.getBgmMusicAudioEffectManager();
+        if (effectManager != null && mBGMId != -1) {
+            effectManager.setMusicPlayoutVolume(mBGMId, progress);
+            effectManager.setMusicPublishVolume(mBGMId, progress);
+            TRTCLogger.i(TAG, "setMusicVolume: mBGMId -> " + mBGMId + ", progress -> " + progress);
+        } else {
+            TRTCLogger.e(TAG, "onMusicVolumeChanged effect manager is null" + mBGMId);
         }
     }
 
     @Override
     public void onPitchLevelChanged(float pitch) {
         mPitch = pitch;
-        if (mAudioEffectManager != null && mBGMId != -1) {
-            Log.d(TAG, "setMusicPitch: mBGMId -> " + mBGMId + ", pitch -> " + pitch);
-            mAudioEffectManager.setMusicPitch(mBGMId, pitch);
+        TXAudioEffectManager effectManager = mTRTCKaraokeRoom.getBgmMusicAudioEffectManager();
+        if (effectManager != null && mBGMId != -1) {
+            TRTCLogger.i(TAG, "setMusicPitch: mBGMId -> " + mBGMId + ", pitch -> " + pitch);
+            effectManager.setMusicPitch(mBGMId, pitch);
+        } else {
+            TRTCLogger.e(TAG, "onPitchLevelChanged effect manager is null" + mBGMId);
         }
     }
 
     @Override
     public void onChangeRV(int type) {
-        if (mAudioEffectManager != null) {
-            mAudioEffectManager.setVoiceChangerType(translateChangerType(type));
+        TXAudioEffectManager effectManager = mTRTCKaraokeRoom.getVoiceAudioEffectManager();
+        if (effectManager != null) {
+            TRTCLogger.i(TAG, "setVoiceChangerType: mBGMId -> " + mBGMId + ", type -> " + type);
+            effectManager.setVoiceChangerType(translateChangerType(type));
+        } else {
+            TRTCLogger.e(TAG, "onChangeRV effect manager is null" + mBGMId);
         }
     }
 
     @Override
     public void onReverbRV(int type) {
-        if (mAudioEffectManager != null) {
-            mAudioEffectManager.setVoiceReverbType(translateReverbType(type));
+        TXAudioEffectManager effectManager = mTRTCKaraokeRoom.getVoiceAudioEffectManager();
+        if (effectManager != null) {
+            TRTCLogger.i(TAG, "setVoiceReverbType: mBGMId -> " + mBGMId + ", type -> " + type);
+            effectManager.setVoiceReverbType(translateReverbType(type));
+        } else {
+            TRTCLogger.e(TAG, "onReverbRV effect manager is null" + mBGMId);
         }
     }
 
@@ -187,11 +201,11 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
         mBGMVolume = 100;
         mPitch = 0;
         setCurrentStatus(-1);
-
-        if (mAudioEffectManager != null) {
+        TXAudioEffectManager effectManager = mTRTCKaraokeRoom.getVoiceAudioEffectManager();
+        if (effectManager != null) {
             Log.d(TAG, "select changer type1 " + translateChangerType(0));
-            mAudioEffectManager.setVoiceChangerType(translateChangerType(0));
-            mAudioEffectManager.setVoiceReverbType(translateReverbType(0));
+            effectManager.setVoiceChangerType(translateChangerType(0));
+            effectManager.setVoiceReverbType(translateReverbType(0));
         }
     }
 
@@ -235,7 +249,8 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
             case AUDIO_VOICECHANGER_TYPE_11:
                 changerType = TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_11;
                 break;
-            default:break;
+            default:
+                break;
         }
         return changerType;
     }
@@ -268,7 +283,8 @@ public class TUIKaraokeAudioManager implements IAudioEffectPanelDelegate {
             case AUDIO_REVERB_TYPE_7:
                 reverbType = TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_7;
                 break;
-            default:break;
+            default:
+                break;
         }
         return reverbType;
     }

@@ -38,7 +38,7 @@
     <string name="trtckaraoke_toast_owner_failed_to_occupy_the_seat">占座失败[%1$d]:%2$s</string>
 
     <string name="trtckaraoke_apply_seat_ask">你确定上麦吗?</string>
-    <string name="trtckaraoke_leave_seat_ask">所有已点的歌曲都会清除,你确定下麦吗?</string>
+    <string name="trtckaraoke_leave_seat_ask">你确定下麦吗?</string>
     <string name="trtckaraoke_toast_exit_the_room_successfully">退房成功</string>
     <string name="trtckaraoke_toast_enter_the_room_successfully">进房成功</string>
     <string name="trtckaraoke_toast_enter_the_room_failure">进房失败[%1$d]:%2$s</string>
@@ -122,4 +122,6 @@
     <string name="trtckaraoke_tips_start_audio">请先打开麦克风权限</string>
     <string name="trtckaraoke_permission_mic_reason_title">%s申请获取麦克风权限</string>
     <string name="trtckaraoke_permission_mic_reason">需要访问您的麦克风权限，开启后用于一起合唱、Karaoke、语音聊天室、语音沙龙、视频互动、秀场直播、语音通话、多人语音通话、视频通话、多人视频通话、多人音视频房间等功能，并且开启后录制的视频才会有声音</string>
+    <string name="trtckaraoke_btn_start_chorus">开始合唱</string>
+    <string name="trtckaraoke_toast_room_owner_can_operate_it">抱歉，该操作仅限房主</string>
 </resources>

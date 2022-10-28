@@ -1,7 +1,6 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
 import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -99,6 +98,10 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
             mBtnChoose.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (!mRoomInfoController.isRoomOwner()) {
+                        ToastUtils.showLong(R.string.trtckaraoke_toast_room_owner_can_operate_it);
+                        return;
+                    }
                     if (!mRoomInfoController.isAnchor()) {
                         ToastUtils.showLong(R.string.trtckaraoke_toast_anchor_can_only_operate_it);
                         return;

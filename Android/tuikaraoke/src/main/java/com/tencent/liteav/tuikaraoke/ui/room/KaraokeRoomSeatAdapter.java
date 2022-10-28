@@ -24,13 +24,13 @@ public class KaraokeRoomSeatAdapter extends
         RecyclerView.Adapter<KaraokeRoomSeatAdapter.ViewHolder> {
     private static String TAG     = KaraokeRoomSeatAdapter.class.getSimpleName();
     public static  String QUALITY = "quality";
+    public static  String VOLUTE = "volume";
+    public static  String MUTE = "mute";
 
     private Context context;
 
     private List<KaraokeRoomSeatEntity> list;
     private OnItemClickListener         onItemClickListener;
-
-    private String mBaseHeadIcon = "https://liteav.sdk.qcloud.com/app/res/picture/voiceroom/avatar/user_avatar1.png";
 
     public KaraokeRoomSeatAdapter(Context context, List<KaraokeRoomSeatEntity> list,
                                   OnItemClickListener onItemClickListener) {
@@ -62,6 +62,12 @@ public class KaraokeRoomSeatAdapter extends
             if (QUALITY.equals(payloads.get(0))) {
                 KaraokeRoomSeatEntity item = list.get(position);
                 holder.setQuality(item);
+            } else if (VOLUTE.equals(payloads.get(0))) {
+                KaraokeRoomSeatEntity item = list.get(position);
+                holder.setVolume(item);
+            } else if (MUTE.equals(payloads.get(0))) {
+                KaraokeRoomSeatEntity item = list.get(position);
+                holder.setMicMute(item);
             }
         }
     }
@@ -113,23 +119,17 @@ public class KaraokeRoomSeatAdapter extends
                 mIvTalkBorder.setVisibility(View.GONE);
             } else {
                 if (TextUtils.isEmpty(model.userAvatar) || !isUrl(model.userAvatar)) {
-                    ImageLoader.loadImage(context, mImgSeatHead, mBaseHeadIcon, R.drawable.trtckaraoke_ic_cover);
+                    ImageLoader.loadImage(context, mImgSeatHead, R.drawable.trtckaraoke_ic_cover);
                 } else {
-                    ImageLoader.loadImage(context.getApplicationContext(), mImgSeatHead,
-                            model.userAvatar, R.drawable.trtckaraoke_ic_cover);
+                    ImageLoader.loadImage(context, mImgSeatHead, model.userAvatar, R.drawable.trtckaraoke_ic_cover);
                 }
                 if (!TextUtils.isEmpty(model.userName)) {
                     mTvName.setText(model.userName);
                 } else {
                     mTvName.setText(R.string.trtckaraoke_tv_the_anchor_name_is_still_looking_up);
                 }
-                boolean mute = model.isUserMute || model.isSeatMute;
-                mIvMute.setVisibility(mute ? View.VISIBLE : View.GONE);
-                if (mute) {
-                    mIvTalkBorder.setVisibility(View.GONE);
-                } else {
-                    mIvTalkBorder.setVisibility(model.isTalk ? View.VISIBLE : View.GONE);
-                }
+                setMicMute(model);
+                setVolume(model);
             }
         }
 
@@ -153,6 +153,21 @@ public class KaraokeRoomSeatAdapter extends
                     mImgNetwork.setVisibility(View.GONE);
                 }
             }
+        }
+
+        public void setVolume(KaraokeRoomSeatEntity entity) {
+            boolean mute = entity.isUserMute || entity.isSeatMute;
+            if (mute) {
+                mIvTalkBorder.setVisibility(View.GONE);
+            } else {
+                mIvTalkBorder.setVisibility(entity.isTalk ? View.VISIBLE : View.GONE);
+            }
+            mIvTalkBorder.setVisibility(entity.isTalk ? View.VISIBLE : View.GONE);
+        }
+
+        public void setMicMute(KaraokeRoomSeatEntity entity) {
+            boolean mute = entity.isUserMute || entity.isSeatMute;
+            mIvMute.setVisibility(mute ? View.VISIBLE : View.GONE);
         }
 
         private boolean isUrl(String url) {
