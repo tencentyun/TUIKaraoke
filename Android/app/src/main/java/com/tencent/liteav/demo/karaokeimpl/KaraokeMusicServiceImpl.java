@@ -12,8 +12,11 @@ import com.tencent.imsdk.v2.V2TIMMessage;
 import com.tencent.imsdk.v2.V2TIMSimpleMsgListener;
 import com.tencent.imsdk.v2.V2TIMUserInfo;
 import com.tencent.imsdk.v2.V2TIMValueCallback;
+import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
+import com.tencent.liteav.debug.GenerateTestUserSig;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
+import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomManager;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
@@ -28,7 +31,7 @@ import java.util.List;
 /**
  * 歌曲管理实现类
  */
-public class KaraokeMusicServiceImpl extends KaraokeMusicService {
+public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTCKaraokeRoomManager.RoomCallback {
 
     private static String TAG = "KaraokeMusicServiceImpl";
 
@@ -40,6 +43,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     private String                  mRoomId;
     private String                  mOwnerId;            //房主的id
     private String                  mCurrentMusicId;
+    private KaraokeMusicModel       mCurrentModel;       //当前播放歌曲
     private Context                 mContext;
 
     private static final int    CODE_SUCCEED      = 0;  //succeed
@@ -50,12 +54,17 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     private static final String LOCAL_PLAYLISTID  = "music123";
     private static final String LOCAL_TOPIC       = "romance";
 
+    private String mUserId;             //当前用户id
+
     public KaraokeMusicServiceImpl() {
         mMusicLibraryList = new ArrayList<>();
         mMusicSelectedList = new ArrayList<>();
         mSimpleListener = new KTVMusicListener();
         // 初始化IM
         initIMListener();
+        UserModel userModel = UserModelManager.getInstance().getUserModel();
+        mUserId = userModel.userId;
+        TRTCKaraokeRoomManager.getInstance().addCallback(this);
     }
 
     public KaraokeMusicServiceImpl(Context context) {
@@ -65,6 +74,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         mSimpleListener = new KTVMusicListener();
         // 初始化IM
         initIMListener();
+        UserModel userModel = UserModelManager.getInstance().getUserModel();
+        mUserId = userModel.userId;
     }
 
     @Override
@@ -143,8 +154,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     }
 
     @Override
-    public void ktvGetMusicPage(String playlistId, int offset,
-                                int pageSize, KaraokeMusicCallback.MusicListCallback callback) {
+    public void ktvGetMusicPage(String playlistId, KaraokeMusicCallback.MusicListCallback callback) {
         if (!LOCAL_PLAYLISTID.equals(playlistId)) {
             return;
         }
@@ -171,8 +181,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
     }
 
     @Override
-    public void ktvSearchMusicByKeyWords(int offset, int pageSize,
-                                         String keyWords, KaraokeMusicCallback.MusicListCallback callback) {
+    public void ktvSearchMusicByKeyWords(String scrollToken, int pageSize,
+                                         String keyWords, KaraokeMusicCallback.MusicListPagingCallback callback) {
         if (keyWords == null) {
             return;
         }
@@ -185,7 +195,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 list.add(info);
             }
         }
-        callback.onCallback(CODE_SUCCEED, "succeed", list);
+        callback.onCallback(CODE_SUCCEED, "succeed", list, scrollToken);
     }
 
     @Override
@@ -195,7 +205,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 if (mMusicSelectedList.size() > 0) {
                     if (mSelectDelegates != null) {
                         for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                            delegate.onShouldSetLyric(mMusicSelectedList.get(0));
+                            KaraokeMusicModel musicModel = mMusicSelectedList.get(0);
+                            delegate.onShouldSetLyric(musicModel);
                         }
                     }
                 }
@@ -220,6 +231,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
             callback.onCallback(0, "succeed");
             notiListChange();
             if (shouldPlay) {
+                mCurrentModel = songEntity;
                 if (mSelectDelegates != null) {
                     for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
                         delegate.onShouldPlay(songEntity);
@@ -358,6 +370,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 }
                 KaraokeMusicModel curEntity = mMusicSelectedList.get(0);
                 if (curEntity != null && curEntity.userId.equals(mOwnerId)) {
+                    mCurrentModel = curEntity;
                     if (mSelectDelegates != null) {
                         for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
                             delegate.onShouldPlay(curEntity);
@@ -388,12 +401,17 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
 
     @Override
     public void downLoadMusic(KaraokeMusicInfo musicInfo, KaraokeMusicCallback.MusicLoadingCallback callback) {
-
+        callback.onFinish(musicInfo, 0, "success");
     }
 
     @Override
     public String genMusicURI(String musicId, int type) {
         return null;
+    }
+
+    @Override
+    public KaraokeMusicModel getCurrentPlayMusicModel() {
+        return mCurrentModel;
     }
 
     @Override
@@ -418,6 +436,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         model.status = info.status;
         model.userId = info.userId;
         model.performId = info.performId;
+        model.isReady = true;
         return model;
     }
 
@@ -427,6 +446,18 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         }
         for (KaraokeMusicInfo entity : mMusicLibraryList) {
             if (entity.musicId.equals(musicId)) {
+                return changeMusicInfoToModel(entity);
+            }
+        }
+        return null;
+    }
+
+    public KaraokeMusicModel findEntityFromSelectedList(String performId) {
+        if (performId == null || mMusicSelectedList == null) {
+            return null;
+        }
+        for (KaraokeMusicInfo entity : mMusicSelectedList) {
+            if (performId.equals(entity.performId)) {
                 return changeMusicInfoToModel(entity);
             }
         }
@@ -541,6 +572,22 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 });
     }
 
+    @Override
+    public void onRoomCreate(int roomId, TRTCKaraokeRoomManager.ActionCallback callback) {
+
+    }
+
+    @Override
+    public void onRoomDestroy(int roomId, TRTCKaraokeRoomManager.ActionCallback callback) {
+
+    }
+
+    @Override
+    public void onGenUserSig(String userId, TRTCKaraokeRoomManager.GenUserSigCallback callback) {
+        String userSig = GenerateTestUserSig.genTestUserSig(userId);
+        callback.onSuccess(userSig);
+    }
+
     private class KTVMusicListener extends V2TIMSimpleMsgListener {
         public KTVMusicListener() {
             super();
@@ -613,10 +660,12 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 receiveListChange(data);
                 break;
             case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPREPARE:
+                KaraokeMusicModel musicModel = findEntityFromLibrary(musicId);
                 mCurrentMusicId = musicId;
+                mCurrentModel = musicModel;
                 if (mSelectDelegates != null) {
                     for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
-                        delegate.onShouldSetLyric(findEntityFromLibrary(mCurrentMusicId));
+                        delegate.onShouldSetLyric(musicModel);
                     }
                 }
                 break;
@@ -656,6 +705,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
         if (mMusicSelectedList.size() > 0) {
             KaraokeMusicModel curEntity = mMusicSelectedList.get(0);
             if (curEntity.userId.equals(mOwnerId)) {
+                mCurrentModel = curEntity;
                 if (mSelectDelegates != null) {
                     for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
                         delegate.onShouldPlay(curEntity);
@@ -695,6 +745,40 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 delegate.onMusicListChange(mMusicSelectedList);
             }
         }
+
+        //获取第一首歌去处理
+        if (mMusicSelectedList.size() > 0) {
+            KaraokeMusicModel musicModel = findTopMusicInfoInSelectedList();
+            if (musicModel == null || musicModel.musicId == null || musicModel.performId == null) {
+                return;
+            }
+            if (mCurrentModel != null) {
+                if (musicModel.performId.equals(mCurrentModel.performId)) {
+                    return;
+                } else {
+                    if (mSelectDelegates != null) {
+                        for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                            delegate.onShouldStopPlay(mCurrentModel);
+                        }
+                        mCurrentModel = null;
+                    }
+                }
+            }
+
+            if (mSelectDelegates != null) {
+                for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
+                    delegate.onShouldPlay(musicModel);
+                }
+                mCurrentModel = musicModel;
+            }
+        }
+    }
+
+    private KaraokeMusicModel findTopMusicInfoInSelectedList() {
+        if (mMusicSelectedList == null || mMusicSelectedList.size() <= 0) {
+            return null;
+        }
+        return mMusicSelectedList.get(0);
     }
 
     private void receivePick(V2TIMUserInfo sender, KaraokeMusicModel entity) {
@@ -750,6 +834,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService {
                 receivePick(sender, entity);
                 break;
             case KaraokeConstants.KARAOKE_VALUE_CMD_INSTRUCTION_MPLAYMUSIC:
+                mCurrentModel = entity;
                 if (mSelectDelegates != null) {
                     for (KaraokeMusicServiceDelegate delegate : mSelectDelegates) {
                         delegate.onShouldPlay(entity);

@@ -126,4 +126,29 @@
             android:textColor="@color/trtckaraoke_white"
             android:textSize="14sp" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_start_chorus"
+        android:enabled="false"
+        android:layout_width="76dp"
+        android:layout_height="38dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/trtckaraoke_button_border"
+        android:text="@string/trtckaraoke_btn_start_chorus"
+        android:textAllCaps="false"
+        android:textColor="@color/trtckaraoke_white"
+        android:textSize="14sp"
+        android:visibility="gone"
+        />
+
+    <TextView
+        android:id="@+id/tv_timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:text="3"
+        android:textSize="60dp"
+        android:visibility="gone"/>
 </LinearLayout>

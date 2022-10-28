@@ -2,6 +2,7 @@ package com.tencent.liteav.tuikaraoke.ui.music;
 
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
+import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 
 public abstract class KaraokeMusicService {
 
@@ -18,21 +19,18 @@ public abstract class KaraokeMusicService {
      * * 获取歌曲列表
      *
      * @param playlistId 分类详情
-     * @param page       页码
-     * @param pageSize   每页大小
      */
-    public abstract void ktvGetMusicPage(String playlistId, int page,
-                                         int pageSize, KaraokeMusicCallback.MusicListCallback callback);
+    public abstract void ktvGetMusicPage(String playlistId, KaraokeMusicCallback.MusicListCallback callback);
 
     /**
      * 获取搜索歌曲列表
      *
-     * @param offset   分页游标
-     * @param pageSize 分页大小
-     * @param keyWords 搜索词
+     * @param scrollToken 分页的滚动标记
+     * @param pageSize    分页大小
+     * @param keyWords    搜索词
      */
-    public abstract void ktvSearchMusicByKeyWords(int offset, int pageSize,
-                                                  String keyWords, KaraokeMusicCallback.MusicListCallback callback);
+    public abstract void ktvSearchMusicByKeyWords(String scrollToken, int pageSize, String keyWords,
+                                                  KaraokeMusicCallback.MusicListPagingCallback callback);
 
     /**
      * 获取已点歌曲列表
@@ -112,6 +110,11 @@ public abstract class KaraokeMusicService {
      * @param type    类型
      */
     public abstract String genMusicURI(String musicId, int type);
+
+    /**
+     * 获取当前播放的歌曲信息
+     */
+    public abstract KaraokeMusicModel getCurrentPlayMusicModel();
 
     /**
      * 检测是否已经加载音乐数据

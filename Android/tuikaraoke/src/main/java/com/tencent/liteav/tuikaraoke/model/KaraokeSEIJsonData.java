@@ -13,7 +13,7 @@ public class KaraokeSEIJsonData {
     private long currentTime;
 
     @SerializedName("music_id")
-    private String musicId;
+    private int musicId;
 
     @SerializedName("total_time")
     private long totalTime;
@@ -26,11 +26,11 @@ public class KaraokeSEIJsonData {
         this.currentTime = currentTime;
     }
 
-    public String getMusicId() {
+    public int getMusicId() {
         return musicId;
     }
 
-    public void setMusicId(String musicId) {
+    public void setMusicId(int musicId) {
         this.musicId = musicId;
     }
 

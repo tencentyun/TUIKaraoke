@@ -33,6 +33,7 @@ import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDelegate;
+import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TXSeatInfo;
 import com.tencent.liteav.tuikaraoke.ui.audio.impl.TUIKaraokeAudioManager;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
@@ -291,12 +292,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
         mTRTCKaraokeRoom = TRTCKaraokeRoom.sharedInstance(this);
         mTRTCKaraokeRoom.setDelegate(this);
-        //进房前取消静音
-        mTRTCKaraokeRoom.muteAllRemoteAudio(false);
-
         mTUIKaraokeAudioManager = TUIKaraokeAudioManager.getInstance();
         mTUIKaraokeAudioManager.setTRTCKaraokeRoom(mTRTCKaraokeRoom);
-
         // 礼物
         GiftAdapter giftAdapter = new DefaultGiftAdapterImp();
         mGiftInfoDataHandler = new GiftInfoDataHandler();
@@ -651,7 +648,6 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
                 mSeatUserMuteMap.put(userId, true);
             }
         }
-        mKaraokeRoomSeatAdapter.notifyDataSetChanged();
         //所有的userId拿到手，开始去搜索详细信息了
         mTRTCKaraokeRoom.getUserInfoList(userids, new TRTCKaraokeRoomCallback.UserListCallback() {
             @Override
@@ -698,8 +694,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         if (user.userId.equals(mSelfUserId)) {
             mCurrentRole = TRTCCloudDef.TRTCRoleAnchor;
             mSelfSeatIndex = index;
+            refreshView();
         }
-        refreshView();
     }
 
     @Override
@@ -717,16 +713,20 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         if (user.userId.equals(mSelfUserId)) {
             mCurrentRole = TRTCCloudDef.TRTCRoleAudience;
             mSelfSeatIndex = -1;
-            mKaraokeMusicService.deleteAllMusic(mSelfUserId, new KaraokeMusicCallback.ActionCallback() {
-                @Override
-                public void onCallback(int code, String msg) {
+            refreshView();
+            if (mRoomInfoController.isRoomOwner()) {
+                if (mKaraokeMusicService != null) {
+                    mKaraokeMusicService.deleteAllMusic(mSelfUserId, new KaraokeMusicCallback.ActionCallback() {
+                        @Override
+                        public void onCallback(int code, String msg) {
 
+                        }
+                    });
                 }
-            });
+            }
             mTUIKaraokeAudioManager.stopPlayMusic(null);
             mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_STOP);
         }
-        refreshView();
     }
 
     @Override
@@ -779,7 +779,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         if (seatEntity != null) {
             if (!seatEntity.isSeatMute && mute != seatEntity.isUserMute) {
                 seatEntity.isUserMute = mute;
-                mKaraokeRoomSeatAdapter.notifyDataSetChanged();
+                mKaraokeRoomSeatAdapter.notifyItemChanged(mKaraokeRoomSeatEntityList.indexOf(seatEntity),
+                        KaraokeRoomSeatAdapter.MUTE);
             }
         }
 
@@ -815,6 +816,9 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
     //下麦
     public void leaveSeat() {
+        if (mRoomInfoController.isRoomOwner()) {
+            return;
+        }
         if (mAlertDialog == null) {
             mAlertDialog = new ConfirmDialogFragment();
         }
@@ -889,8 +893,12 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
                 int volume = info.volume;
                 KaraokeRoomSeatEntity entity = findSeatEntityFromUserId(info.userId);
                 if (entity != null) {
-                    entity.isTalk = volume > 20;
-                    mKaraokeRoomSeatAdapter.notifyDataSetChanged();
+                    boolean isTalk = volume > 20;
+                    if (isTalk != entity.isTalk) {
+                        entity.isTalk = isTalk;
+                        mKaraokeRoomSeatAdapter.notifyItemChanged(mKaraokeRoomSeatEntityList.indexOf(entity),
+                                KaraokeRoomSeatAdapter.VOLUTE);
+                    }
                 }
             }
         }
@@ -955,7 +963,6 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         if (topModel == null || musicID == null) {
             return;
         }
-
         //断网后重新联网,需要获取新的列表,更新歌词信息
         //回调传上来的musicId实际是performId
         if (!musicID.equals(topModel.performId)) {
@@ -972,17 +979,40 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
     @Override
     public void onMusicPrepareToPlay(String musicID) {
-        Log.d(TAG, "onMusicPrepareToPlay: musicId = " + musicID);
+        TRTCLogger.i(TAG, "onMusicPrepareToPlay: musicId = " + musicID);
         mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_PLAYING);
         mKaraokeMusicService.prepareToPlay(musicID);
     }
 
     @Override
     public void onMusicCompletePlaying(String musicID) {
-        Log.d(TAG, "onMusicCompletePlaying: musicId = " + musicID);
+        TRTCLogger.i(TAG, "onMusicCompletePlaying: musicId = " + musicID);
         mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_STOP);
-        mKaraokeMusicService.completePlaying(musicID);
+        if (mRoomInfoController.isRoomOwner()) {
+            mKaraokeMusicService.completePlaying(musicID);
+        }
         setLrcPath(null);
+        //隐藏倒计时
+        mKTVMusicView.hideStartAnim();
+    }
+
+    @Override
+    public void onReceiveAnchorSendChorusMsg(String perFormId) {
+        if (!mRoomInfoController.isAnchor()) {
+            return;
+        }
+        KaraokeMusicModel musicModel = mKaraokeMusicService.getCurrentPlayMusicModel();
+        if (musicModel == null) {
+            return;
+        }
+        if (!musicModel.isReady) {
+            TRTCLogger.e(TAG, "music info is not ready");
+            return;
+        }
+        if (!TextUtils.isEmpty(perFormId) && perFormId.equals(musicModel.performId)) {
+            setLrcPath(musicModel.lrcUrl);
+            TUIKaraokeAudioManager.getInstance().startPlayMusic(musicModel);
+        }
     }
 
     protected void getAudienceList() {
@@ -1063,6 +1093,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         mIsDestroyed = true;
         UserModelManager.getInstance().getUserModel().userType = UserModel.UserType.NONE;
         super.onDestroy();
+        mLrcView.release();
     }
 
     private void initLoadLyricsView(final String path) {
@@ -1110,7 +1141,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
     @Override
     public void setLrcPath(String path) {
-        Log.d(TAG, "setLrcPath: path = " + path);
+        TRTCLogger.i(TAG, "setLrcPath: path = " + path);
         if (mLrcView == null) {
             return;
         }

@@ -32,7 +32,7 @@
     <string name="trtckaraoke_toast_owner_succeeded_in_occupying_the_seat">Seat taken successfully</string>
     <string name="trtckaraoke_toast_owner_failed_to_occupy_the_seat">Failed to take a seat [%1$d]:%2$s</string>
     <string name="trtckaraoke_apply_seat_ask">Mic on</string>
-    <string name="trtckaraoke_leave_seat_ask">This will delete all selected songs. Are you sure you want to mic off?</string>
+    <string name="trtckaraoke_leave_seat_ask">Are you sure you want to mic off?</string>
     <string name="trtckaraoke_toast_exit_the_room_successfully">Left room</string>
     <string name="trtckaraoke_toast_enter_the_room_successfully">Entered room</string>
     <string name="trtckaraoke_toast_enter_the_room_failure">Failed to enter room[%1$d]:%2$s</string>
@@ -109,6 +109,8 @@
     <string name="trtckaraoke_tips_start_audio">Please turn on the microphone permission first</string>
     <string name="trtckaraoke_permission_mic_reason_title">%s applies for access to the microphone</string>
     <string name="trtckaraoke_permission_mic_reason">Needs access to your microphone, and it can be used for functions such as Interactive Video Streaming, Show Live, Video Call, Group Video Call, Multi-person audio and video room, etc.</string>
+    <string name="trtckaraoke_btn_start_chorus">Start Duet</string>
+    <string name="trtckaraoke_toast_room_owner_can_operate_it">Room owner can operate it</string>
 </resources>
 
 

@@ -101,7 +101,7 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout implements Karaok
 
     //获取到分类列表后去加载详细的歌曲列表信息
     private void getMusicLibraryList(String playlistId) {
-        mKtvMusicImpl.ktvGetMusicPage(playlistId, mPage, mLoadPageSize, new KaraokeMusicCallback.MusicListCallback() {
+        mKtvMusicImpl.ktvGetMusicPage(playlistId, new KaraokeMusicCallback.MusicListCallback() {
             @Override
             public void onCallback(int code, String msg, List<KaraokeMusicInfo> list) {
                 mLibraryLists.clear();
@@ -184,7 +184,6 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout implements Karaok
                 });
             }
         });
-
         mKtvMusicImpl.pickMusic(info, new KaraokeMusicCallback.ActionCallback() {
             @Override
             public void onCallback(int code, String msg) {

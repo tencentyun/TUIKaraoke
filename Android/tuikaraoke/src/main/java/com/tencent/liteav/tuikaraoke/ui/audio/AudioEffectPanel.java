@@ -44,19 +44,19 @@ public class AudioEffectPanel extends BottomSheetDialog {
 
     private OnDismissListener mOnDismissListener;
 
-    private static final int AUDIO_REVERB_TYPE_0        = 0;
-    private static final int AUDIO_REVERB_TYPE_1        = 1;
-    private static final int AUDIO_REVERB_TYPE_4        = 4;
-    private static final int AUDIO_REVERB_TYPE_5        = 5;
-    private static final int AUDIO_REVERB_TYPE_6        = 6;
-    private static final int AUDIO_VOICECHANGER_TYPE_0  = 0;
-    private static final int AUDIO_VOICECHANGER_TYPE_1  = 1;
-    private static final int AUDIO_VOICECHANGER_TYPE_2  = 2;
-    private static final int AUDIO_VOICECHANGER_TYPE_3  = 3;
-    private static final int AUDIO_VOICECHANGER_TYPE_11 = 11;
+    private static final int AUDIO_REVERB_TYPE_0         = 0;
+    private static final int AUDIO_REVERB_TYPE_1         = 1;
+    private static final int AUDIO_REVERB_TYPE_4         = 4;
+    private static final int AUDIO_REVERB_TYPE_5         = 5;
+    private static final int AUDIO_REVERB_TYPE_6         = 6;
+    private static final int AUDIO_VOICE_CHANGER_TYPE_0  = 0;
+    private static final int AUDIO_VOICE_CHANGER_TYPE_1  = 1;
+    private static final int AUDIO_VOICE_CHANGER_TYPE_2  = 2;
+    private static final int AUDIO_VOICE_CHANGER_TYPE_3  = 3;
+    private static final int AUDIO_VOICE_CHANGER_TYPE_11 = 11;
 
     private Context             mContext;
-    private RecyclerView        mRVAuidoChangeType;
+    private RecyclerView        mRVAudioChangeType;
     private RecyclerView        mRVAudioReverbType;
     private SeekBar             mSbMicVolume;
     private SeekBar             mSbBGMVolume;
@@ -64,22 +64,22 @@ public class AudioEffectPanel extends BottomSheetDialog {
     private RecyclerViewAdapter mChangerRVAdapter;
     private RecyclerViewAdapter mReverbRVAdapter;
 
-    private List<ItemEntity> mChangerItemEntityList;
-    private List<ItemEntity> mReverbItemEntityList;
+    private ConstraintLayout mMainAudioEffectPanel;
+    private Group            mGroupMusic;
+    private TextView         mTvBGMVolume;
+    private TextView         mTvPitchLevel;
+    private TextView         mTvMicVolume;
+    private TextView         mTvTitle;
+    private TextView         mTvReverb;
+    private View             mMusicVolumeGroup;
+    private View             mMusicToneGroup;
+    private View             mMusicVoiceGroup;
+    private SwitchCompat     mSwitchMusicDuration;
 
-    private ConstraintLayout          mMainAudioEffectPanel;
-    private Group                     mGroupMusic;
-    private TextView                  mTvBGMVolume;
-    private TextView                  mTvPitchLevel;
-    private TextView                  mTvMicVolume;
-    private TextView                  mTvTitle;
-    private TextView                  mTvReverb;
-    private View                      mMusicVolumeGroup;
-    private View                      mMusicToneGroup;
-    private View                      mMusicVoiceGroup;
     private IAudioEffectPanelDelegate mDelegate;
 
-    private SwitchCompat mSwitchMusiceAudiction;
+    private List<ItemEntity> mChangerItemEntityList;
+    private List<ItemEntity> mReverbItemEntityList;
 
     private int mBGMVolume = 100;
 
@@ -150,9 +150,9 @@ public class AudioEffectPanel extends BottomSheetDialog {
         mMusicVolumeGroup = findViewById(R.id.cl_music_volume_change);
         mMusicVoiceGroup = findViewById(R.id.cl_music_voice);
         mMusicToneGroup = findViewById(R.id.cl_music_tone_change);
-        mRVAuidoChangeType = (RecyclerView) findViewById(R.id.rv_audio_change_type);
+        mRVAudioChangeType = (RecyclerView) findViewById(R.id.rv_audio_change_type);
         mRVAudioReverbType = (RecyclerView) findViewById(R.id.rv_audio_reverb_type);
-        mSwitchMusiceAudiction = (SwitchCompat) findViewById(R.id.switch_music_audition);
+        mSwitchMusicDuration = (SwitchCompat) findViewById(R.id.switch_music_audition);
 
         mTvBGMVolume = (TextView) findViewById(R.id.tv_bgm_volume);
         mTvMicVolume = (TextView) findViewById(R.id.tv_mic_volume);
@@ -176,11 +176,11 @@ public class AudioEffectPanel extends BottomSheetDialog {
         if (mMusicType.equals(MUSIC_TYPE)) {
             mTvTitle.setText(R.string.trtckaraoke_sound_effects);
             mGroupMusic.setVisibility(VISIBLE);
-            mRVAuidoChangeType.setVisibility(GONE);
+            mRVAudioChangeType.setVisibility(GONE);
         } else if (mMusicType.equals(CHANGE_VOICE)) {
             mTvTitle.setText(R.string.trtckaraoke_changer);
             mGroupMusic.setVisibility(GONE);
-            mRVAuidoChangeType.setVisibility(VISIBLE);
+            mRVAudioChangeType.setVisibility(VISIBLE);
         }
     }
 
@@ -190,7 +190,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 mTvMicVolume.setText(progress + "");
                 if (mDelegate != null) {
-                    mDelegate.onMicVolumChanged(progress);
+                    mDelegate.onMicVolumeChanged(progress);
                 }
             }
 
@@ -207,8 +207,9 @@ public class AudioEffectPanel extends BottomSheetDialog {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 mBGMVolume = progress;
+                mTvBGMVolume.setText(progress + "");
                 if (mDelegate != null) {
-                    mDelegate.onMusicVolumChanged(progress);
+                    mDelegate.onMusicVolumeChanged(progress);
                 }
             }
 
@@ -262,8 +263,8 @@ public class AudioEffectPanel extends BottomSheetDialog {
         mChangerRVAdapter.notifyDataSetChanged();
         LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        mRVAuidoChangeType.setLayoutManager(layoutManager);
-        mRVAuidoChangeType.setAdapter(mChangerRVAdapter);
+        mRVAudioChangeType.setLayoutManager(layoutManager);
+        mRVAudioChangeType.setAdapter(mChangerRVAdapter);
         // 选混响
         mReverbRVAdapter = new RecyclerViewAdapter(mContext, mReverbItemEntityList, new OnItemClickListener() {
             @Override
@@ -294,7 +295,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
                 IntentUtils.safeStartActivity(mContext, intent);
             }
         });
-        mSwitchMusiceAudiction.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mSwitchMusicDuration.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (mTRTCKaraokeRoom != null) {
@@ -309,26 +310,26 @@ public class AudioEffectPanel extends BottomSheetDialog {
     public void show() {
         super.show();
         boolean isOpen = EarMonitorInstance.getInstance().ismEarMonitorOpen();
-        mSwitchMusiceAudiction.setChecked(isOpen);
+        mSwitchMusicDuration.setChecked(isOpen);
     }
 
     private List<ItemEntity> createAudioChangeItems() {
         List<ItemEntity> list = new ArrayList<>();
         list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_no_effect),
                 R.drawable.trtckaraoke_changetype_no_select_nomal,
-                R.drawable.trtckaraoke_changetype_no_select_hover, AUDIO_VOICECHANGER_TYPE_0));
+                R.drawable.trtckaraoke_changetype_no_select_hover, AUDIO_VOICE_CHANGER_TYPE_0));
         list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_child),
                 R.drawable.trtckaraoke_changetype_child_normal,
-                R.drawable.trtckaraoke_changetype_child_hover, AUDIO_VOICECHANGER_TYPE_1));
+                R.drawable.trtckaraoke_changetype_child_hover, AUDIO_VOICE_CHANGER_TYPE_1));
         list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_luoli),
                 R.drawable.trtckaraoke_changetype_luoli_normal,
-                R.drawable.trtckaraoke_changetype_luoli_hover, AUDIO_VOICECHANGER_TYPE_2));
+                R.drawable.trtckaraoke_changetype_luoli_hover, AUDIO_VOICE_CHANGER_TYPE_2));
         list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_dashu),
                 R.drawable.trtckaraoke_changetype_dashu_normal,
-                R.drawable.trtckaraoke_changetype_dashu_hover, AUDIO_VOICECHANGER_TYPE_3));
+                R.drawable.trtckaraoke_changetype_dashu_hover, AUDIO_VOICE_CHANGER_TYPE_3));
         list.add(new ItemEntity(mContext.getResources().getString(R.string.trtckaraoke_audio_change_type_kongling),
                 R.drawable.trtckaraoke_changetype_kongling_normal,
-                R.drawable.trtckaraoke_changetype_kongling_hover, AUDIO_VOICECHANGER_TYPE_11));
+                R.drawable.trtckaraoke_changetype_kongling_hover, AUDIO_VOICE_CHANGER_TYPE_11));
         return list;
     }
 

@@ -113,6 +113,7 @@
 
             <SeekBar
                 android:id="@+id/sb_bgm_volume"
+                android:progress="30"
                 style="@style/TRTCKtvAudioEffectSeekBarStyle"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toRightOf="@+id/tv_bgm_title"
@@ -121,6 +122,7 @@
 
             <TextView
                 android:id="@+id/tv_bgm_volume"
+                android:text="30"
                 style="@style/TRTCKtvAudioEffetcNumStyle"
                 app:layout_constraintRight_toRightOf="parent" />
 

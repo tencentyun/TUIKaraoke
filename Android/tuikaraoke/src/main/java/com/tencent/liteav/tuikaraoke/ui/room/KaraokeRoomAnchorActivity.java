@@ -129,6 +129,17 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         internalCreateRoom();
         TUILogin.addLoginListener(mTUILoginListener);
         showAlertUserLiveTips();
+        PermissionHelper.requestPermission(this, PermissionHelper.PERMISSION_MICROPHONE,
+                new PermissionHelper.PermissionCallback() {
+                    @Override
+                    public void onGranted() {
+                    }
+
+                    @Override
+                    public void onDenied() {
+                        finish();
+                    }
+                });
     }
 
     private void internalCreateRoom() {
@@ -346,7 +357,6 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         if (entity != null) {
             entity.type = MemberEntity.TYPE_IN_SEAT;
         }
-
     }
 
     @Override

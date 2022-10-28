@@ -47,14 +47,28 @@ public class TRTCKaraokeRoomManager {
         }
     }
 
+    public void genUserSig(String userId, GenUserSigCallback callback) {
+        if (mRoomCallback != null) {
+            mRoomCallback.onGenUserSig(userId, callback);
+        }
+    }
+
     public interface RoomCallback {
         void onRoomCreate(int roomId, ActionCallback callback);
 
         void onRoomDestroy(int roomId, ActionCallback callback);
+
+        void onGenUserSig(String userId, GenUserSigCallback callback);
     }
 
     public interface ActionCallback {
         void onSuccess();
+
+        void onError(int errorCode, String message);
+    }
+
+    public interface GenUserSigCallback {
+        void onSuccess(String userSig);
 
         void onError(int errorCode, String message);
     }
