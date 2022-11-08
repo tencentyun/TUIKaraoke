@@ -1,4 +1,4 @@
-package com.tencent.liteav.demo.karaokeimpl;
+package com.tencent.liteav.tuikaraoke.model.music;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -67,6 +67,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         UserModel userModel = UserModelManager.getInstance().getUserModel();
         mUserId = userModel.userId;
         TRTCKaraokeRoomManager.getInstance().addCallback(this);
+        TRTCLogger.i(TAG, "KaraokeMusicServiceImpl from tuikaraoke constructor");
     }
 
     @Override
