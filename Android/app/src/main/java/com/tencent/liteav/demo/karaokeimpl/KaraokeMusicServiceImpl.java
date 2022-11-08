@@ -56,16 +56,6 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
 
     private String mUserId;             //当前用户id
 
-    public KaraokeMusicServiceImpl() {
-        mMusicLibraryList = new ArrayList<>();
-        mMusicSelectedList = new ArrayList<>();
-        mSimpleListener = new KTVMusicListener();
-        // 初始化IM
-        initIMListener();
-        UserModel userModel = UserModelManager.getInstance().getUserModel();
-        mUserId = userModel.userId;
-        TRTCKaraokeRoomManager.getInstance().addCallback(this);
-    }
 
     public KaraokeMusicServiceImpl(Context context) {
         mContext = context;
@@ -76,6 +66,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         initIMListener();
         UserModel userModel = UserModelManager.getInstance().getUserModel();
         mUserId = userModel.userId;
+        TRTCKaraokeRoomManager.getInstance().addCallback(this);
     }
 
     @Override
