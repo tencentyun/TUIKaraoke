@@ -1,4 +1,4 @@
-package com.tencent.liteav.demo.karaokeimpl;
+package com.tencent.liteav.tuikaraoke.model.music;
 
 public interface KaraokeConstants {
     String KARAOKE_KEY_CMD_VERSION     = "version";

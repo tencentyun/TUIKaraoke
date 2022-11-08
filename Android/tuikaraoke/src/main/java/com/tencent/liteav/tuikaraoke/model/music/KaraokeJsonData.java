@@ -1,4 +1,4 @@
-package com.tencent.liteav.demo.karaokeimpl;
+package com.tencent.liteav.tuikaraoke.model.music;
 
 import com.google.gson.annotations.SerializedName;
 
