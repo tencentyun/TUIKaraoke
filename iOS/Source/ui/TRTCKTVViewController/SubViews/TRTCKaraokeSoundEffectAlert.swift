@@ -265,7 +265,7 @@ class TRTCKaraokeSoundEffectSwitchCell: TRTCKaraokeSoundEffectBaseCell {
     
     lazy var onOff: UISwitch = {
         let onoff = UISwitch(frame: .zero)
-        onoff.onTintColor = UIColor(hex: "F95F91")
+        onoff.onTintColor = UIColor.tui_color(withHex: "F95F91")
         return onoff
     }()
     
@@ -341,8 +341,8 @@ class TRTCKaraokeSoundEffectSliderCell: TRTCKaraokeSoundEffectBaseCell {
     lazy var slider: TRTCKaraokeSoundEffectSlider = {
         let slider = TRTCKaraokeSoundEffectSlider(frame: .zero)
         slider.setThumbImage(UIImage(named: "Slider", in: karaokeBundle(), compatibleWith: nil), for: .normal)
-        slider.minimumTrackTintColor = UIColor(hex: "F95F91")
-        slider.maximumTrackTintColor = UIColor(hex: "F4F5F9")
+        slider.minimumTrackTintColor = UIColor.tui_color(withHex: "F95F91")
+        slider.maximumTrackTintColor = UIColor.tui_color(withHex: "F4F5F9")
         return slider
     }()
     
@@ -452,7 +452,7 @@ class TRTCKaraokeSoundEffectDetailCell: TRTCKaraokeSoundEffectBaseCell {
     lazy var descLabel: UILabel = {
         let label = UILabel(frame: .zero)
         label.font = UIFont(name: "PingFangSC-Regular", size: 16)
-        label.textColor = UIColor(hex: "999999")
+        label.textColor = UIColor.tui_color(withHex: "999999")
         return label
     }()
     
@@ -620,8 +620,8 @@ class TRTCKaraokeSoundEffectCellForCollectionCell: UICollectionViewCell {
     lazy var titleLabel: UILabel = {
         let label = UILabel(frame: .zero)
         label.font = UIFont(name: "PingFangSC-Regular", size: 12)
-        label.textColor = UIColor(hex: "666666")
-        label.highlightedTextColor = UIColor(hex: "006EFF")
+        label.textColor = UIColor.tui_color(withHex: "666666")
+        label.highlightedTextColor = UIColor.tui_color(withHex: "006EFF")
         label.adjustsFontSizeToFitWidth = true
         label.textAlignment = .center
         return label

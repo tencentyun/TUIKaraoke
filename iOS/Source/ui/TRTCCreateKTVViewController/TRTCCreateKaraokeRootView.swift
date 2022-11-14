@@ -40,7 +40,7 @@ class TRTCCreateKaraokeRootView: UIView {
         textView.text = localizeReplaceXX(.defaultCreateText, viewModel.userName).subString(toByteLength: createRoomTextMaxByteLength)
         textView.textColor = .black
         textView.layer.cornerRadius = 20
-        textView.backgroundColor = UIColor(hex: "F4F5F9")
+        textView.backgroundColor = UIColor.tui_color(withHex: "F4F5F9")
 #if RTCube_APPSTORE
         textView.isUserInteractionEnabled = false
 #endif
@@ -117,7 +117,8 @@ class TRTCCreateKaraokeRootView: UIView {
         super.draw(rect)
         createBtn.layer.cornerRadius = createBtn.frame.height*0.5
         contentView.roundedRect(rect: contentView.bounds, byRoundingCorners: [.topLeft, .topRight], cornerRadii: CGSize(width: 12, height: 12))
-        createBtn.gradient(colors: [UIColor(hex: "FF88DD")!.cgColor, UIColor(hex: "7D00BD")!.cgColor])
+        createBtn.gradient(colors: [UIColor.tui_color(withHex: "FF88DD").cgColor,
+                                    UIColor.tui_color(withHex: "7D00BD").cgColor])
     }
     
     private func constructViewHierarchy() {
@@ -241,7 +242,7 @@ extension UITextView {
     func endEdit() {
         if self.text == "" {
             self.text = .placeholderTitleText
-            self.textColor = UIColor(hex: "BBBBBB")
+            self.textColor = UIColor.tui_color(withHex: "BBBBBB")
         }
         self.resignFirstResponder()
     }

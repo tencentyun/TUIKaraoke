@@ -136,9 +136,9 @@ class TRTCKaraokeAudienceAlert: TRTCKaraokeAlertContentView {
         btn.setTitle(.lockText, for: .normal)
         btn.setTitle(.unlockText, for: .selected)
         btn.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 14)
-        btn.backgroundColor = UIColor(hex: "F4F5F9")
-        btn.setTitleColor(UIColor(hex: "333333"), for: .normal)
-        btn.setTitleColor(UIColor(hex: "333333"), for: .selected)
+        btn.backgroundColor = UIColor.tui_color(withHex: "F4F5F9")
+        btn.setTitleColor(UIColor.tui_color(withHex: "333333"), for: .normal)
+        btn.setTitleColor(UIColor.tui_color(withHex: "333333"), for: .selected)
         btn.imageEdgeInsets = UIEdgeInsets(top: 0, left: -2, bottom: 0, right: 2)
         btn.titleEdgeInsets = UIEdgeInsets(top: 0, left: 2, bottom: 0, right: -2)
         return btn
@@ -308,13 +308,13 @@ class TRTCKaraokeAudienceCell: UITableViewCell {
         label.font = UIFont(name: "PingFangSC-Medium", size: 16)
         label.minimumScaleFactor = 0.5
         label.adjustsFontSizeToFitWidth = true
-        label.textColor = UIColor(hex: "666666")
+        label.textColor = UIColor.tui_color(withHex: "666666")
         return label
     }()
     
     lazy var agreeBtn: UIButton = {
         let btn = UIButton(type: .custom)
-        btn.backgroundColor = UIColor(hex: "29CC85")
+        btn.backgroundColor = UIColor.tui_color(withHex: "29CC85")
         btn.layer.cornerRadius = 38*0.5
         btn.setTitle(.inviteText, for: .normal)
         btn.setTitle(.agreeText, for: .selected)
