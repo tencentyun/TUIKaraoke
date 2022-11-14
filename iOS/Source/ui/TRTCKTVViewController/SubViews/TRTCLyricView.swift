@@ -126,7 +126,8 @@ class TRTCLyricView: UIView {
     }()
     
     lazy var startChorusBtnLayer: CAGradientLayer = {
-        let startChorusBtnLayer = startChorusBtn.gradient(colors: [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor])
+        let startChorusBtnLayer = startChorusBtn.gradient(colors: [UIColor.tui_color(withHex:"FF88DD").cgColor,
+                                                                   UIColor.tui_color(withHex:"7D00BD").cgColor])
         startChorusBtnLayer.startPoint = CGPoint(x: 0, y: 0.5)
         startChorusBtnLayer.endPoint = CGPoint(x: 1, y: 0.5)
         return startChorusBtnLayer
@@ -160,7 +161,8 @@ class TRTCLyricView: UIView {
 
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        let selectBtnLayer = songSelectorBtn.gradient(colors: [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor])
+        let selectBtnLayer = songSelectorBtn.gradient(colors: [UIColor.tui_color(withHex:"FF88DD").cgColor,
+                                                               UIColor.tui_color(withHex: "7D00BD").cgColor])
         selectBtnLayer.startPoint = CGPoint(x: 0, y: 0.5)
         selectBtnLayer.endPoint = CGPoint(x: 1, y: 0.5)
         songSelectorBtn.layer.cornerRadius = songSelectorBtn.frame.height * 0.5
@@ -199,7 +201,7 @@ class TRTCLyricView: UIView {
             musicNameLabel.text = music.musicName
             currentMusicModel = music
             if music.music.isContentReady {
-                startChorusBtnLayer.colors = [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor]
+                startChorusBtnLayer.colors = [UIColor.tui_color(withHex: "FF88DD").cgColor, UIColor.tui_color(withHex: "7D00BD").cgColor]
                 startChorusBtn.isUserInteractionEnabled = true
             } else {
                 startChorusBtnLayer.colors = [UIColor.gray.cgColor,UIColor.gray.cgColor]
@@ -348,7 +350,7 @@ class TRTCLyricView: UIView {
         }
 
         if currentMusicModel.music.getMusicId() == musicId {
-            startChorusBtnLayer.colors = [UIColor(hex: "FF88DD").cgColor, UIColor(hex: "7D00BD").cgColor]
+            startChorusBtnLayer.colors = [UIColor.tui_color(withHex: "FF88DD").cgColor, UIColor.tui_color(withHex: "7D00BD").cgColor]
             startChorusBtn.isUserInteractionEnabled = true
         } else {
             TRTCLog.out("___ currentMusicModel.music.getMusicId() is \(currentMusicModel.music.getMusicId()), musicId = \(musicId)")

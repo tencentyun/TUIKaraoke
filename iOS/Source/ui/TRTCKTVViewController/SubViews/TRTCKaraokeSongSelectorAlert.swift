@@ -52,7 +52,7 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
 
     lazy var btnSelectLineView: UIView = {
         let view = UIView(frame: .zero)
-        view.backgroundColor = UIColor(hex: "F95F91")
+        view.backgroundColor = UIColor.tui_color(withHex: "F95F91")
         view.layer.cornerRadius = 2
         return view
     }()
@@ -251,7 +251,7 @@ fileprivate extension UIButton {
 
         let selAttr = NSMutableAttributedString(string: title)
         selAttr.addAttribute(.font, value: UIFont(name: "PingFangSC-Medium", size: 18) ?? UIFont.systemFont(ofSize: 18), range: totalRange)
-        selAttr.addAttribute(.foregroundColor, value: UIColor(hex: "F95F91") ?? .systemPink, range: totalRange)
+        selAttr.addAttribute(.foregroundColor, value: UIColor.tui_color(withHex: "F95F91") ?? .systemPink, range: totalRange)
         setAttributedTitle(selAttr, for: .selected)
 
         let norAttr = NSMutableAttributedString(string: title)
