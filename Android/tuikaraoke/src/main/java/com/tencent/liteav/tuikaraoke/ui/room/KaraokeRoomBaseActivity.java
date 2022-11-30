@@ -155,9 +155,9 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     public  KaraokeMusicService   mKaraokeMusicService;
     private String                mRoomDefaultCover =
             "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover1.png";
-    private boolean            mIsDestroyed;
-    private String             mPackageName = "com.tencent.liteav.tuikaraoke.model.music.KaraokeMusicServiceImpl";
-    public  RoomInfoController mRoomInfoController;
+    private boolean               mIsDestroyed;
+    private String                mPakcageName      = "com.tencent.liteav.demo.karaokeimpl.KaraokeMusicServiceImpl";
+    public  RoomInfoController    mRoomInfoController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,7 +183,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     // 通过反射创建歌曲管理实现类的实例
     public void createKTVMusicImpl() {
         try {
-            Class clz = Class.forName(mPackageName);
+            Class clz = Class.forName(mPakcageName);
             Constructor constructor = clz.getConstructor(Context.class);
             mKaraokeMusicService = (KaraokeMusicService) constructor.newInstance(this);
         } catch (Exception e) {

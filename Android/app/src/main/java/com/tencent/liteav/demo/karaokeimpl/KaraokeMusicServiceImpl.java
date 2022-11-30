@@ -1,4 +1,4 @@
-package com.tencent.liteav.tuikaraoke.model.music;
+package com.tencent.liteav.demo.karaokeimpl;
 
 import android.content.Context;
 import android.text.TextUtils;
@@ -56,6 +56,16 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
 
     private String mUserId;             //当前用户id
 
+    public KaraokeMusicServiceImpl() {
+        mMusicLibraryList = new ArrayList<>();
+        mMusicSelectedList = new ArrayList<>();
+        mSimpleListener = new KTVMusicListener();
+        // 初始化IM
+        initIMListener();
+        UserModel userModel = UserModelManager.getInstance().getUserModel();
+        mUserId = userModel.userId;
+        TRTCKaraokeRoomManager.getInstance().addCallback(this);
+    }
 
     public KaraokeMusicServiceImpl(Context context) {
         mContext = context;
@@ -66,8 +76,6 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         initIMListener();
         UserModel userModel = UserModelManager.getInstance().getUserModel();
         mUserId = userModel.userId;
-        TRTCKaraokeRoomManager.getInstance().addCallback(this);
-        TRTCLogger.i(TAG, "KaraokeMusicServiceImpl from tuikaraoke constructor");
     }
 
     @Override
