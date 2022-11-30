@@ -110,8 +110,7 @@ class TRTCKaraokeRootView: UIView {
     
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        let bgGradientLayer = bgView.gradient(colors: [UIColor.tui_color(withHex: "FF88DD").cgColor,
-                                                       UIColor.tui_color(withHex: "1E009B").cgColor])
+        let bgGradientLayer = bgView.gradient(colors: [UIColor(hex: "FF88DD")!.cgColor, UIColor(hex: "1E009B")!.cgColor])
         bgGradientLayer.startPoint = CGPoint(x: 0.8, y: 0)
         bgGradientLayer.endPoint = CGPoint(x: 0.2, y: 1)
     }

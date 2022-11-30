@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <TXLiteAVSDK_TRTC/TRTCCloud.h>
+#import <TXLiteAVSDK_Professional/TRTCCloud.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

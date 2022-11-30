@@ -7,7 +7,7 @@
 //
 
 #import "ChorusExtension.h"
-#import <TXLiteAVSDK_TRTC/TXLiveBase.h>
+#import <TXLiteAVSDK_Professional/TXLiveBase.h>
 #import "TXKaraokeBaseDef.h"
 
 //通用宏定义

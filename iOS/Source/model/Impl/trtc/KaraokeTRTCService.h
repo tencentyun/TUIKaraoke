@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "TXKaraokeBaseDef.h"
-#import <TXLiteAVSDK_TRTC/TXAudioEffectManager.h>
+#import <TXLiteAVSDK_Professional/TXAudioEffectManager.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

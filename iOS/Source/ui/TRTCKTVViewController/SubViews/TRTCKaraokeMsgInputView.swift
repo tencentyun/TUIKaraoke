@@ -35,7 +35,7 @@ class TRTCKaraokeMsgInputView: UIView {
     let sendButton: UIButton = {
         let button = UIButton.init(type: .custom)
         button.setTitle(.sendText, for: .normal)
-        button.backgroundColor = UIColor.tui_color(withHex: "29CC85")
+        button.backgroundColor = UIColor(hex: "29CC85")
         button.titleLabel?.textColor = .white
         button.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 14)
         button.layer.cornerRadius = 18
