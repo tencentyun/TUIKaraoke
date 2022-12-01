@@ -33,7 +33,7 @@ class TRTCKaraokeTipsWelcomCell: UITableViewCell {
         label.numberOfLines = 0
         let urlStr = TRTCKaraokeTipsWelcomCell.urlText
         let totalStr = localizeReplaceXX(.welcomeText, urlStr)
-        let urlColor = UIColor.tui_color(withHex: "0063FF") ?? UIColor.blue
+        let urlColor = UIColor(hex: "0063FF") ?? UIColor.blue
         let totalRange = NSRange(location: 0, length: totalStr.count)
         var urlRange = totalRange
         if let range = totalStr.range(of: urlStr) {
@@ -41,7 +41,7 @@ class TRTCKaraokeTipsWelcomCell: UITableViewCell {
         }
         let attr = NSMutableAttributedString(string: totalStr)
         attr.addAttribute(NSAttributedString.Key.font, value: UIFont(name: "PingFangSC-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14), range: totalRange)
-        attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.tui_color(withHex: "3CCFA5") ?? UIColor.green, range: totalRange)
+        attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor(hex: "3CCFA5") ?? UIColor.green, range: totalRange)
         attr.addAttribute(NSAttributedString.Key.font, value: UIFont(name: "PingFangSC-Medium", size: 14) ?? UIFont.systemFont(ofSize: 14), range: urlRange)
         attr.addAttribute(NSAttributedString.Key.foregroundColor, value: urlColor, range: urlRange)
         attr.addAttribute(NSAttributedString.Key.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: urlRange)
@@ -115,7 +115,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
     
     let acceptButton: UIButton = {
         let button = UIButton.init(type: .custom)
-        button.backgroundColor = UIColor.tui_color(withHex: "29CC85")
+        button.backgroundColor = UIColor(hex: "29CC85")
         button.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 14)
         button.setTitle(.acceptText, for: .normal)
         button.setTitleColor(UIColor.white, for: .normal)
@@ -128,7 +128,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
     lazy var manageSongBtn: UIButton = {
         let btn = UIButton(type: .custom)
         btn.setTitle(.manageSongText, for: .normal)
-        btn.setTitleColor(UIColor.tui_color(withHex: "F95F91"), for: .normal)
+        btn.setTitleColor(UIColor(hex: "F95F91"), for: .normal)
         btn.titleLabel?.font = UIFont(name: "PingFangSC-Regular", size: 14)
         btn.titleLabel?.adjustsFontSizeToFitWidth = true
         btn.adjustsImageWhenHighlighted = false
@@ -273,13 +273,13 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
     
     private lazy var nameColors : [UIColor] = {
         var color : [UIColor] = []
-        color.append(UIColor.tui_color(withHex: "3074FD") ?? .white)
-        color.append(UIColor.tui_color(withHex: "3CCFA5") ?? .white)
-        color.append(UIColor.tui_color(withHex: "FF8607") ?? .white)
-        color.append(UIColor.tui_color(withHex: "F7AF97") ?? .white)
-        color.append(UIColor.tui_color(withHex: "FF8BB7") ?? .white)
-        color.append(UIColor.tui_color(withHex: "FC6091") ?? .white)
-        color.append(UIColor.tui_color(withHex: "FCAF41") ?? .white)
+        color.append(UIColor(hex: "3074FD") ?? .white)
+        color.append(UIColor(hex: "3CCFA5") ?? .white)
+        color.append(UIColor(hex: "FF8607") ?? .white)
+        color.append(UIColor(hex: "F7AF97") ?? .white)
+        color.append(UIColor(hex: "FF8BB7") ?? .white)
+        color.append(UIColor(hex: "FC6091") ?? .white)
+        color.append(UIColor(hex: "FCAF41") ?? .white)
         return color
     }()
     
