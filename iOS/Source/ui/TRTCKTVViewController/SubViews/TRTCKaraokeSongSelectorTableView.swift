@@ -194,9 +194,9 @@ class TRTCKaraokeSongSelectorTableViewCell: UITableViewCell {
         let selRange = NSRange(location: 0, length: selTitle.count)
         let selAttr = NSMutableAttributedString(string: selTitle)
         selAttr.addAttribute(.font, value: UIFont(name: "PingFangSC-Medium", size: 14) ?? UIFont.systemFont(ofSize: 14), range: selRange)
-        selAttr.addAttribute(.foregroundColor, value: UIColor.tui_color(withHex: "7FABFC"), range: selRange)
+        selAttr.addAttribute(.foregroundColor, value: UIColor(hex: "7FABFC")!, range: selRange)
         btn.setAttributedTitle(selAttr, for: .normal)
-        btn.layer.borderColor = UIColor.tui_color(withHex: "7FABFC").cgColor
+        btn.layer.borderColor = UIColor(hex: "7FABFC")!.cgColor
         btn.layer.borderWidth = 1
         btn.clipsToBounds = true
         btn.bounds.size = CGSize(width: 76, height: 38)
@@ -273,8 +273,7 @@ class TRTCKaraokeSongSelectorTableViewCell: UITableViewCell {
 
     func reloadSongSelectorBtnState() {
         if songSelectBtn.isEnabled {
-            let selectBtnLayer = songSelectBtn.gradient(colors: [UIColor.tui_color(withHex: "FF88DD").cgColor,
-                                                                 UIColor.tui_color(withHex: "7D00BD").cgColor,])
+            let selectBtnLayer = songSelectBtn.gradient(colors: [UIColor(hex: "FF88DD")!.cgColor, UIColor(hex: "7D00BD")!.cgColor])
             selectBtnLayer.startPoint = CGPoint(x: 0, y: 0.5)
             selectBtnLayer.endPoint = CGPoint(x: 1, y: 0.5)
 
