@@ -255,6 +255,10 @@ public class KaraokeMusicModel: NSObject {
     public var contentUrl: String {
         return music.muscicLocalPath
     }
+    
+    public var accompanyUrl: String {
+        return music.accompanyLocalPath
+    }
 
     public var lrcUrl: String {
         return music.lrcLocalPath

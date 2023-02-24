@@ -7,7 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <TXLiteAVSDK_TRTC/TRTCCloud.h>
+@class TRTCCloud;
+@class TRTCParams;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -69,24 +70,39 @@ typedef NS_ENUM(NSInteger, ChorusStopReason) {
  * @note 此回调将musicId回传出去用来对接曲库查询歌曲信息并调用歌曲播放接口
  */
 - (void)onReceiveAnchorSendChorusMsg:(NSString *)musicID startDelay:(NSInteger)startDelay;
+
+/**
+ * 更新网络NTP时间回调
+ * @param errCode       错误码
+ * @param errMsg        错误信息
+ * @param retryHandler  重新更新网络时间
+ * @note 此回调将返回更新NTP网络时间出错时的错误码和错误信息
+ */
+- (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg retryHandler:(void (^)(BOOL shouldRetry))retryHandler;
 @end
 
 @interface ChorusExtension : NSObject
 @property (nonatomic, weak) id<ChorusExtensionDelegate> delegate;
 @property (nonatomic, assign, readonly) BOOL isChorusOn;    ///是否在合唱中
+@property (nonatomic, assign) BOOL isOriginMusic;           ///是否为原唱
 
-/// 初始化方法
-- (instancetype)init;
+/**
+ * 初始化合唱扩展
+ * @param voiceCloud 人声实例
+ * @param bgmCloud   背景音乐实例
+ */
+- (instancetype)initWithVoiceCloud:(TRTCCloud *)voiceCloud bgmCloud:(TRTCCloud *)bgmCloud;
 
 /**
  * 开始合唱
  * 调用后，会收到 onChorusStart 回调，并且房间内的远端用户也会开始合唱
- * @param musicId 歌曲ID
- * @param url 歌曲url
+ * @param musicId      歌曲ID
+ * @param originalUrl  歌曲URL
+ * @param accompanyUrl 伴奏URL
  * @param reason 开始合唱的身份
  * @note 中途加入的用户也会一并开始合唱，音乐进度会与其它用户自动对齐
  */
-- (BOOL)startChorus:(NSString *)musicId url:(NSString *)url reason:(ChorusStartReason)reason;
+- (BOOL)startChorus:(NSString *)musicId originalUrl:(NSString *)originalUrl accompanyUrl:(NSString *)accompanyUrl reason:(ChorusStartReason)reason;
 
 /**
  * 停止合唱
@@ -105,26 +121,6 @@ typedef NS_ENUM(NSInteger, ChorusStopReason) {
                            cmdID:(NSInteger)cmdId
                              seq:(UInt32)seq
                          message:(NSData *)message;
-
-
-/**
- * 创建人声推送实例
- * @param trtcParams 人声实例进房参数
- */
-- (TRTCCloud *)createVoiceTRTCInstanceWith:(TRTCParams *)trtcParams;
-
-/**
- *  创建背景音乐推送实例
- * @param trtcParams 背景音乐实例进房参数
- */
-- (TRTCCloud *)createBGMTRTCInstanceWith:(TRTCParams *)trtcParams;
-
-/**
- *  静音主唱的背景音乐流
- * @param remoteAudioId 背景音乐流Id
- */
-- (void)muteRemoteBGMAudio:(NSString *)remoteAudioId;
-
 /**
  *  创建混流机器人
  * @param userId 用户Id

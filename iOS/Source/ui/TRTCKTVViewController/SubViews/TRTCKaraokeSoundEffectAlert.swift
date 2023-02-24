@@ -132,7 +132,7 @@ extension TRTCKaraokeSoundEffectAlert : UITableViewDataSource, UITableViewDelega
             let cell = tableView.dequeueReusableCell(withIdentifier: "TRTCKaraokeSoundEffectSliderCell", for: indexPath)
             if let scell = cell as? TRTCKaraokeSoundEffectSliderCell {
                 scell.titleLabel.text = .musicVolumeText
-                scell.set(100, 0, Float(effectViewModel.currentMusicVolum))
+                scell.set(100, 0, Float(effectViewModel.musicVolume))
                 scell.valueChanged = { [weak self] (current) in
                     guard let `self` = self else { return }
                     self.effectViewModel.setVolume(music: Int(current))
@@ -143,10 +143,10 @@ extension TRTCKaraokeSoundEffectAlert : UITableViewDataSource, UITableViewDelega
             let cell = tableView.dequeueReusableCell(withIdentifier: "TRTCKaraokeSoundEffectSliderCell", for: indexPath)
             if let scell = cell as? TRTCKaraokeSoundEffectSliderCell {
                 scell.titleLabel.text = .vocalVolumeText
-                scell.set(100, 0, Float(effectViewModel.currentVocalVolume))
+                scell.set(100, 0, Float(effectViewModel.voiceVolume))
                 scell.valueChanged = { [weak self] (current) in
                     guard let `self` = self else { return }
-                    self.effectViewModel.setVolume(person: Int(current))
+                    self.effectViewModel.setVolume(voice: Int(current))
                 }
             }
             return cell
@@ -154,10 +154,10 @@ extension TRTCKaraokeSoundEffectAlert : UITableViewDataSource, UITableViewDelega
             let cell = tableView.dequeueReusableCell(withIdentifier: "TRTCKaraokeSoundEffectSliderCell", for: indexPath)
             if let scell = cell as? TRTCKaraokeSoundEffectSliderCell {
                 scell.titleLabel.text = .vocalRiseFallText
-                scell.set(1, -1, Float(effectViewModel.currentPitchVolum))
+                scell.set(1, -1, Float(effectViewModel.musicPitch))
                 scell.valueChanged = { [weak self] (current) in
                     guard let `self` = self else { return }
-                    self.effectViewModel.setPitch(person: Double(current))
+                    self.effectViewModel.setMusic(pitch: Double(current))
                 }
             }
             return cell
@@ -265,7 +265,7 @@ class TRTCKaraokeSoundEffectSwitchCell: TRTCKaraokeSoundEffectBaseCell {
     
     lazy var onOff: UISwitch = {
         let onoff = UISwitch(frame: .zero)
-        onoff.onTintColor = UIColor(hex: "F95F91")
+        onoff.onTintColor = UIColor.tui_color(withHex: "F95F91")
         return onoff
     }()
     
@@ -341,8 +341,8 @@ class TRTCKaraokeSoundEffectSliderCell: TRTCKaraokeSoundEffectBaseCell {
     lazy var slider: TRTCKaraokeSoundEffectSlider = {
         let slider = TRTCKaraokeSoundEffectSlider(frame: .zero)
         slider.setThumbImage(UIImage(named: "Slider", in: karaokeBundle(), compatibleWith: nil), for: .normal)
-        slider.minimumTrackTintColor = UIColor(hex: "F95F91")
-        slider.maximumTrackTintColor = UIColor(hex: "F4F5F9")
+        slider.minimumTrackTintColor = UIColor.tui_color(withHex: "F95F91")
+        slider.maximumTrackTintColor = UIColor.tui_color(withHex: "F4F5F9")
         return slider
     }()
     
@@ -452,7 +452,7 @@ class TRTCKaraokeSoundEffectDetailCell: TRTCKaraokeSoundEffectBaseCell {
     lazy var descLabel: UILabel = {
         let label = UILabel(frame: .zero)
         label.font = UIFont(name: "PingFangSC-Regular", size: 16)
-        label.textColor = UIColor(hex: "999999")
+        label.textColor = UIColor.tui_color(withHex: "999999")
         return label
     }()
     
@@ -620,8 +620,8 @@ class TRTCKaraokeSoundEffectCellForCollectionCell: UICollectionViewCell {
     lazy var titleLabel: UILabel = {
         let label = UILabel(frame: .zero)
         label.font = UIFont(name: "PingFangSC-Regular", size: 12)
-        label.textColor = UIColor(hex: "666666")
-        label.highlightedTextColor = UIColor(hex: "006EFF")
+        label.textColor = UIColor.tui_color(withHex: "666666")
+        label.highlightedTextColor = UIColor.tui_color(withHex: "006EFF")
         label.adjustsFontSizeToFitWidth = true
         label.textAlignment = .center
         return label

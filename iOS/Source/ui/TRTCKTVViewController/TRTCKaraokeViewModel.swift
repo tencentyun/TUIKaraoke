@@ -35,6 +35,7 @@ protocol TRTCKaraokeViewResponder: AnyObject {
     func showAudienceAlert(seat: SeatInfoModel)
     func showGiftAnimation(giftInfo: TUIGiftInfo)
     func onUpdateDownloadMusic(musicId: String)
+    func showUpdateNetworkAlert(info: (isUpdateSuccessed: Bool, message: String), retryAction: (() -> Void)?, cancelAction: @escaping (() -> Void))
 }
 
 class TRTCKaraokeViewModel: NSObject {
@@ -98,6 +99,9 @@ class TRTCKaraokeViewModel: NSObject {
     private var mPickSeatInvitationDic: [String: SeatInvitation] = [:]
     
     public var userMuteMap : [String : Bool] = [:]
+    
+    /// NTP网络校时是否成功
+    var updateNetworkSuccessed: Bool = false
     
     /// 初始化方法
     /// - Parameter container: 依赖管理容器，负责Karaoke模块的依赖管理
@@ -166,6 +170,7 @@ class TRTCKaraokeViewModel: NSObject {
             self.isExitingRoom = false
             completion()
         }
+        updateNetworkSuccessed = false
     }
     
     public var voiceEarMonitor: Bool = false {
@@ -666,9 +671,35 @@ extension TRTCKaraokeViewModel {
 
 // MARK:- room delegate
 extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
-    func genUserSign(_ userId: String, completion: @escaping (String) -> Void) {
+    func genUserSign(userId: String, completion: @escaping (String) -> Void) {
         if let delegate = dependencyContainer.delegate {
             delegate.genUserSign(userId: userId, completion: completion)
+        }
+    }
+    
+    func onUpdateNetworkTime(errCode: Int32, message errMsg: String, retryHandler: @escaping (Bool) -> Void) {
+        /*
+         errCode 0 为合适参与合唱；
+                 1 建议 UI 提醒当前网络不够好，可能会影响合唱效果；
+                -1 需要重新校时（同样建议 UI 提醒）
+         */
+        if errCode == 0 || errCode == 1 {
+            updateNetworkSuccessed = true
+            viewResponder?.showUpdateNetworkAlert(info: (isUpdateSuccessed: true,
+                                                         message: .updateNetworkSuccessedText),
+                                                  retryAction: {
+            }, cancelAction: {
+                retryHandler(false)
+            })
+        } else {
+            updateNetworkSuccessed = false
+            viewResponder?.showUpdateNetworkAlert(info: (isUpdateSuccessed: false,
+                                                         message: .updateNetworkFailedText),
+                                                  retryAction: {
+                retryHandler(true)
+            }, cancelAction: {
+                retryHandler(false)
+            })
         }
     }
     
@@ -682,8 +713,10 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
                 guard let self = self else { return }
                 if musicModel.musicID == musicID {
                     self.effectViewModel.viewResponder?.showStartAnimationAndPlay(startDelay: startDelay)
-                    self.effectViewModel.setVolume(music: self.effectViewModel.currentMusicVolum)
-                    self.Karaoke.startPlayMusic(musicID: musicModel.musicID, originalUrl: musicModel.contentUrl, accompanyUrl: "")
+                    self.effectViewModel.setVolume(music: self.effectViewModel.musicVolume)
+                    self.Karaoke.startPlayMusic(musicID: musicModel.musicID,
+                                                originalUrl: musicModel.contentUrl,
+                                                accompanyUrl: musicModel.accompanyUrl)
                     return
                 }
             }
@@ -1031,17 +1064,20 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
     }
     
     func onMusicPrepareToPlay(musicID: Int32) {
-        effectViewModel.viewResponder?.bgmOnPrepareToPlay(performId: musicID)
+        effectViewModel.viewResponder?.bgmOnPrepareToPlay(musicId: musicID)
         musicDataSource?.prepareToPlay(musicID: String(musicID))
     }
     
     func onMusicProgressUpdate(musicID: Int32, progress: Int, total: Int) {
-        effectViewModel.viewResponder?.bgmOnPlaying(performId: musicID, current: Double(progress) / 1000.0, total: Double(total) / 1000.0)
+        effectViewModel.viewResponder?.bgmOnPlaying(musicId: musicID,
+                                                    current: Double(progress) / 1_000.0,
+                                                    total: Double(total) / 1_000.0)
     }
     
     func onMusicCompletePlaying(musicID: Int32) {
         effectViewModel.currentPlayingModel = nil
         musicDataSource?.completePlaying(musicID: String(musicID))
+        effectViewModel.viewResponder?.bgmOnPrepareToPlay(musicId: 0)
     }
 }
 
@@ -1060,7 +1096,7 @@ extension TRTCKaraokeViewModel: KaraokeMusicServiceDelegate {
     }
     
     func onShouldSetLyric(musicID: String) {
-        effectViewModel.viewResponder?.bgmOnPrepareToPlay(performId: Int32(musicID) ?? 0)
+        effectViewModel.viewResponder?.bgmOnPrepareToPlay(musicId: Int32(musicID) ?? 0)
     }
     
     func onShouldPlay(_ music: KaraokeMusicModel) -> Bool {
@@ -1160,4 +1196,6 @@ fileprivate extension String {
     static let lockSeatText = karaokeLocalize("Demo.TRTC.Karaoke.lockseat")
     static let unlockSeatText = karaokeLocalize("Demo.TRTC.Karaoke.unlockseat")
     static let xxSeatSelectzzSongText = karaokeLocalize("Demo.TRTC.Karaoke.xxmicyyselectzz")
+    static let updateNetworkSuccessedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkSuccessed")
+    static let updateNetworkFailedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
 }

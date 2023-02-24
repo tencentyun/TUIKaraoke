@@ -12,8 +12,7 @@ Pod::Spec.new do |spec|
   spec.swift_version = '5.0'
 
   spec.dependency 'TXAppBasic'
-  spec.dependency 'TXIMSDK_Plus_iOS', '>= 5.7.1435'
-  spec.dependency 'TUICore'
+  spec.dependency 'TUICore/ImSDK_Scenario'
 #  Swift第三方库
   spec.dependency 'Alamofire'
   spec.dependency 'SnapKit'

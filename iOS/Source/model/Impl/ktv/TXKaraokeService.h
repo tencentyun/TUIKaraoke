@@ -28,7 +28,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onInviteeAcceptedWithIdentifier:(NSString *)identifier invitee:(NSString *)invitee;
 - (void)onInviteeRejectedWithIdentifier:(NSString *)identifier invitee:(NSString *)invitee;
 - (void)onInviteeCancelledWithIdentifier:(NSString *)identifier invitee:(NSString *)invitee;
-- (void)onReceiveInstructionMsg:(NSString *)instruction;
 @end
 
 static int gKaraoke_SERVICE_CODE_ERROR = -1;
@@ -69,7 +68,6 @@ static int gKaraoke_SERVICE_CODE_ERROR = -1;
 - (void)sendRoomTextMsg:(NSString *)msg callback:(TXKaraokeCallback _Nullable)callback;
 - (void)sendRoomCustomMsg:(NSString *)cmd message:(NSString *)message callback:(TXKaraokeCallback _Nullable)callback;
 - (void)sendGroupMsg:(NSString *)message callback:(TXKaraokeCallback _Nullable)callback;
-- (void)sendInstructionMsg:(NSString *)instruction callback:(TXKaraokeCallback _Nullable)callback;
 - (void)getAudienceList:(TXKaraokeUserListCallback _Nullable)callback;
 - (void)getRoomInfoList:(NSArray<NSString *> *)roomIds calback:(TXKaraokeRoomInfoListCallback _Nullable)callback;
 - (void)destroy;

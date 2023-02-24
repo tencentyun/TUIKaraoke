@@ -268,7 +268,7 @@ NS_ASSUME_NONNULL_BEGIN
 */
 - (TXAudioEffectManager *)getVoiceAudioEffectManager;
 
-- (TXAudioEffectManager *)getBGMAudioEffectManager;
+- (TXAudioEffectManager *)getMusicAudioEffectManager;
 
 #pragma mark - 消发送接口
 /**
@@ -355,9 +355,52 @@ NS_ASSUME_NONNULL_BEGIN
 /**
 * 切换原声/伴奏
 * - parameter isOriginal 传入 true 为原声，false 为伴奏
- */
-- (void)switchToOriginalVolume:(BOOL)isOriginal
-NS_SWIFT_NAME(switchToOriginalVolume(isOriginal:));
+* - parameter musicVolume 传入 音量大小
+*/
+- (void)switchMusicAccompanimentMode:(BOOL)isOriginal
+NS_SWIFT_NAME(switchMusicAccompanimentMode(isOriginal:));
+
+/**
+* 设置音乐音量大小
+* - parameter musicVolume 音乐音量大小
+*/
+- (void)updateMusicVolume:(NSInteger)musicVolume
+NS_SWIFT_NAME(updateMusicVolume(musicVolume:));
+
+/**
+* 设置耳返
+* - parameter enable 耳返开关
+*/
+- (void)enableVoiceEarMonitor:(BOOL)enable
+NS_SWIFT_NAME(enableVoiceEarMonitor(enable:));
+
+/**
+* 设置人声音量
+* - parameter voiceVolume 人声音量
+*/
+- (void)setVoiceVolume:(NSInteger)voiceVolume
+NS_SWIFT_NAME(setVoiceVolume(voiceVolume:));
+
+/**
+* 设置音乐音调
+* - parameter musicPitch 音乐音调
+*/
+- (void)setMusicPitch:(double)musicPitch
+NS_SWIFT_NAME(setMusicPitch(musicPitch:));
+
+/**
+* 设置人声混响
+* - parameter reverbType 混响特效
+*/
+- (void)setVoiceReverbType:(NSInteger)reverbType
+NS_SWIFT_NAME(setVoiceReverbType(reverbType:));
+
+/**
+* 设置人声变声
+* - parameter changerType 变声特效
+*/
+- (void)setVoiceChangerType:(NSInteger)changerType
+NS_SWIFT_NAME(setVoiceChangerType(changerType:));
 
 @end
 
