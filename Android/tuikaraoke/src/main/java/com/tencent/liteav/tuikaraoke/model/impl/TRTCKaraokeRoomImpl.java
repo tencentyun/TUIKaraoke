@@ -6,6 +6,8 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 import com.tencent.liteav.audio.TXAudioEffectManager;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
@@ -67,11 +69,41 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     private boolean            mIsAuthor;         //是否是主播
     private int                mRoomId;
     private TRTCKtvRoomService mTRTCVoiceService; //人声实例
-    private TRTCKtvRoomService mTRTCBgmService;   //bgm实例
+    private TRTCKtvRoomService mTRTCMusicService; //音乐实例
     private String             mBgmUserId;        //双实例bgm流的userId
     private String             mMixRobotUserId;   //混流机器人userId
     private ChorusExtension    mChorusExtension;
     private String             mBgmUserSig;
+
+    // 音乐播放相关变量
+    private int     mCurrentPlayingOriginalMusicID = 0;
+    private boolean mIsOriginalMusic = true;
+    private int     mMusicVolume = 100;
+    private float   mMusicPitch  = 0.0f;
+
+    private static final TXAudioEffectManager.TXVoiceChangerType[] VOICE_CHANGER_ARR = {
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_0,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_1,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_2,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_3,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_4,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_5,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_6,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_7,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_8,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_9,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_10,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_11};
+
+    private static final TXAudioEffectManager.TXVoiceReverbType[] VOICE_REVERB_ARR = {
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_0,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_1,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_2,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_3,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_4,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_5,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_6,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_7};
 
     public static synchronized TRTCKaraokeRoom sharedInstance(Context context) {
         if (sInstance == null) {
@@ -102,9 +134,9 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         TXRoomService.getInstance().setDelegate(this);
     }
 
-    private TRTCKtvRoomService createBgmService() {
+    private TRTCKtvRoomService createMusicService() {
         TRTCCloud voiceCloud = mTRTCVoiceService.getMainCloud();
-        TRTCKtvRoomService service = new TRTCKtvRoomService(voiceCloud, TRTCKtvRoomService.AUDIO_BGM_MUSIC);
+        TRTCKtvRoomService service = new TRTCKtvRoomService(voiceCloud, TRTCKtvRoomService.AUDIO_MUSIC);
         return service;
     }
 
@@ -118,10 +150,24 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         if (mTRTCVoiceService != null) {
             mTRTCVoiceService.setDelegate(null);
         }
-        mTRTCBgmService = null;
+        resetAudioEffect();
+        mTRTCMusicService = null;
         mTRTCVoiceService = null;
         mChorusExtension = null;
         mIsAuthor = false;
+        mTakeSeatIndex = -1;
+    }
+
+    private void resetAudioEffect() {
+        mCurrentPlayingOriginalMusicID = 0;
+        mIsOriginalMusic = true;
+        mMusicVolume = 100;
+        mMusicPitch  = 0.0f;
+
+        setVoiceChangerType(0);
+        setVoiceReverbType(0);
+        enableVoiceEarMonitor(false);
+        setVoiceVolume(100);
     }
 
     private void runOnMainThread(Runnable runnable) {
@@ -264,11 +310,10 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
                 mRoomId = roomId;
                 mIsAuthor = true;
                 final String strRoomId = String.valueOf(roomId);
-                clearList();
                 mTRTCVoiceService = new TRTCKtvRoomService(mContext, TRTCKtvRoomService.AUDIO_VOICE);
                 mTRTCVoiceService.setDelegate(TRTCKaraokeRoomImpl.this);
-                mTRTCBgmService = createBgmService();
-                mChorusExtension = new ChorusExtension(mContext, mTRTCVoiceService, mTRTCBgmService);
+                mTRTCMusicService = createMusicService();
+                mChorusExtension = new ChorusExtension(mContext, mTRTCVoiceService, mTRTCMusicService);
                 mChorusExtension.setListener(TRTCKaraokeRoomImpl.this);
                 final String roomName = (roomParam == null ? "" : roomParam.roomName);
                 final String roomCover = (roomParam == null ? "" : roomParam.coverUrl);
@@ -349,7 +394,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
                 // TRTC 房间退房结果不关心
                 TRTCLogger.i(TAG, "start exit trtc room.");
                 mTRTCVoiceService.stopTRTCPublish();
-                mTRTCBgmService.destroySubCloud();
+                mTRTCMusicService.destroySubCloud();
                 mTRTCVoiceService.exitRoom(new TXCallback() {
                     @Override
                     public void onCallback(final int code, final String msg) {
@@ -394,8 +439,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                // 恢复设定
-                clearList();
                 mRoomId = roomId;
                 mTRTCVoiceService = new TRTCKtvRoomService(mContext, TRTCKtvRoomService.AUDIO_VOICE);
                 mTRTCVoiceService.setDelegate(TRTCKaraokeRoomImpl.this);
@@ -472,8 +515,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     private void exitRoomInternal(final TRTCKaraokeRoomCallback.ActionCallback callback) {
-        if (mTRTCBgmService != null) {
-            mTRTCBgmService.destroySubCloud();
+        if (mTRTCMusicService != null) {
+            mTRTCMusicService.destroySubCloud();
         }
         if (mTRTCVoiceService != null) {
             mTRTCVoiceService.exitRoom(new TXCallback() {
@@ -927,9 +970,9 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public TXAudioEffectManager getBgmMusicAudioEffectManager() {
-        if (mTRTCBgmService != null) {
-            return mTRTCBgmService.getAudioEffectManager();
+    public TXAudioEffectManager getMusicAudioEffectManager() {
+        if (mTRTCMusicService != null) {
+            return mTRTCMusicService.getAudioEffectManager();
         }
         if (mTRTCVoiceService != null) {
             return mTRTCVoiceService.getAudioEffectManager();
@@ -1091,8 +1134,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
                 });
                 if (code == 0) {
                     if (TXRoomService.getInstance().isOwner()) {
-                        mTRTCBgmService.setDefaultStreamRecvMode(false, false);
-                        mTRTCBgmService.enterRoom(mSdkAppId, roomId, mBgmUserId, mBgmUserSig, role, null);
+                        mTRTCMusicService.setDefaultStreamRecvMode(false, false);
+                        mTRTCMusicService.enterRoom(mSdkAppId, roomId, mBgmUserId, mBgmUserSig, role, null);
                         //房主占座1号麦位
                         enterSeat(0, null);
                         mTRTCVoiceService.muteRemoteAudio(mBgmUserId, true);
@@ -1499,29 +1542,36 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void startPlayMusic(int musicID, String originalUrl) {
+    public void startPlayMusic(int musicID, @NonNull String originalUrl, @NonNull String accompanyUrl) {
+        TRTCLogger.i(TAG, "startPlayMusic musicID=" + musicID + "  originalUrl=" + originalUrl + "  accompanyUrl="
+                + accompanyUrl);
+        if (TextUtils.isEmpty(originalUrl) && TextUtils.isEmpty(accompanyUrl)) {
+            TRTCLogger.e(TAG, "startPlayMusic contains empty param");
+            return;
+        }
+        mCurrentPlayingOriginalMusicID = musicID;
         boolean isOwner = TXRoomService.getInstance().isOwner();
         if (isOwner) {
             enableBlackStream(true);
         }
         if (mChorusExtension != null) {
-            mChorusExtension.startChorus(musicID, originalUrl, isOwner);
+            mChorusExtension.startChorus(musicID, originalUrl, accompanyUrl, isOwner);
         }
+        restoreMusicState();
     }
 
-    public void setMusicVolume(int id, int volume) {
-        if (volume < 0) {
-            volume = 0;
+    private void restoreMusicState() {
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            return;
         }
-        if (volume > 100) {
-            volume = 100;
-        }
-        getBgmMusicAudioEffectManager().setMusicPublishVolume(id, volume);
-        getBgmMusicAudioEffectManager().setMusicPlayoutVolume(id, volume);
+        updateMusicVolumeInner();
+        setMusicPitch(mMusicPitch);
     }
 
     @Override
     public void stopPlayMusic() {
+        TRTCLogger.i(TAG, "stopPlayMusic");
+        mCurrentPlayingOriginalMusicID = 0;
         boolean isOwner = TXRoomService.getInstance().isOwner();
         if (isOwner) {
             enableBlackStream(false);
@@ -1533,14 +1583,130 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void pausePlayMusic() {
-        getBgmMusicAudioEffectManager().pausePlayMusic(TYPE_ORIGIN);
-        getBgmMusicAudioEffectManager().pausePlayMusic(TYPE_ACCOMPANY);
+        TRTCLogger.i(TAG, "pausePlayMusic");
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            TRTCLogger.i(TAG, "pausePlayMusic mCurrentPlayingOriginalMusicID=0");
+            return;
+        }
+        getMusicAudioEffectManager().pausePlayMusic(mCurrentPlayingOriginalMusicID);
+        getMusicAudioEffectManager().pausePlayMusic(mCurrentPlayingOriginalMusicID + 1);
     }
 
     @Override
     public void resumePlayMusic() {
-        getBgmMusicAudioEffectManager().resumePlayMusic(TYPE_ORIGIN);
-        getBgmMusicAudioEffectManager().resumePlayMusic(TYPE_ACCOMPANY);
+        TRTCLogger.i(TAG, "resumePlayMusic");
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            TRTCLogger.i(TAG, "resumePlayMusic mCurrentPlayingOriginalMusicID=0");
+            return;
+        }
+        getMusicAudioEffectManager().resumePlayMusic(mCurrentPlayingOriginalMusicID);
+        getMusicAudioEffectManager().resumePlayMusic(mCurrentPlayingOriginalMusicID + 1);
+    }
+
+    @Override
+    public void switchMusicAccompanimentMode(boolean isOriginal) {
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            TRTCLogger.i(TAG, "switchMusicAccompanimentMode mCurrentPlayingOriginalMusicID=0");
+            return;
+        }
+        if (mIsOriginalMusic == isOriginal) {
+            TRTCLogger.i(TAG, "switchMusicAccompanimentMode mIsOriginalMusic == isOriginal");
+            return;
+        }
+        TRTCLogger.i(TAG, "switchMusicAccompanimentMode isOriginal=" + isOriginal);
+        mIsOriginalMusic = isOriginal;
+
+        mChorusExtension.setOriginMusicState(isOriginal);
+        updateMusicVolumeInner();
+    }
+
+    @Override
+    public void setMusicVolume(int musicVolume) {
+        TRTCLogger.i(TAG, "setMusicVolume musicVolume=" + musicVolume);
+        if (musicVolume < 0 || musicVolume > 100) {
+            musicVolume = 100;
+        }
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            mMusicVolume = musicVolume;
+            return;
+        }
+        mMusicVolume = musicVolume;
+        updateMusicVolumeInner();
+    }
+
+    @Override
+    public void enableVoiceEarMonitor(boolean enable) {
+        TRTCLogger.i(TAG, "enableVoiceEarMonitor enable=" + enable);
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.enableVoiceEarMonitor(enable);
+        }
+    }
+
+    @Override
+    public void setVoiceVolume(int voiceVolume) {
+        TRTCLogger.i(TAG, "setVoiceVolume voiceVolume=" + voiceVolume);
+        if (voiceVolume < 0 || voiceVolume > 100) {
+            voiceVolume = 100;
+        }
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.setVoiceCaptureVolume(voiceVolume);
+        }
+    }
+
+    @Override
+    public void setMusicPitch(float musicPitch) {
+        TRTCLogger.i(TAG, "setMusicPitch musicPitch=" + musicPitch);
+        if (musicPitch < -1.0f || musicPitch > 1.0f) {
+            musicPitch = 0.0f;
+        }
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            mMusicPitch = musicPitch;
+            return;
+        }
+        TXAudioEffectManager musicEffectManager = getMusicAudioEffectManager();
+        musicEffectManager.setMusicPitch(mCurrentPlayingOriginalMusicID, musicPitch);
+        musicEffectManager.setMusicPitch(mCurrentPlayingOriginalMusicID + 1, musicPitch);
+    }
+
+    @Override
+    public void setVoiceReverbType(int reverbType) {
+        TRTCLogger.i(TAG, "setVoiceReverbType reverbType=" + reverbType);
+        if (reverbType < 0 || reverbType >= VOICE_REVERB_ARR.length) {
+            reverbType = 0;
+        }
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.setVoiceReverbType(VOICE_REVERB_ARR[reverbType]);
+        }
+    }
+
+    @Override
+    public void setVoiceChangerType(int changerType) {
+        TRTCLogger.i(TAG, "setVoiceChangerType changerType=" + changerType);
+        if (changerType < 0 || changerType >= VOICE_CHANGER_ARR.length) {
+            changerType = 0;
+        }
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.setVoiceChangerType(VOICE_CHANGER_ARR[changerType]);
+        }
+    }
+
+    private void updateMusicVolumeInner() {
+        TXAudioEffectManager musicEffectManager = getMusicAudioEffectManager();
+        // 设置原唱音量
+        musicEffectManager.setMusicPlayoutVolume(mCurrentPlayingOriginalMusicID,
+                mIsOriginalMusic ? mMusicVolume : 0);
+        musicEffectManager.setMusicPublishVolume(mCurrentPlayingOriginalMusicID,
+                mIsOriginalMusic ? mMusicVolume : 0);
+
+        // 设置伴奏音量
+        musicEffectManager.setMusicPlayoutVolume(mCurrentPlayingOriginalMusicID + 1,
+                mIsOriginalMusic ? 0 : mMusicVolume);
+        musicEffectManager.setMusicPublishVolume(mCurrentPlayingOriginalMusicID + 1,
+                mIsOriginalMusic ? 0 : mMusicVolume);
     }
 
     @Override
@@ -1578,9 +1744,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void onRecvSEIMsg(final String userId, final byte[] data) {
-        if (mIsAuthor) {
-            return;
-        }
         if (data == null) {
             return;
         }
@@ -1591,11 +1754,15 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
             final long progressTime = jsonData.getCurrentTime();
             final int musicId = jsonData.getMusicId();
             final long totalTime = jsonData.getTotalTime();
+            final boolean isOriginMusic = jsonData.getIsOriginMusic();
             runOnDelegateThread(new Runnable() {
                 @Override
                 public void run() {
-                    if (mDelegate != null && data != null) {
+                    if (mDelegate != null && mTakeSeatIndex == -1) {
                         mDelegate.onMusicProgressUpdate(String.valueOf(musicId), progressTime, totalTime);
+                    }
+                    if (!TXRoomService.getInstance().isOwner() && mTakeSeatIndex != -1) {
+                        switchMusicAccompanimentMode(isOriginMusic);
                     }
                 }
             });

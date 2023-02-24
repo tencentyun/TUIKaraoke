@@ -54,6 +54,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
     private static final int AUDIO_VOICE_CHANGER_TYPE_2  = 2;
     private static final int AUDIO_VOICE_CHANGER_TYPE_3  = 3;
     private static final int AUDIO_VOICE_CHANGER_TYPE_11 = 11;
+    private static final int DEFAULT_BGM_VOLUME          = 30;
 
     private Context             mContext;
     private RecyclerView        mRVAudioChangeType;
@@ -76,8 +77,6 @@ public class AudioEffectPanel extends BottomSheetDialog {
     private View             mMusicVoiceGroup;
     private SwitchCompat     mSwitchMusicDuration;
 
-    private IAudioEffectPanelDelegate mDelegate;
-
     private List<ItemEntity> mChangerItemEntityList;
     private List<ItemEntity> mReverbItemEntityList;
 
@@ -98,6 +97,7 @@ public class AudioEffectPanel extends BottomSheetDialog {
         super(context, R.style.TRTCKTVRoomDialogTheme);
         setContentView(R.layout.trtckaraoke_audio_effect_panel);
         mContext = context;
+        mTRTCKaraokeRoom = TRTCKaraokeRoom.sharedInstance(context);
         initView();
         initData();
     }
@@ -105,10 +105,6 @@ public class AudioEffectPanel extends BottomSheetDialog {
     public void setType(String type) {
         mMusicType = type;
         updateView();
-    }
-
-    public void setDelegate(IAudioEffectPanelDelegate delegate) {
-        mDelegate = delegate;
     }
 
     @Override
@@ -189,8 +185,8 @@ public class AudioEffectPanel extends BottomSheetDialog {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 mTvMicVolume.setText(progress + "");
-                if (mDelegate != null) {
-                    mDelegate.onMicVolumeChanged(progress);
+                if (mTRTCKaraokeRoom != null) {
+                    mTRTCKaraokeRoom.setVoiceVolume(progress);
                 }
             }
 
@@ -208,8 +204,8 @@ public class AudioEffectPanel extends BottomSheetDialog {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 mBGMVolume = progress;
                 mTvBGMVolume.setText(progress + "");
-                if (mDelegate != null) {
-                    mDelegate.onMusicVolumeChanged(progress);
+                if (mTRTCKaraokeRoom != null) {
+                    mTRTCKaraokeRoom.setMusicVolume(progress);
                 }
             }
 
@@ -221,14 +217,15 @@ public class AudioEffectPanel extends BottomSheetDialog {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+        mSbBGMVolume.setProgress(DEFAULT_BGM_VOLUME);
 
         mSbPitchLevel.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 float pitch = ((progress - 50) / (float) 50);
                 mTvPitchLevel.setText(pitch + "");
-                if (mDelegate != null) {
-                    mDelegate.onPitchLevelChanged(pitch);
+                if (mTRTCKaraokeRoom != null) {
+                    mTRTCKaraokeRoom.setMusicPitch(pitch);
                 }
             }
 
@@ -250,8 +247,8 @@ public class AudioEffectPanel extends BottomSheetDialog {
             public void onItemClick(int position) {
                 int type = mChangerItemEntityList.get(position).mType;
                 Log.d(TAG, "select changer type " + type);
-                if (mDelegate != null) {
-                    mDelegate.onChangeRV(type);
+                if (mTRTCKaraokeRoom != null) {
+                    mTRTCKaraokeRoom.setVoiceChangerType(type);
                 }
                 mChangerItemEntityList.get(position).mIsSelected = true;
                 mChangerItemEntityList.get(mVoiceChangerPosition).mIsSelected = false;
@@ -271,8 +268,8 @@ public class AudioEffectPanel extends BottomSheetDialog {
             public void onItemClick(int position) {
                 int type = mReverbItemEntityList.get(position).mType;
                 Log.d(TAG, "select reverb type " + type);
-                if (mDelegate != null) {
-                    mDelegate.onReverbRV(type);
+                if (mTRTCKaraokeRoom != null) {
+                    mTRTCKaraokeRoom.setVoiceReverbType(type);
                 }
                 mReverbItemEntityList.get(position).mIsSelected = true;
                 mReverbItemEntityList.get(mVoiceReverbPosition).mIsSelected = false;
@@ -443,15 +440,11 @@ public class AudioEffectPanel extends BottomSheetDialog {
         void onItemClick(int position);
     }
 
-    public void setTRTCKaraokeRoom(TRTCKaraokeRoom trtcKaraokeRoom) {
-        mTRTCKaraokeRoom = trtcKaraokeRoom;
-    }
-
     public void reset() {
         mSbMicVolume.setProgress(100);
         mTvMicVolume.setText("100");
 
-        mBGMVolume = 100;
+        mBGMVolume = DEFAULT_BGM_VOLUME;
         mSbBGMVolume.setProgress(mBGMVolume);
 
         mSbPitchLevel.setProgress(50);

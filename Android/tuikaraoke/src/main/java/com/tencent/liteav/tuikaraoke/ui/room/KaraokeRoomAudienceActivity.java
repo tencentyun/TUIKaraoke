@@ -442,10 +442,10 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
         ToastUtils.showLong(R.string.trtckaraoke_msg_close_room);
         //房主销毁房间,其他人退出房间,并清除自己的信息
         UserModelManager.getInstance().getUserModel().userType = UserModel.UserType.NONE;
-        if (mTUIKaraokeAudioManager != null) {
-            mTUIKaraokeAudioManager.reset();
-            mTUIKaraokeAudioManager.unInit();
-            mTUIKaraokeAudioManager = null;
+        if (mKaraokeAudioViewModel != null) {
+            mKaraokeAudioViewModel.reset();
+            mKaraokeAudioViewModel.unInit();
+            mKaraokeAudioViewModel = null;
         }
         if (mKaraokeMusicService != null) {
             mKaraokeMusicService.onExitRoom();

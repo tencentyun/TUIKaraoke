@@ -18,6 +18,9 @@ public class KaraokeSEIJsonData {
     @SerializedName("total_time")
     private long totalTime;
 
+    @SerializedName("is_origin_music")
+    private boolean isOriginMusic;
+
     public long getCurrentTime() {
         return currentTime;
     }
@@ -41,4 +44,14 @@ public class KaraokeSEIJsonData {
     public void setTotalTime(long totalTime) {
         this.totalTime = totalTime;
     }
+
+
+    public boolean getIsOriginMusic() {
+        return isOriginMusic;
+    }
+
+    public void setIsOriginMusic(boolean isOriginMusic) {
+        this.isOriginMusic = isOriginMusic;
+    }
+
 }

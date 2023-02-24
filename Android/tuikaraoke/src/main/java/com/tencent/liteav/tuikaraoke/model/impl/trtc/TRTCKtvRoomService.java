@@ -25,7 +25,7 @@ public class TRTCKtvRoomService extends TRTCCloudListener {
 
     private static final int KTC_COMPONENT_KARAOKE = 8;
     public static final  int AUDIO_VOICE           = 0;
-    public static final  int AUDIO_BGM_MUSIC       = 1;
+    public static final  int AUDIO_MUSIC           = 1;
 
     private TRTCCloud                  mTRTCCloud;
     private TRTCCloud                  mMainCloud;

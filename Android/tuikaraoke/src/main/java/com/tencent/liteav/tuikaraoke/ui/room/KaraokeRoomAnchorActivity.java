@@ -465,11 +465,6 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         UserModelManager.getInstance().getUserModel().userType = UserModel.UserType.NONE;
-        if (mTUIKaraokeAudioManager != null) {
-            mTUIKaraokeAudioManager.reset();
-            mTUIKaraokeAudioManager.unInit();
-            mTUIKaraokeAudioManager = null;
-        }
         if (mKaraokeMusicService != null) {
             mKaraokeMusicService.onExitRoom();
             mKaraokeMusicService = null;

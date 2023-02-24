@@ -35,8 +35,6 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
     private static final int    MUSIC_START_DELAY       = 3000;
     private static final int    MUSIC_PRELOAD_DELAY     = 400;
     private static final int    MESSAGE_SEND_INTERVAL   = 1000;
-    private static final int    MUSIC_DEFAULT_VOLUME    = 30;
-    private static final int    VOICE_DEFAULT_VOLUME    = 117;
 
     private       TRTCKtvRoomService mTRTCVoiceService; //人声实例
     private       TRTCKtvRoomService mTRTCBgmService;   //bgm实例
@@ -49,12 +47,14 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
      * 合唱音乐相关
      */
     private          String  mOriginalUrl;
+    private          String  mAccompanyUrl;
     private          int     mMusicID;
     private volatile long    mMusicDuration;
     private volatile boolean mIsChorusOn;
     private          long    mRevStartPlayMusicTs;
     private volatile long    mStartPlayMusicTs;
     private          long    mRequestStopPlayMusicTs;
+    private          boolean mIsOriginMusic = true;
 
     private ChorusStartType mChorusStartType = ChorusStartType.Local;//记录开始合唱的原因，可以确定播放者身份:房主/副唱
 
@@ -90,15 +90,20 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
         mListener = listener;
     }
 
+    public void setOriginMusicState(boolean isOriginMusic) {
+        mIsOriginMusic = isOriginMusic;
+    }
+
     /**
      * 开始合唱
      *
      * @return true：合唱启动成功；false：合唱启动失败
      */
-    public boolean startChorus(int musicId, String originalUrl, boolean isPublish) {
+    public boolean startChorus(int musicId, String originalUrl, String accompanyUrl, boolean isPublish) {
         TRTCLogger.i(TAG, "startChorus");
         this.mMusicID = musicId;
         this.mOriginalUrl = originalUrl;
+        mAccompanyUrl = accompanyUrl;
         mMusicDuration = getAudioEffectManager().getMusicDurationInMS(mOriginalUrl);
         boolean result;
         if (mChorusStartType == ChorusStartType.Local) {
@@ -114,8 +119,9 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
      */
     public void stopChorus() {
         TRTCLogger.i(TAG, "stopChorus");
-        clearStatus();
         stopPlayMusic(ChorusStopReason.LocalStop);
+        // stopPlayMusic 需要用到 mChorusStartType，所以 clearStatus 得随后清除；
+        clearStatus();
     }
 
     /**
@@ -246,6 +252,10 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
         audioMusicParam.loopCount = 0;
         getAudioEffectManager().setMusicObserver(mMusicID, this);
 
+        final TXAudioEffectManager.AudioMusicParam accompanyParam =
+                new TXAudioEffectManager.AudioMusicParam(mMusicID + 1, mAccompanyUrl);
+        accompanyParam.publish = isPublish;
+
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
@@ -253,10 +263,17 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
                     // 若达到预期播放时间时，合唱已被停止，则跳过此次播放
                     return;
                 }
+                // 如果是观众上麦，此时音乐可能已经开始播放了，此时不能再从头开始播放
+                if (mChorusStartType == ChorusStartType.Remote) {
+                    long curNtpTime = getNtpTime();
+                    long position = curNtpTime - mRevStartPlayMusicTs;
+                    audioMusicParam.startTimeMS = position > 0 ? position : 0;
+                    accompanyParam.startTimeMS = position > 0 ? position : 0;
+                }
                 TRTCLogger.i(TAG, "calling startPlayMusic currentNtp:" + getNtpTime());
-                getAudioEffectManager().startPlayMusic(audioMusicParam);
-                getAudioEffectManager().setVoiceCaptureVolume(VOICE_DEFAULT_VOLUME);
-                getAudioEffectManager().setMusicPlayoutVolume(mMusicID, MUSIC_DEFAULT_VOLUME);
+                TXAudioEffectManager audioEffectManager = getAudioEffectManager();
+                audioEffectManager.startPlayMusic(audioMusicParam);
+                audioEffectManager.startPlayMusic(accompanyParam);
             }
         };
 
@@ -316,6 +333,7 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
         }
         getAudioEffectManager().setMusicObserver(mMusicID, null);
         getAudioEffectManager().stopPlayMusic(mMusicID);
+        getAudioEffectManager().stopPlayMusic(mMusicID + 1);
         if (reason == ChorusStopReason.LocalStop && mChorusStartType == ChorusStartType.Local) {
             sendStopBgmMsg();
         }
@@ -346,13 +364,17 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
     }
 
     private void checkMusicProgress() {
-        long currentProgress = getAudioEffectManager().getMusicCurrentPosInMS(mMusicID);
-        long estimatedProgress = getNtpTime() - mStartPlayMusicTs;
-        if (estimatedProgress >= 0 && Math.abs(currentProgress - estimatedProgress) > 60) {
+        int expectedPositionMs = (int) (getNtpTime() - mStartPlayMusicTs);
+        long curOriginPositionMs = getAudioEffectManager().getMusicCurrentPosInMS(mMusicID);
+        long curAccompanyPositionMs = getAudioEffectManager().getMusicCurrentPosInMS(mMusicID + 1);
+
+        if (expectedPositionMs >= 0 && Math.abs(curOriginPositionMs - expectedPositionMs) > 60
+                && Math.abs(curOriginPositionMs - curAccompanyPositionMs) > 10) {
             TRTCLogger.i(TAG,
-                    "checkMusicProgress currentProgress:" + currentProgress + " estimatedProgress:"
-                            + estimatedProgress);
-            getAudioEffectManager().seekMusicToPosInMS(mMusicID, (int) estimatedProgress);
+                    "checkMusicProgress curOriginPositionMs=" + curOriginPositionMs + " curAccompanyPositionMs="
+                            + curAccompanyPositionMs + " expectedPosition=" + expectedPositionMs);
+            getAudioEffectManager().seekMusicToPosInMS(mMusicID, expectedPositionMs);
+            getAudioEffectManager().seekMusicToPosInMS(mMusicID + 1, expectedPositionMs);
         }
     }
 
@@ -395,6 +417,7 @@ public class ChorusExtension extends TXLiveBaseListener implements TXAudioEffect
         data.setMusicId(mMusicID);
         data.setCurrentTime(currentPosInMs > 0 ? currentPosInMs : 0);
         data.setTotalTime(mMusicDuration);
+        data.setIsOriginMusic(mIsOriginMusic);
         Gson gson = new Gson();
         String body = gson.toJson(data);
         mTRTCVoiceService.sendSEIMsg(body.getBytes(), 1);

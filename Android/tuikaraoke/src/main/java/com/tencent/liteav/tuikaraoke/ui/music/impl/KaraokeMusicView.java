@@ -21,8 +21,9 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
+import com.tencent.liteav.tuikaraoke.model.impl.room.impl.TXRoomService;
 import com.tencent.liteav.tuikaraoke.ui.audio.AudioEffectPanel;
-import com.tencent.liteav.tuikaraoke.ui.audio.impl.TUIKaraokeAudioManager;
+import com.tencent.liteav.tuikaraoke.ui.audio.impl.KaraokeAudioViewModel;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
@@ -60,7 +61,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     private KaraokeMusicService         mMusicManagerImpl;
     private List<KaraokeMusicModel>     mSelectedList;
     private AudioEffectPanel            mAudioEffectPanel;
-    private TUIKaraokeAudioManager      mTUIKaraokeAudioManager;
+    private KaraokeAudioViewModel       mKaraokeAudioViewModel;
     private KaraokeMusicDialog          mDialog;
     private IUpdateLrcDelegate          mLrcDelegate;
     private List<KaraokeRoomSeatEntity> mRoomSeatEntityList;
@@ -90,9 +91,10 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         initListener();
     }
 
-    public void init(RoomInfoController roomInfoController) {
+    public void init(RoomInfoController roomInfoController, KaraokeAudioViewModel karaokeAudioViewModel) {
         mRoomInfoController = roomInfoController;
         mMusicManagerImpl = roomInfoController.getMusicServiceImpl();
+        mKaraokeAudioViewModel = karaokeAudioViewModel;
         initData(mContext);
     }
 
@@ -102,9 +104,11 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
 
     public void updateView(boolean isShow) {
         if (isShow) {
+            mBtnSwitchMusic.setVisibility(VISIBLE);
             mBtnEffect.setVisibility(View.VISIBLE);
             mBtnChangeVoice.setVisibility(View.VISIBLE);
         } else {
+            mBtnSwitchMusic.setVisibility(GONE);
             mBtnEffect.setVisibility(View.GONE);
             mBtnChangeVoice.setVisibility(View.GONE);
         }
@@ -118,11 +122,8 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     }
 
     private void initData(Context context) {
-        mTUIKaraokeAudioManager = TUIKaraokeAudioManager.getInstance();
         //音效面板
         mAudioEffectPanel = new AudioEffectPanel(context);
-        mAudioEffectPanel.setTRTCKaraokeRoom(mTRTCKaraokeRoom);
-        mAudioEffectPanel.setDelegate(mTUIKaraokeAudioManager);
 
         mSelectedList = new ArrayList<>();
         if (mMusicManagerImpl != null) {
@@ -174,6 +175,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
             mLayoutInfo.setVisibility(View.GONE);
             mLayoutEmpty.setVisibility(View.VISIBLE);
             mBtnChangeVoice.setVisibility(GONE);
+            mBtnSwitchMusic.setVisibility(GONE);
             mBtnEffect.setVisibility(GONE);
             //空界面清空歌词
             mLrcDelegate.setLrcPath(null);
@@ -185,15 +187,16 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
             if (mRoomInfoController.isRoomOwner()) {
                 if (mIsStartChorus) {
                     mBtnChangeVoice.setVisibility(VISIBLE);
+                    mBtnSwitchMusic.setVisibility(VISIBLE);
                     mBtnEffect.setVisibility(VISIBLE);
                 }
             } else if (mRoomInfoController.isAnchor()) {
                 mBtnChangeVoice.setVisibility(VISIBLE);
+                mBtnSwitchMusic.setVisibility(VISIBLE);
                 mBtnEffect.setVisibility(VISIBLE);
             }
 
-            if (mRoomInfoController.isRoomOwner()
-                    && mTUIKaraokeAudioManager.getCurrentStatus() != TUIKaraokeAudioManager.MUSIC_PLAYING) {
+            if (mRoomInfoController.isRoomOwner() && !mIsStartChorus) {
                 mBtnStartChorus.setVisibility(VISIBLE);
             }
 
@@ -261,16 +264,19 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         mBtnSwitchMusic.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!TXRoomService.getInstance().isOwner()) {
+                    ToastUtils.showShort(R.string.trtckaraoke_toast_anchor_can_only_operate_it);
+                    return;
+                }
                 //如果是原唱,切到伴奏
                 if (mIsOrigin) {
-                    mTUIKaraokeAudioManager.switchToOriginalVolume(false);
                     mBtnSwitchMusic.setBackgroundResource(R.drawable.trtckaraoke_ic_accompany_music);
                     mIsOrigin = false;
                 } else {
-                    mTUIKaraokeAudioManager.switchToOriginalVolume(true);
                     mBtnSwitchMusic.setBackgroundResource(R.drawable.trtckaraoke_ic_origin_music);
                     mIsOrigin = true;
                 }
+                mTRTCKaraokeRoom.switchMusicAccompanimentMode(mIsOrigin);
             }
         });
 
@@ -286,6 +292,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
                 //开始合唱
                 mBtnStartChorus.setVisibility(GONE);
                 mBtnChangeVoice.setVisibility(VISIBLE);
+                mBtnSwitchMusic.setVisibility(VISIBLE);
                 mBtnEffect.setVisibility(VISIBLE);
                 //开始倒计时
                 showStartAnimAndPlay(mCurMusicModel, CHORUS_START_DELAY);
@@ -295,8 +302,8 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     }
 
     private void showStartAnimAndPlay(final KaraokeMusicModel model, long delay) {
-        mTUIKaraokeAudioManager.startPlayMusic(model);
-        mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_PLAYING);
+        mKaraokeAudioViewModel.startPlayMusic(model);
+        mKaraokeAudioViewModel.setCurrentStatus(KaraokeAudioViewModel.MUSIC_PLAYING);
         mTVTimer.setVisibility(VISIBLE);
         delay = delay >= 0 ? delay : 0;
         //副唱开始延迟会略低于3s，若大于2.5s按3s计时
@@ -380,14 +387,6 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
             topModel = mSelectedList.get(0);
             mRoomInfoController.setTopModel(topModel);
         }
-
-        //不是当前主播在播放,不能切换原唱/伴奏
-//        String userId = mRoomInfoController.getSelfUserId();
-//        if (topModel == null || userId == null || !userId.equals(topModel.userId)) {
-//            mBtnSwitchMusic.setVisibility(GONE);
-//        } else {
-//            mBtnSwitchMusic.setVisibility(VISIBLE);
-//        }
     }
 
 
@@ -462,8 +461,8 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         TRTCLogger.i(TAG, "onShouldStopPlay: model = " + model);
         if ((mRoomInfoController.isAnchor())) {
             mIsOrigin = false;
-            mTUIKaraokeAudioManager.stopPlayMusic(model);
-            mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_STOP);
+            mKaraokeAudioViewModel.stopPlayMusic(model);
+            mKaraokeAudioViewModel.setCurrentStatus(KaraokeAudioViewModel.MUSIC_STOP);
         }
         mLrcDelegate.setLrcPath(null);
     }

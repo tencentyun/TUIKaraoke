@@ -35,7 +35,7 @@ import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDelegate;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TXSeatInfo;
-import com.tencent.liteav.tuikaraoke.ui.audio.impl.TUIKaraokeAudioManager;
+import com.tencent.liteav.tuikaraoke.ui.audio.impl.KaraokeAudioViewModel;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
 import com.tencent.liteav.tuikaraoke.ui.base.MemberEntity;
@@ -122,7 +122,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     protected ImageView                   mIvAudienceMove;
     protected View                        mProgressBar;
 
-    protected TUIKaraokeAudioManager     mTUIKaraokeAudioManager;
+    protected KaraokeAudioViewModel      mKaraokeAudioViewModel;
     protected InputTextMsgDialog         mInputTextMsgDialog;
     protected int                        mRoomId;
     protected String                     mRoomName;
@@ -271,7 +271,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     public void ktvMusicImplComplete() {
         mKTVMusicView.setLrcDelegate(this);
         mRoomInfoController.setMusicImpl(mKaraokeMusicService);
-        mKTVMusicView.init(mRoomInfoController);
+        mKTVMusicView.init(mRoomInfoController, mKaraokeAudioViewModel);
     }
 
     protected void initData() {
@@ -292,8 +292,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
         mTRTCKaraokeRoom = TRTCKaraokeRoom.sharedInstance(this);
         mTRTCKaraokeRoom.setDelegate(this);
-        mTUIKaraokeAudioManager = TUIKaraokeAudioManager.getInstance();
-        mTUIKaraokeAudioManager.setTRTCKaraokeRoom(mTRTCKaraokeRoom);
+        mKaraokeAudioViewModel = new KaraokeAudioViewModel();
+        mKaraokeAudioViewModel.setTRTCKaraokeRoom(mTRTCKaraokeRoom);
         // 礼物
         GiftAdapter giftAdapter = new DefaultGiftAdapterImp();
         mGiftInfoDataHandler = new GiftInfoDataHandler();
@@ -724,8 +724,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
                     });
                 }
             }
-            mTUIKaraokeAudioManager.stopPlayMusic(null);
-            mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_STOP);
+            mKaraokeAudioViewModel.stopPlayMusic(null);
+            mKaraokeAudioViewModel.setCurrentStatus(KaraokeAudioViewModel.MUSIC_STOP);
         }
     }
 
@@ -980,18 +980,17 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     @Override
     public void onMusicPrepareToPlay(String musicID) {
         TRTCLogger.i(TAG, "onMusicPrepareToPlay: musicId = " + musicID);
-        mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_PLAYING);
+        mKaraokeAudioViewModel.setCurrentStatus(KaraokeAudioViewModel.MUSIC_PLAYING);
         mKaraokeMusicService.prepareToPlay(musicID);
     }
 
     @Override
     public void onMusicCompletePlaying(String musicID) {
         TRTCLogger.i(TAG, "onMusicCompletePlaying: musicId = " + musicID);
-        mTUIKaraokeAudioManager.setCurrentStatus(TUIKaraokeAudioManager.MUSIC_STOP);
+        mKaraokeAudioViewModel.setCurrentStatus(KaraokeAudioViewModel.MUSIC_STOP);
         if (mRoomInfoController.isRoomOwner()) {
             mKaraokeMusicService.completePlaying(musicID);
         }
-        setLrcPath(null);
         //隐藏倒计时
         mKTVMusicView.hideStartAnim();
     }
@@ -1011,7 +1010,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         }
         if (!TextUtils.isEmpty(perFormId) && perFormId.equals(musicModel.performId)) {
             setLrcPath(musicModel.lrcUrl);
-            TUIKaraokeAudioManager.getInstance().startPlayMusic(musicModel);
+            mKaraokeAudioViewModel.startPlayMusic(musicModel);
         }
     }
 

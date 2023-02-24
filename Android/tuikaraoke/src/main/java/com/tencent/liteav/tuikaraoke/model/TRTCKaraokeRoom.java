@@ -295,7 +295,7 @@ public abstract class TRTCKaraokeRoom {
     /**
      * 背景音乐音效控制相关
      */
-    public abstract TXAudioEffectManager getBgmMusicAudioEffectManager();
+    public abstract TXAudioEffectManager getMusicAudioEffectManager();
 
     //////////////////////////////////////////////////////////
     //
@@ -368,8 +368,9 @@ public abstract class TRTCKaraokeRoom {
      *
      * @param musicID      音乐的表演ID
      * @param originalUrl  音乐的原唱
+     * @param accompanyUrl 音乐的伴奏
      */
-    public abstract void startPlayMusic(int musicID, String originalUrl);
+    public abstract void startPlayMusic(int musicID, String originalUrl, String accompanyUrl);
 
     /**
      * 停止播放音乐
@@ -385,4 +386,53 @@ public abstract class TRTCKaraokeRoom {
      * 恢复播放音乐
      */
     public abstract void resumePlayMusic();
+
+    /**
+     * 切换伴奏或原唱
+     *
+     * @param isOriginal true：开启；false：关闭
+     */
+    public abstract void switchMusicAccompanimentMode(boolean isOriginal);
+
+    /**
+     * 设置背景音乐的音量。
+     *
+     * @param musicVolume 音量大小，取值范围为0 - 100，默认值：100。
+     */
+    public abstract void setMusicVolume(int musicVolume);
+
+    /**
+     * 开启耳返
+     *
+     * @param enable true：开启；false：关闭
+     */
+    public abstract void enableVoiceEarMonitor(boolean enable);
+
+    /**
+     * 设置语音音量
+     *
+     * @param voiceVolume 音量大小，取值范围为0 - 100，默认值：100。
+     */
+    public abstract void setVoiceVolume(int voiceVolume);
+
+    /**
+     * 调整背景音乐的音调高低
+     *
+     * @param musicPitch 音调，默认值是0.0f，范围是：[-1 ~ 1] 之间的浮点数；
+     */
+    public abstract void setMusicPitch(float musicPitch);
+
+    /**
+     * 设置人声的混响效果
+     *
+     * @param reverbType 混响效果，范围：[0 ~ 7]， 默认值 0
+     */
+    public abstract void setVoiceReverbType(int reverbType);
+
+    /**
+     * 设置人声的变声特效
+     *
+     * @param changerType 混响效果，范围：[0 ~ 11]，默认值 0
+     */
+    public abstract void setVoiceChangerType(int changerType);
 }
