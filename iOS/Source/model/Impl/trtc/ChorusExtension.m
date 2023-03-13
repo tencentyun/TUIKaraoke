@@ -7,7 +7,8 @@
 //
 
 #import "ChorusExtension.h"
-#import <TXLiteAVSDK_TRTC/TXLiveBase.h>
+#import "TXLiveBase.h"
+#import "TRTCCloud.h"
 #import "TXKaraokeBaseDef.h"
 
 //通用宏定义
@@ -32,6 +33,7 @@ static NSString *const kChorusMusicTotalTime = @"total_time";
 static NSString *const kChorusMusicId = @"music_id";
 static NSString *const kChorusMusicCurrentTime = @"current_time";
 static NSString *const kChorusMusicDuration = @"music_duration";
+static NSString *const kChorusMusicIsOriginMusic = @"is_origin_music";
 
 
 @interface ChorusExtension()<TXLiveBaseDelegate, TRTCCloudDelegate>
@@ -44,12 +46,14 @@ static NSString *const kChorusMusicDuration = @"music_duration";
 @property (nonatomic, strong) dispatch_source_t delayStartChorusMusicTimer;
 @property (nonatomic, strong) dispatch_source_t preloadMusicTimer;
 @property (nonatomic, strong) TXAudioMusicParam *musicParam;
+@property (nonatomic, strong) TXAudioMusicParam *accompanyParam;
 @property (nonatomic, assign) ChorusStartReason chorusReason;
 @property (nonatomic, assign) int32_t currentPlayMusicID;
+
 /// 推送人声实例
-@property (nonatomic, strong) TRTCCloud *voiceCloud;
+@property (nonatomic, weak) TRTCCloud *voiceCloud;
 /// 推送背景音乐实例
-@property (nonatomic, strong) TRTCCloud *bgmCloud;
+@property (nonatomic, weak) TRTCCloud *bgmCloud;
 
 @property (nonatomic, assign) BOOL isStartMix;
 
@@ -73,15 +77,18 @@ static NSString *const kChorusMusicDuration = @"music_duration";
 }
 
 #pragma mark - 初始化相关
-- (instancetype)init {
+- (instancetype)initWithVoiceCloud:(TRTCCloud *)voiceCloud bgmCloud:(TRTCCloud *)bgmCloud {
     self = [super init];
     if (self) {
         TRTCLog(@"ChorusExtension init");
+        self.voiceCloud = voiceCloud;
+        self.bgmCloud = bgmCloud;
         self.startPlayChorusMusicTs = -1;
         self.requestStopChorusTs = -1;
         self.musicDuration = -1;
         self.currentPlayMusicID = -1;
         self.isStartMix = NO;
+        self.isOriginMusic = NO;
         [self.chorusLongTermTimer setFireDate:[NSDate distantFuture]];
         [TXLiveBase updateNetworkTime];
         [TXLiveBase sharedInstance].delegate = self;
@@ -97,16 +104,14 @@ static NSString *const kChorusMusicDuration = @"music_duration";
     self.chorusLongTermTimer = nil;
     [self.voiceCloud stopLocalAudio];
     [self.bgmCloud stopLocalAudio];
-    if (self.bgmCloud) {
-        [self.voiceCloud destroySubCloud:self.bgmCloud];
-    }
-    [TRTCCloud destroySharedIntance];
     self.musicParam = nil;
+    self.accompanyParam = nil;
     self.isStartMix = NO;
+    self.isOriginMusic = NO;
 }
 
 #pragma mark - Public Methods
-- (BOOL)startChorus:(NSString *)musicId url:(NSString *)url reason:(ChorusStartReason)reason {
+- (BOOL)startChorus:(NSString *)musicId originalUrl:(NSString *)originalUrl accompanyUrl:(NSString *)accompanyUrl reason:(ChorusStartReason)reason {
     if (![self isNtpReady]) {
         TRTCLog(@"ChorusExtension startChorus failed, ntp is not ready, please call [TXLiveBase updateNetworkTime] first!");
         return NO;
@@ -137,11 +142,17 @@ static NSString *const kChorusMusicDuration = @"music_duration";
     
     TXAudioMusicParam *param = [[TXAudioMusicParam alloc] init];
     param.ID = self.currentPlayMusicID;
-    param.path = url;
-    param.loopCount = 0;
+    param.path = originalUrl;
     TRTCLog(@"ChorusStartReason = %ld",reason);
     param.publish = reason == ChorusStartReasonLocal;
     self.musicParam = param;
+    
+    TXAudioMusicParam *accompanyParam = [[TXAudioMusicParam alloc] init];
+    accompanyParam.ID = self.currentPlayMusicID + 1;
+    accompanyParam.path = accompanyUrl;
+    accompanyParam.publish = reason == ChorusStartReasonLocal;
+    self.accompanyParam = accompanyParam;
+    
     self.musicDuration = [[self audioEffecManager] getMusicDurationInMS:self.musicParam.path];
     TRTCLog(@"___ chorus: start play: %@", musicId);
     [self.chorusLongTermTimer setFireDate:[NSDate distantPast]];
@@ -269,31 +280,6 @@ static NSString *const kChorusMusicDuration = @"music_duration";
     }
 }
 
-- (TRTCCloud *)createVoiceTRTCInstanceWith:(TRTCParams *)trtcParams {
-    self.voiceCloud = [TRTCCloud sharedInstance];
-    [self.voiceCloud enterRoom:trtcParams appScene:TRTCAppSceneLIVE];
-    // 设置媒体类型
-    [self.voiceCloud startLocalAudio:TRTCAudioQualityMusic];
-    [self.voiceCloud setSystemVolumeType:TRTCSystemVolumeTypeMedia];
-    TRTCLog(@"%@",[NSString stringWithFormat:@"createVoiceTRTCInstanceWith:%@", trtcParams.userId]);
-    return self.voiceCloud;
-}
-
-- (TRTCCloud *)createBGMTRTCInstanceWith:(TRTCParams *)trtcParams {
-    self.bgmCloud = [self.voiceCloud createSubCloud];
-    self.bgmCloud.delegate = self;
-    [self.bgmCloud setDefaultStreamRecvMode:NO video:NO];
-    [self.bgmCloud enterRoom:trtcParams appScene:TRTCAppSceneLIVE];
-    //设置媒体类型
-    [self.bgmCloud setSystemVolumeType:TRTCSystemVolumeTypeMedia];
-    
-    // 开启BGM黑帧推送
-    [self enableBGMBlackStream:self.bgmCloud];
-    [self muteRemoteBGMAudio:trtcParams.userId];
-    TRTCLog(@"%@",[NSString stringWithFormat:@"createBGMTRTCInstanceWith:%@", trtcParams.userId]);
-    return self.bgmCloud;
-}
-
 - (void)createMixStreamRobot:(NSString *)userId roomId:(UInt32)roomId taskId:(NSString *)taskId {
     if (!self.bgmCloud) { return; }
     TRTCUser *mixStreamRobot = [[TRTCUser alloc] init];
@@ -311,7 +297,7 @@ static NSString *const kChorusMusicDuration = @"music_duration";
     streamEncoderParam.videoEncodedKbps = 30;
     streamEncoderParam.audioEncodedSampleRate = 48000;
     streamEncoderParam.audioEncodedChannelNum = 2;
-    streamEncoderParam.audioEncodedKbps = 64;
+    streamEncoderParam.audioEncodedKbps = 128;
     streamEncoderParam.audioEncodedCodecType = 2;
     
     TRTCStreamMixingConfig *streamMixingConfig = [[TRTCStreamMixingConfig alloc] init];
@@ -325,13 +311,6 @@ static NSString *const kChorusMusicDuration = @"music_duration";
         [self.voiceCloud updatePublishMediaStream:taskId publishTarget:publishTarget encoderParam:streamEncoderParam mixingConfig:streamMixingConfig];
     }
 }
-
-- (void)muteRemoteBGMAudio:(NSString *)remoteAudioId {
-    //静音背景音乐
-    TRTCLog(@"muteRemoteBGMAudio: %@",remoteAudioId);
-    [self.voiceCloud muteRemoteAudio:remoteAudioId mute:YES];
-}
-
 
 #pragma mark - Private Methods
 
@@ -354,36 +333,30 @@ static NSString *const kChorusMusicDuration = @"music_duration";
     [trtcCloud callExperimentalAPI:jsonString];
 }
 
-- (void)enableBGMBlackStream:(TRTCCloud *)trtcCloud {
-    NSDictionary *jsonDic = @{@"api": @"enableBlackStream",
-                              @"params": @{@"enable": @(YES)}};
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDic options:NSJSONWritingPrettyPrinted error:nil];
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    [trtcCloud callExperimentalAPI:jsonString];
-}
-
 #pragma mark - 停止合唱相关
 /// 停止主播端合唱播放
 - (void)stopLocalChorus {
     int32_t musicID = self.currentPlayMusicID;
+    int32_t accompanyMusicID = musicID + 1;
     //合唱中，清理状态
     self.requestStopChorusTs = [TXLiveBase getNetworkTimestamp];
     [self sendStopChorusMsg];
     TRTCLog(@"___ stopLocalChorus %d", musicID);
     [[self audioEffecManager] stopPlayMusic:musicID];
+    [[self audioEffecManager] stopPlayMusic:accompanyMusicID];
     [self clearChorusState];
     _isChorusOn = NO;
     self.currentPlayMusicID = -1;
     self.startPlayChorusMusicTs = -1;
     self.requestStopChorusTs = -1;
     self.startDelayMs = -1;
-    // 开启合唱模式（人声）
+    // 关闭合唱模式（人声）
     [self enableChorusCallExperimentalAPI:self.voiceCloud audioSource:0 enable:NO];
-    // 开启合唱模式（背景音乐）
+    // 关闭合唱模式（背景音乐）
     [self enableChorusCallExperimentalAPI:self.bgmCloud audioSource:1 enable:NO];
-    // 开启低延时模式（人声）
+    // 关闭低延时模式（人声）
     [self enableLowLatencyModeCallExperimentalAPI:self.voiceCloud enable:NO];
-    // 开启低延时模式（背景音乐）
+    // 关闭低延时模式（背景音乐）
     [self enableLowLatencyModeCallExperimentalAPI:self.bgmCloud enable:NO];
     
     [self asyncDelegate:^{
@@ -400,14 +373,16 @@ static NSString *const kChorusMusicDuration = @"music_duration";
 /// 停止副唱端合唱播放
 - (void)stopRemoteChorus {
     int32_t musicID = self.currentPlayMusicID;
+    int32_t accompanyMusicID = musicID + 1;
     //合唱中，清理状态
     self.requestStopChorusTs = [TXLiveBase getNetworkTimestamp];
-    // 开启合唱模式（人声）
+    // 关闭合唱模式（人声）
     [self enableChorusCallExperimentalAPI:self.voiceCloud audioSource:0 enable:NO];
-    // 开启低延时模式（人声）
+    // 关闭低延时模式（人声）
     [self enableLowLatencyModeCallExperimentalAPI:self.voiceCloud enable:NO];
     TRTCLog(@"___ stopRemoteChorus %d", musicID);
     [[self audioEffecManager] stopPlayMusic:musicID];
+    [[self audioEffecManager] stopPlayMusic:accompanyMusicID];
     [self clearChorusState];
     _isChorusOn = NO;
     self.currentPlayMusicID = -1;
@@ -476,13 +451,18 @@ static NSString *const kChorusMusicDuration = @"music_duration";
                 [self.delegate onMusicProgressUpdate:self.currentPlayMusicID progress:progressMs duration:durationMs];
             }
         }];
-        NSDictionary *progressMsg = @{
-            kChorusMusicCurrentTime:@([[self audioEffecManager] getMusicCurrentPosInMS:self.currentPlayMusicID]),
-            kChorusMusicId: @(self.currentPlayMusicID),
-            kChorusMusicTotalTime: @(self.musicDuration),
-        };
-        NSString *jsonString = [self jsonStringFrom:progressMsg];
-        [self.voiceCloud sendSEIMsg:[jsonString dataUsingEncoding:NSUTF8StringEncoding] repeatCount:1];
+        
+        if (self.bgmCloud) {
+            NSDictionary *progressMsg = @{
+                kChorusMusicCurrentTime:@([[self audioEffecManager] getMusicCurrentPosInMS:self.currentPlayMusicID]),
+                kChorusMusicId: @(self.currentPlayMusicID),
+                kChorusMusicTotalTime: @(self.musicDuration),
+                kChorusMusicIsOriginMusic: @(self.isOriginMusic),
+            };
+            NSString *jsonString = [self jsonStringFrom:progressMsg];
+            [self.voiceCloud sendSEIMsg:[jsonString dataUsingEncoding:NSUTF8StringEncoding] repeatCount:1];
+        }
+        
     };
     
     TXAudioMusicCompleteBlock completedBlock = ^(NSInteger errCode){
@@ -526,6 +506,7 @@ static NSString *const kChorusMusicDuration = @"music_duration";
                         }
                         [[self audioEffecManager] startPlayMusic:self.musicParam onStart:startBlock
                          onProgress:progressBlock onComplete:completedBlock];
+                        [[self audioEffecManager] startPlayMusic:self.accompanyParam onStart:nil onProgress:nil onComplete:nil];
                         break;
                     }
                 }
@@ -535,6 +516,7 @@ static NSString *const kChorusMusicDuration = @"music_duration";
     } else {
         [[self audioEffecManager] startPlayMusic:self.musicParam onStart:startBlock onProgress:progressBlock
          onComplete:completedBlock];
+        [[self audioEffecManager] startPlayMusic:self.accompanyParam onStart:nil onProgress:nil onComplete:nil];
         if (delayMs < 0) {
             NSInteger startMS = -delayMs + CHORUS_PRELOAD_MUSIC_DELAY;
             [self preloadMusic:self.musicParam.path startMs:startMS];
@@ -555,6 +537,7 @@ static NSString *const kChorusMusicDuration = @"music_duration";
                             }
                             [[self audioEffecManager] startPlayMusic:self.musicParam onStart:startBlock
                              onProgress:progressBlock onComplete:completedBlock];
+                            [[self audioEffecManager] startPlayMusic:self.accompanyParam onStart:nil onProgress:nil onComplete:nil];
                             TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension calling startPlayMusic, startMs:%ld, current_ntp:%ld", startMS, [TXLiveBase getNetworkTimestamp]]);
                             break;
                         }
@@ -624,6 +607,7 @@ static NSString *const kChorusMusicDuration = @"music_duration";
         if (estimatedProgress >= 0 && labs(currentProgress - estimatedProgress) > 60) {
             TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension checkMusicProgress triggered seek, currentProgress:%ld, estimatedProgress:%ld, current_ntp:%ld", currentProgress, estimatedProgress, [TXLiveBase getNetworkTimestamp]]);
             [[self audioEffecManager] seekMusicToPosInMS:self.currentPlayMusicID pts:estimatedProgress];
+            [[self audioEffecManager] seekMusicToPosInMS:self.currentPlayMusicID + 1 pts:estimatedProgress];
         }
     }
 }
@@ -663,6 +647,16 @@ static NSString *const kChorusMusicDuration = @"music_duration";
 #pragma mark - TXLiveBaseDelegate
 - (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg {
     // errCode 0 为合适参与合唱；1 建议 UI 提醒当前网络不够好，可能会影响合唱效果；-1 需要重新校时（同样建议 UI 提醒）
+    TRTCLog(@"onUpdateNetworkTime: errCode = %ld, message = %@",errCode, errMsg);
+    [self asyncDelegate:^{
+        if (self.delegate && [self.delegate respondsToSelector:@selector(onUpdateNetworkTime:message:retryHandler:)]) {
+            [self.delegate onUpdateNetworkTime:errCode message:errMsg retryHandler:^(BOOL shouldRetry) {
+                if (shouldRetry && errCode == -1) {
+                    [TXLiveBase updateNetworkTime];
+                }
+            }];
+        }
+    }];
 }
 
 - (void)onLog:(NSString *)log LogLevel:(int)level WhichModule:(NSString *)module {

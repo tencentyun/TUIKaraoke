@@ -49,8 +49,8 @@ class TRTCKaraokeRootView: UIView {
         return view
     }()
     
-    lazy var lyricView: TRTCLyricView = {
-        let view = TRTCLyricView(viewModel: viewModel)
+    lazy var musicPanelView: TRTCMusicPanelView = {
+        let view = TRTCMusicPanelView(viewModel: viewModel)
         return view
     }()
     
@@ -104,13 +104,14 @@ class TRTCKaraokeRootView: UIView {
     }()
     
     deinit {
-        lyricView.cleanTimer()
+        musicPanelView.cleanTimer()
         TRTCLog.out("reset audio settings")
     }
     
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        let bgGradientLayer = bgView.gradient(colors: [UIColor(hex: "FF88DD")!.cgColor, UIColor(hex: "1E009B")!.cgColor])
+        let bgGradientLayer = bgView.gradient(colors: [UIColor.tui_color(withHex: "FF88DD").cgColor,
+                                                       UIColor.tui_color(withHex: "1E009B").cgColor,])
         bgGradientLayer.startPoint = CGPoint(x: 0.8, y: 0)
         bgGradientLayer.endPoint = CGPoint(x: 0.2, y: 1)
     }
@@ -132,7 +133,7 @@ class TRTCKaraokeRootView: UIView {
         layer.insertSublayer(backgroundLayer, at: 0)
         addSubview(bgView)
         addSubview(topView)
-        addSubview(lyricView)
+        addSubview(musicPanelView)
         addSubview(seatCollection)
         addSubview(tipsView)
         addSubview(mainMenuView)
@@ -147,7 +148,7 @@ class TRTCKaraokeRootView: UIView {
         topView.snp.makeConstraints { (make) in
             make.top.leading.trailing.equalToSuperview()
         }
-        lyricView.snp.makeConstraints { (make) in
+        musicPanelView.snp.makeConstraints { (make) in
             make.top.equalTo(topView.snp.bottom)
             make.leading.equalToSuperview().offset(20)
             make.trailing.equalToSuperview().offset(-20)
@@ -232,7 +233,7 @@ extension TRTCKaraokeRootView: UICollectionViewDataSource {
 extension TRTCKaraokeRootView {
     func activateConstraintsOfCustomSeatArea() {
         seatCollection.snp.makeConstraints { (make) in
-            make.top.equalTo(lyricView.snp.bottom).offset(8)
+            make.top.equalTo(musicPanelView.snp.bottom).offset(8)
             make.height.equalTo(78*2+8)
             make.left.equalToSuperview()
             make.right.equalToSuperview()
@@ -275,9 +276,9 @@ extension TRTCKaraokeRootView {
 }
 
 extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
-    
+   
     func onUpdateDownloadMusic(musicId: String) {
-        lyricView.updateChorusBtnStatus(musicId: musicId)
+        musicPanelView.updateChorusBtnStatus(musicId: musicId)
     }
     
     func showGiftAnimation(giftInfo: TUIGiftInfo) {
@@ -323,7 +324,9 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         seatCollection.reloadData()
     }
     
-    func showAlert(info: (title: String, message: String), sureAction: @escaping () -> Void, cancelAction: (() -> Void)?) {
+    func showAlert(info: (title: String, message: String),
+                   sureAction: @escaping () -> Void,
+                   cancelAction: (() -> Void)?) {
         let alertController = UIAlertController.init(title: info.title, message: info.message, preferredStyle: .alert)
         let sureAlertAction = UIAlertAction.init(title: .acceptText, style: .default) { (action) in
             sureAction()
@@ -336,6 +339,17 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         rootViewController?.present(alertController, animated: false, completion: {
             
         })
+    }
+    
+    func showUpdateNetworkAlert(info: (isUpdateSuccessed: Bool, message: String), retryAction: (() -> Void)?, cancelAction: @escaping (() -> Void)) {
+        let alertModel = TUIAlertModel(titleText: "",
+                                       descText: info.message,
+                                       cancelButtonText: info.isUpdateSuccessed ? nil : .retryText,
+                                       sureButtonText: info.isUpdateSuccessed ? .acceptText : .cancelText,
+                                       cancelButtonAction: retryAction,
+                                       sureButtonAction: cancelAction)
+        let alertView = TUIAlertView(frame: .zero)
+        alertView.show(alertModel: alertModel)
     }
     
     func showActionSheet(actionTitles: [String], actions: @escaping (Int) -> Void) {
@@ -406,7 +420,7 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
             viewModel.userType = .anchor
             mainMenuView.anchorType()
         }
-        lyricView.checkBtnShouldHidden()
+        musicPanelView.checkBtnShouldHidden()
     }
     
     func changeRoom(info: RoomInfo) {
@@ -461,6 +475,7 @@ fileprivate extension String {
     static let mutedText = karaokeLocalize("Demo.TRTC.Salon.seatmuted")
     static let unmutedText = karaokeLocalize("Demo.TRTC.Salon.seatunmuted")
     static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    static let retryText = karaokeLocalize("Demo.TRTC.LiveRoom.retry")
     static let refuseText = karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
     static let selectText = karaokeLocalize("Demo.TRTC.Salon.pleaseselect")
     static let cancelText = karaokeLocalize("Demo.TRTC.LiveRoom.cancel")

@@ -21,14 +21,9 @@
 @property (nonatomic, strong) NSString *userId;
 @property (nonatomic, strong) NSString *userSig;
 @property (nonatomic, strong) NSString *roomID;
-@property (nonatomic, assign) BOOL isAuthor;
+
 @property (nonatomic, strong) NSMutableSet<NSString *> *anchorSeatList;
-@property (nonatomic, strong) NSMutableSet<NSString *> *audienceList;
 @property (nonatomic, strong) NSMutableArray<SeatInfo *> *seatInfoList;
-@property (nonatomic, assign) NSInteger takeSeatIndex;
-
-@property (nonatomic, strong) RoomInfo *roomInfo;
-
 @property (nonatomic, weak) id<TRTCKaraokeRoomDelegate> delegate;
 
 @property (nonatomic, copy, nullable) ActionCallback enterSeatCallback;
@@ -41,10 +36,13 @@
 @property (nonatomic, readonly) TXKaraokeService *roomService;
 @property (nonatomic, readonly) KaraokeTRTCService *roomTRTCService;
 
-@property (nonatomic, assign) BOOL isSelfMute;
+@property (nonatomic, assign) BOOL isSelfMute;         // 判断自己是否静音
+@property (nonatomic, assign) NSInteger takeSeatIndex; // 判断自己是否在麦上
 
+// 音乐播放相关变量
 @property (nonatomic, assign) int32_t currentPlayingOriginalMusicID;
 @property (nonatomic, assign) BOOL isOriginalMusic;
+@property (nonatomic, assign) NSInteger musicVolume;
 
 @end
 
@@ -60,13 +58,14 @@ static dispatch_once_t gOnceToken;
         self.delegateQueue = dispatch_get_main_queue();
         self.seatInfoList = [[NSMutableArray alloc] initWithCapacity:2];
         self.anchorSeatList = [[NSMutableSet alloc] initWithCapacity:2];
-        self.audienceList = [[NSMutableSet alloc] initWithCapacity:2];
         self.takeSeatIndex = -1;
         self.roomService.delegate = self;
         self.roomTRTCService.delegate =self;
         self.isSelfMute = NO;
         self.currentPlayingOriginalMusicID = 0;
-        self.isOriginalMusic = YES;
+        self.isOriginalMusic = NO;
+        self.musicVolume = 50;
+        self.takeSeatIndex = -1;
     }
     return self;
 }
@@ -117,11 +116,12 @@ static dispatch_once_t gOnceToken;
 - (void)clearList {
     [self.seatInfoList removeAllObjects];
     [self.anchorSeatList removeAllObjects];
-    [self.audienceList removeAllObjects];
     self.isSelfMute = NO;
-    self.isAuthor = NO;
     [self stopPlayMusic];
     self.currentPlayingOriginalMusicID = 0;
+    self.isOriginalMusic = NO;
+    self.musicVolume = 50;
+    self.takeSeatIndex = -1;
 }
 
 - (void)exitRoomInternal:(ActionCallback _Nullable)callback {
@@ -300,7 +300,6 @@ static dispatch_once_t gOnceToken;
             return;
         }
         [self.roomService getSelfInfo];
-        self.isAuthor = YES;
         if (roomID == 0) {
             TRTCLog(@"crate room fail. params invalid.");
             if (callback) {
@@ -810,8 +809,8 @@ static dispatch_once_t gOnceToken;
     return [self.roomTRTCService getVoiceAudioEffectManager];
 }
 
-- (TXAudioEffectManager *)getBGMAudioEffectManager {
-    return [self.roomTRTCService getBGMAudioEffectManager];
+- (TXAudioEffectManager *)getMusicAudioEffectManager {
+    return [self.roomTRTCService getMusicAudioEffectManager];
 }
 
 - (void)sendRoomTextMsg:(NSString *)message callback:(ActionCallback)callback {
@@ -940,9 +939,6 @@ static dispatch_once_t gOnceToken;
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
 }
 
-#pragma mark - Music
-
-
 - (void)sendSEIMsg:(NSDictionary *)json {
     NSError *err = nil;
     NSData *data = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:&err];
@@ -951,37 +947,83 @@ static dispatch_once_t gOnceToken;
     }
 }
 
-- (void)switchToOriginalVolume:(BOOL)isOriginal {
+#pragma mark - Music & Music Volume Method
+- (void)switchMusicAccompanimentMode:(BOOL)isOriginal {
     if (self.currentPlayingOriginalMusicID == 0) {
         TRTCLog(@"ktv: Music playing status error");
         return;
     }
-    TRTCLog(@"ktv: switch to %@", isOriginal ? @"original" : @"accompany");
-    _isOriginalMusic = isOriginal;
-    [self setMusicVolume:self.currentPlayingOriginalMusicID volume:isOriginal ? 100 : 0];
+    if (self.isOriginalMusic == isOriginal) { return; }
+    TRTCLog(@"ktv: switch to %@, self.isOriginalMusic: %d, isOriginal: %d",isOriginal ? @"original" : @"accompany", self.isOriginalMusic, isOriginal);
+    self.isOriginalMusic = isOriginal;
+    [self.roomTRTCService switchMusicAccompanimentMode:isOriginal];
+    [self updateMusicVolumeInner];
 }
 
-- (void)setMusicVolume:(int32_t)musicID volume:(NSInteger)volume {
-    
-    if (musicID == 0) return;
-    
-    if (volume < 0) {
-        volume = 0;
+- (void)updateMusicVolume:(NSInteger)musicVolume {
+    if (self.currentPlayingOriginalMusicID == 0) return;
+    if (musicVolume < 0) {
+        musicVolume = 0;
+    } else if (musicVolume > 100) {
+        musicVolume = 100;
     }
-    else if (volume > 100) {
-        volume = 100;
-    }
-    [[self getBGMAudioEffectManager] setMusicPlayoutVolume:musicID volume:volume];
+    self.musicVolume = musicVolume;
+    [self updateMusicVolumeInner];
+}
+
+- (void)updateMusicVolumeInner {
+    // 原唱
+    [[self getMusicAudioEffectManager] setMusicPlayoutVolume:self.currentPlayingOriginalMusicID
+                                                      volume:self.isOriginalMusic ? self.musicVolume : 0];
+    [[self getMusicAudioEffectManager] setMusicPublishVolume:self.currentPlayingOriginalMusicID
+                                                      volume:self.isOriginalMusic ? self.musicVolume : 0];
+    
+    // 伴奏
+    [[self getMusicAudioEffectManager] setMusicPlayoutVolume:self.currentPlayingOriginalMusicID + 1
+                                                      volume:self.isOriginalMusic ? 0 : self.musicVolume];
+    [[self getMusicAudioEffectManager] setMusicPublishVolume:self.currentPlayingOriginalMusicID + 1
+                                                      volume:self.isOriginalMusic ? 0 : self.musicVolume];
+}
+
+- (void)enableVoiceEarMonitor:(BOOL)enable {
+    [[self getVoiceAudioEffectManager] enableVoiceEarMonitor:enable];
+}
+
+- (void)setVoiceVolume:(NSInteger)voiceVolume {
+    [[self getVoiceAudioEffectManager] setVoiceVolume:voiceVolume];
+}
+
+- (void)setMusicPitch:(double)musicPitch {
+    if (self.currentPlayingOriginalMusicID == 0) return;
+    // 原唱
+    [[self getMusicAudioEffectManager] setMusicPitch:self.currentPlayingOriginalMusicID pitch: musicPitch];
+    // 伴奏
+    [[self getMusicAudioEffectManager] setMusicPitch:self.currentPlayingOriginalMusicID + 1 pitch: musicPitch];
+}
+
+- (void)setVoiceReverbType:(NSInteger)reverbType {
+    [[self getVoiceAudioEffectManager] setVoiceReverbType:reverbType];
+}
+
+- (void)setVoiceChangerType:(NSInteger)changerType {
+    [[self getVoiceAudioEffectManager] setVoiceChangerType:changerType];
 }
 
 - (void)startPlayMusic:(int32_t)musicID originalUrl:(nonnull NSString *)originalUrl accompanyUrl:(nonnull NSString *)accompanyUrl {
     @weakify(self)
     [self runMainQueue:^{
         @strongify(self)
+        if (self.currentPlayingOriginalMusicID == musicID) return;
+        
         self.currentPlayingOriginalMusicID = musicID;
         TRTCLog(@"ktv: start play: %d", self.currentPlayingOriginalMusicID);
         [self.roomTRTCService enableBlackStream:YES size:CGSizeMake(60, 60)];
-        [self.roomTRTCService startChorus:[NSString stringWithFormat:@"%d",musicID] url:originalUrl isOwner:self.roomService.isOwner];
+        [self.roomTRTCService startChorus:[NSString stringWithFormat:@"%d",musicID]
+                              originalUrl:originalUrl
+                             accompanyUrl:accompanyUrl
+                                  isOwner:self.roomService.isOwner];
+        // 这里开始播放歌曲前判断一下当前是原声还是伴奏
+        [self updateMusicVolumeInner];
     }];
 }
 
@@ -991,6 +1033,28 @@ static dispatch_once_t gOnceToken;
     [self runMainQueue:^{
         @strongify(self)
         [self.roomTRTCService stopChorus];
+    }];
+}
+
+- (void)pausePlayMusic {
+    @weakify(self)
+    [self runMainQueue:^{
+        @strongify(self)
+        if (self.currentPlayingOriginalMusicID != 0) {
+            [[self getMusicAudioEffectManager] pausePlayMusic:self.currentPlayingOriginalMusicID];
+            [[self getMusicAudioEffectManager] pausePlayMusic:self.currentPlayingOriginalMusicID + 1];
+        }
+    }];
+}
+
+- (void)resumePlayMusic {
+    @weakify(self)
+    [self runMainQueue:^{
+        @strongify(self)
+        if (self.currentPlayingOriginalMusicID != 0) {
+            [[self getMusicAudioEffectManager] resumePlayMusic:self.currentPlayingOriginalMusicID];
+            [[self getMusicAudioEffectManager] resumePlayMusic:self.currentPlayingOriginalMusicID + 1];
+        }
     }];
 }
 
@@ -1024,6 +1088,10 @@ static dispatch_once_t gOnceToken;
             [self.delegate onMusicCompletePlaying:musicID];
         }
     }];
+}
+
+- (void)onMusicPlayingFailed {
+    self.currentPlayingOriginalMusicID = 0;
 }
 
 - (void)genUserSign:(NSString *)userId completion:(void (^)(NSString *userSign))completion {
@@ -1111,11 +1179,16 @@ static dispatch_once_t gOnceToken;
         TRTCLog(@"ktv: recv SEI class failed");
         return;
     }
-    if ([dic.allKeys containsObject:@"music_id"] && [dic.allKeys containsObject:@"total_time"] && [dic.allKeys containsObject:@"current_time"]) {
+    if ([dic.allKeys containsObject:@"music_id"] && [dic.allKeys containsObject:@"total_time"] && [dic.allKeys containsObject:@"current_time"] && [dic.allKeys containsObject:@"is_origin_music"]) {
         [self runOnDelegateQueue:^{
             @strongify(self)
-            if ([self canDelegateResponseMethod:@selector(onMusicProgressUpdate:progress:total:)] && !self.isAuthor) {
+            BOOL isOriginMusic = [dic[@"is_origin_music"] boolValue];
+            TRTCLog(@"onRecvSEIMsg isOriginMusic: %d",isOriginMusic);
+            if ([self canDelegateResponseMethod:@selector(onMusicProgressUpdate:progress:total:)] && self.takeSeatIndex == -1) {
                 [self.delegate onMusicProgressUpdate:[dic[@"music_id"] intValue] progress:[dic[@"current_time"] doubleValue] total:[dic[@"total_time"] doubleValue]];
+            }
+            if (!self.roomService.isOwner) {
+                [self switchMusicAccompanimentMode:isOriginMusic];
             }
         }];
     }
@@ -1123,11 +1196,21 @@ static dispatch_once_t gOnceToken;
 
 - (void)onReceiveAnchorSendChorusMsg:(NSString *)musicID startDelay:(NSInteger)startDelay {
     @weakify(self)
-    if (!self.isAuthor) { return; }
+    if (self.takeSeatIndex == -1) { return; }
     [self runOnDelegateQueue:^{
         @strongify(self)
         if ([self canDelegateResponseMethod:@selector(onReceiveAnchorSendChorusMsg:startDelay:)]) {
             [self.delegate onReceiveAnchorSendChorusMsg:musicID startDelay:startDelay];
+        }
+    }];
+}
+
+- (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg retryHandler:(nonnull void (^)(BOOL))retryHandler {
+    @weakify(self)
+    [self runOnDelegateQueue:^{
+        @strongify(self)
+        if ([self canDelegateResponseMethod:@selector(onUpdateNetworkTime:message:retryHandler:)]) {
+            [self.delegate onUpdateNetworkTime:errCode message:errMsg retryHandler:retryHandler];
         }
     }];
 }
@@ -1270,7 +1353,7 @@ static dispatch_once_t gOnceToken;
     }];
 }
 
-- (void)onSeatTakeWithIndex:(NSInteger)index userInfo:(TXKaraokeUserInfo *)userInfo{
+- (void)onSeatTakeWithIndex:(NSInteger)index userInfo:(TXKaraokeUserInfo *)userInfo {
     @weakify(self)
     [self runMainQueue:^{
         @strongify(self)
@@ -1289,7 +1372,6 @@ static dispatch_once_t gOnceToken;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [self.roomTRTCService muteRemoteAudioWithUserId:self.roomTRTCService.bgmUserId isMute:YES];
             });
-            self.isAuthor = YES;
         }
         [self runOnDelegateQueue:^{
             @strongify(self)
@@ -1361,7 +1443,7 @@ static dispatch_once_t gOnceToken;
         user.userId = userInfo.userId;
         user.userName = userInfo.userName;
         user.userAvatar = userInfo.avatarURL;
-        self.isAuthor = NO;
+        
         if ([self canDelegateResponseMethod:@selector(onAnchorLeaveSeat:user:)]) {
             [self.delegate onAnchorLeaveSeat:index user:user];
         }

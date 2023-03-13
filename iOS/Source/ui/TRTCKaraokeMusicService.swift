@@ -10,7 +10,7 @@ import Foundation
 /**
  * 歌曲信息列表回调
  */
-public typealias MusicListCallback = (_ errorCode: NSInteger, _ errorMessage: String, _ list: [KaraokeMusicInfo]) -> Void
+public typealias MusicListCallback = (_ errorCode: NSInteger, _ errorMessage: String, _ list: [KaraokeMusicInfo], _ scrollToken: String) -> Void
 
 /**
  * 热门推荐歌单列表回调
@@ -54,13 +54,14 @@ public protocol KaraokeMusicService: AnyObject {
 
     /**
      * 搜索
-     * - parameter offset    分页游标
-     * - parameter pageSize    分页大小
-     * - parameter keyWords     搜索词
+     * - parameter keyWord     搜索词
+     * - parameter limit       分页大小
+     * - parameter scrollToken 分页游标
      * 获取歌曲搜索
      */
-    func ktvSearchMusicByKeyWords(offset: Int, pageSize:Int, keyWords: String, callback: @escaping MusicListCallback)
-
+    func ktvSearchMusicByKeyWords(keyWord: String, limit: Int, scrollToken: String, callback: @escaping MusicListCallback)
+    
+    
     /**
      * 获取已点歌曲列表
      */

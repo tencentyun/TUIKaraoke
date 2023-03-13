@@ -13,6 +13,7 @@
 "Demo.TRTC.Salon.seatmuted" = "被房主禁言";
 "Demo.TRTC.Salon.seatunmuted" = "被房主解禁";
 "Demo.TRTC.LiveRoom.accept" = "确定";
+"Demo.TRTC.LiveRoom.retry" = "重试";
 "Demo.TRTC.LiveRoom.refuse" = "取消";
 "Demo.TRTC.Salon.pleaseselect" = "请选择";
 "Demo.TRTC.LiveRoom.cancel" = "取消";
@@ -145,8 +146,10 @@
 "Demo.TRTC.Karaoke.xxissinging" = "xxx人正在嗨歌";
 "Demo.TRTC.Karaoke.join" = "一起嗨歌";
 "Demo.TRTC.Karaoke.xxmicyyselectzz" = "xxx号麦位 yyy 点歌 《zzz》";
-"Demo.TRTC.Karaoke.searchlike" = "搜索你想唱的歌曲";
+"Demo.TRTC.Karaoke.searchlike" = "搜索歌曲或者歌手名称";
 "Demo.TRTC.LiveRoom.searchback" = "取消";
 "Demo.TRTC.LiveRoom.searchnoresult" = "抱歉，没有找到你想唱的歌曲";
 
 "Demo.TRTC.Chorus.StartChorus" = "开始合唱";
+"Demo.TRTC.Karaoke.updateNetworkSuccessed" = "网络校时成功，可以正常体验Karaoke场景。";
+"Demo.TRTC.Karaoke.updateNetworkFailed" = "网络校时失败，暂时服无法体验Karaoke场景，请点击重试。";

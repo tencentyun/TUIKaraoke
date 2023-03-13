@@ -175,7 +175,14 @@ NS_SWIFT_NAME(onReceiveAnchorSendChorusMsg(musicId:startDelay:));
 /// 获取UserSign
 /// @param userId UserId
 - (void)genUserSign:(NSString *)userId completion:(void (^)(NSString *userSign))completion
-NS_SWIFT_NAME(genUserSign(userId: completion:));
+NS_SWIFT_NAME(genUserSign(userId:completion:));
+
+/// 更新网络NTP时间回调
+/// @param errCode         错误码
+/// @param errMsg          错误信息
+/// @param retryHandler    重新更新网络时间
+- (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg retryHandler:(void (^)(BOOL shouldRetry))retryHandler
+NS_SWIFT_NAME(onUpdateNetworkTime(errCode:message:retryHandler:));
 
 @end
 

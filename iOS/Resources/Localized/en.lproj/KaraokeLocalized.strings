@@ -13,6 +13,7 @@
 "Demo.TRTC.Salon.seatmuted" = "Muted by room owner";
 "Demo.TRTC.Salon.seatunmuted" = "Unmuted by room owner";
 "Demo.TRTC.LiveRoom.accept" = "Confirm";
+"Demo.TRTC.LiveRoom.retry" = "Retry";
 "Demo.TRTC.LiveRoom.refuse" = "Cancel";
 "Demo.TRTC.Salon.pleaseselect" = "Please Select";
 "Demo.TRTC.LiveRoom.cancel" = "Cancel";
@@ -144,8 +145,11 @@
 "Demo.TRTC.Karaoke.xxissinging" = "xxx singing.";
 "Demo.TRTC.Karaoke.join" = "Join";
 "Demo.TRTC.Karaoke.xxmicyyselectzz" = "yyy from mic No. xxx requested zzz.";
-"Demo.TRTC.Karaoke.searchlike" = "Search for a song";
+"Demo.TRTC.Karaoke.searchlike" = "Search for a song or artist name";
 "Demo.TRTC.LiveRoom.searchback" = "Cancel";
 "Demo.TRTC.LiveRoom.searchnoresult" = "No results";
 
 "Demo.TRTC.Chorus.StartChorus" = "Start\nDuet";
+
+"Demo.TRTC.Karaoke.updateNetworkSuccessed" = "The online time calibration is successful, and you can experience the Karaoke scene normally.";
+"Demo.TRTC.Karaoke.updateNetworkFailed" = "The network time calibration failed, and the server cannot experience the Karaoke scene temporarily, please click to try again.";

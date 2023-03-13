@@ -260,45 +260,22 @@ class TRTCKaraokeTopView: UIView {
     @objc func closeBtnClick() {
         if viewModel.isOwner {
             viewModel.viewResponder?.showAlert(info: (.exitText, .sureToExitText), sureAction: { [weak self] in
-                guard let `self` = self else { return }
+                guard let self = self else { return }
                 self.viewModel.exitRoom { // 主播销毁房间
                     
                 }
-            }, cancelAction: {
-                
-            })
-        }
-        else {
+            }, cancelAction: nil)
+        } else {
             if viewModel.userType == .anchor {
                 viewModel.viewResponder?.showAlert(info: (title: .alertToMicoffText, message: ""), sureAction: { [weak self] in
-                    guard let `self` = self else { return }
-                    self.viewModel.leaveSeat()
-                    if TRTCKaraokeFloatingWindowManager.shared().enableFloatingWindow {
-                        guard let rootVC = self.viewModel.rootVC else {
-                            return
-                        }
-                        TRTCKaraokeFloatingWindowManager.shared().hide(vc: rootVC)
-                    }
-                    else {
-                        self.viewModel.exitRoom {
-                            
-                        }
-                    }
-                }, cancelAction: {
-                    
-                })
-            }
-            else {
-                if TRTCKaraokeFloatingWindowManager.shared().enableFloatingWindow {
-                    guard let rootVC = viewModel.rootVC else {
-                        return
-                    }
-                    TRTCKaraokeFloatingWindowManager.shared().hide(vc: rootVC)
-                }
-                else {
-                    viewModel.exitRoom {
+                    guard let self = self else { return }
+                    self.viewModel.exitRoom {
                         
                     }
+                }, cancelAction: nil)
+            } else {
+                viewModel.exitRoom {
+                    
                 }
             }
         }

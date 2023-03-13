@@ -8,13 +8,13 @@
 
 #import <Foundation/Foundation.h>
 #import "TXKaraokeBaseDef.h"
-#import <TXLiteAVSDK_TRTC/TXAudioEffectManager.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 #define KTRTCRoleAnchorValue 20
 #define KTRTCRoleAudienceValue 21
 
+@class TXAudioEffectManager;
 @class TRTCQualityInfo;
 @class TRTCVolumeInfo;
 @class TRTCAudioRecordingParams;
@@ -33,6 +33,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)onReceiveAnchorSendChorusMsg:(NSString *)musicID startDelay:(NSInteger)startDelay;
 - (void)onMusicPrepareToPlay:(int32_t)musicID;
 - (void)onMusicCompletePlaying:(int32_t)musicID;
+- (void)onMusicPlayingFailed;
+- (void)onUpdateNetworkTime:(int)errCode message:(NSString *)errMsg retryHandler:(void (^)(BOOL shouldRetry))retryHandler;
 
 @end
 
@@ -86,13 +88,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)startTRTCPush;
 
-- (void)startChorus:(NSString *)musicId url:(NSString *)url isOwner:(BOOL)isOwner;
+- (void)startChorus:(NSString *)musicId originalUrl:(NSString *)originalUrl accompanyUrl:(NSString *)accompanyUrl isOwner:(BOOL)isOwner;
 
 - (void)stopChorus;
 
 - (TXAudioEffectManager *)getVoiceAudioEffectManager;
 
-- (TXAudioEffectManager *)getBGMAudioEffectManager;
+- (TXAudioEffectManager *)getMusicAudioEffectManager;
+
+- (void)switchMusicAccompanimentMode:(BOOL)isOriginMusic;
 
 @end
 

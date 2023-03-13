@@ -12,7 +12,7 @@ public class TRTCKaraokeFloatingWindowManager: NSObject {
     // MARK: - Public Interface
     public static func shared() -> TRTCKaraokeFloatingWindowManager { staticInstance }
     
-    public var enableFloatingWindow: Bool = true
+    public var enableFloatingWindow: Bool = false
     
     public var windowIsShowing: Bool {
         get {
