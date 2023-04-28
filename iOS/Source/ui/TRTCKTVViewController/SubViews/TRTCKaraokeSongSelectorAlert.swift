@@ -79,6 +79,7 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
     }
 
     func reloadSelectedSongView(dataSource: [KaraokeMusicInfo]) {
+        selectedSongBtn.setAttrTitle(.selectedSongText + "(\(dataSource.count))")
         selectedView.updateDataSource()
     }
 
