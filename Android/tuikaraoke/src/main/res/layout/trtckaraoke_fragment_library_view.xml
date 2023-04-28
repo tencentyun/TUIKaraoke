@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#B3000000">
 
     <LinearLayout
         android:id="@+id/ll_search_music"
@@ -12,8 +13,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:background="@drawable/trtckaraoke_bg_auchor_title"
-        android:orientation="horizontal">
+        android:background="@drawable/trtckaraoke_bg_auchor_title">
 
         <ImageView
             android:id="@+id/img_search"
@@ -32,38 +32,38 @@
             android:gravity="center_vertical"
             android:text="@string/trtckaraoke_search_music_hint"
             android:textAllCaps="false"
-            android:textColor="@color/trtckaraoke_text_color_hint"
+            android:textColor="@color/trtckaraoke_white"
             android:textSize="16sp" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/progress_group_library"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycle_music_tags"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"/>
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center">
+        android:layout_marginBottom="64dp">
 
         <ProgressBar
-            android:id="@+id/progress_bar_library"
+            android:id="@+id/progress_request"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:progress="0" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="64dp"
-        android:orientation="vertical">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rl_library"
+            android:id="@+id/recycle_music_list"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="match_parent"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:layout_weight="1" />
-    </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

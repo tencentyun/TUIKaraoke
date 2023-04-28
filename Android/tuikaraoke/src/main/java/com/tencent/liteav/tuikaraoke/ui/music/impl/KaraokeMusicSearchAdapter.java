@@ -8,22 +8,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.blankj.utilcode.util.ToastUtils;
+import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
 import com.tencent.liteav.tuikaraoke.R;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
+import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import com.tencent.liteav.tuikaraoke.ui.widget.RoundCornerImageView;
+import com.tencent.liteav.tuikaraoke.ui.widget.TextProgressBar;
 
 import java.util.List;
 
 public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     protected Context                 mContext;
-    protected List<KaraokeMusicModel> mSearchList;
+    protected List<KaraokeMusicInfo>  mSearchList;
     protected OnPickItemClickListener onPickItemClickListener;
     private   RoomInfoController      mRoomInfoController;
 
@@ -39,12 +37,8 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
 
     public KaraokeMusicSearchAdapter(Context context,
                                      RoomInfoController roomInfoController,
-                                     List<KaraokeMusicModel> searchList,
+                                     List<KaraokeMusicInfo> searchList,
                                      OnPickItemClickListener onPickItemClickListener) {
-        this.mContext = context;
-        this.mSearchList = searchList;
-        this.mRoomInfoController = roomInfoController;
-        this.onPickItemClickListener = onPickItemClickListener;
         this.mContext = context;
         this.mSearchList = searchList;
         this.mRoomInfoController = roomInfoController;
@@ -69,12 +63,16 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof ViewHolder) {
-            holder.setIsRecyclable(false);
-            KaraokeMusicModel item = mSearchList.get(position);
-            ((ViewHolder) holder).bind(mContext, item, onPickItemClickListener);
+            KaraokeMusicInfo item = mSearchList.get(position);
+            ((ViewHolder) holder).bind(item, onPickItemClickListener);
         } else if (holder instanceof FootViewHolder) {
             ((FootViewHolder) holder).updateLoadMoreView(position);
         }
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
 
     @Override
@@ -102,9 +100,7 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
         private RoundCornerImageView mImageCover;
         private TextView             mTvSongName;
         private TextView             mTvSinger;
-        private Button               mBtnChoose;
-        private ProgressBar          mProgressBarChoose;
-        private boolean              mSelect = false;
+        private TextProgressBar      mProgressBarChoose;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -115,24 +111,23 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
             mImageCover = (RoundCornerImageView) itemView.findViewById(R.id.img_cover);
             mTvSongName = (TextView) itemView.findViewById(R.id.tv_song_name);
             mTvSinger = (TextView) itemView.findViewById(R.id.tv_singer);
-            mBtnChoose = (Button) itemView.findViewById(R.id.btn_choose_song);
-            mProgressBarChoose = (ProgressBar) itemView.findViewById(R.id.progress_bar_choose_song);
+            mProgressBarChoose = (TextProgressBar) itemView.findViewById(R.id.progress_bar_choose_song);
         }
 
-        public void bind(Context context, final KaraokeMusicModel model,
-                         final OnPickItemClickListener listener) {
+        public void bind(final KaraokeMusicInfo model, final OnPickItemClickListener listener) {
 
-            mBtnChoose.setOnClickListener(new View.OnClickListener() {
+            mProgressBarChoose.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (!mRoomInfoController.isRoomOwner()) {
-                        ToastUtils.showLong(R.string.trtckaraoke_toast_room_owner_can_operate_it);
+                        Toast.show(R.string.trtckaraoke_toast_room_owner_can_operate_it, Toast.LENGTH_LONG);
                         return;
                     }
                     if (!mRoomInfoController.isAnchor()) {
-                        ToastUtils.showLong(R.string.trtckaraoke_toast_anchor_can_only_operate_it);
+                        Toast.show(R.string.trtckaraoke_toast_anchor_can_only_operate_it, Toast.LENGTH_LONG);
                         return;
                     }
+                    mProgressBarChoose.setEnabled(false);
                     listener.onPickSongItemClick(model, getLayoutPosition());
                 }
             });
@@ -143,25 +138,23 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
                 buffer.append(str);
             }
             mTvSinger.setText(buffer);
-            int index = getAdapterPosition() % 3;
-            mImageCover.setImageResource(MUSIC_ICON_ARRAY[index]);
-            if (model.isSelected && model.lrcUrl != null && mProgressBarChoose.getProgress() != 100) {
+            if (model.isSelected && model.isPreloaded() && mProgressBarChoose.getProgress() != 100) {
+                //首次加载时遇到已经下载过的歌曲，也要主动设置成下载完成的状态（因为无法靠下载回调来更新）
+                mProgressBarChoose.setEnabled(false);
                 mProgressBarChoose.setProgress(100);
             }
+            int index = getAdapterPosition() % 3;
+            mImageCover.setImageResource(MUSIC_ICON_ARRAY[index]);
         }
 
         public void updateChooseButton(boolean isSelect) {
             if (isSelect) {
-                mBtnChoose.setText(mContext.getText(R.string.trtckaraoke_btn_choosed_song));
-                mBtnChoose.setBackgroundResource(R.drawable.trtckaraoke_button_choose_song);
-                mBtnChoose.setTextColor(mContext.getResources().getColor(R.color.trtckaraoke_text_color_second));
-                mBtnChoose.setEnabled(false);
-                mSelect = true;
+                mProgressBarChoose.setText(mContext.getText(R.string.trtckaraoke_btn_choosed_song));
+                mProgressBarChoose.setEnabled(false);
             } else {
-                mBtnChoose.setText(mContext.getText(R.string.trtckaraoke_btn_choose_song));
-                mBtnChoose.setBackgroundResource(R.drawable.trtckaraoke_button_border);
-                mBtnChoose.setEnabled(true);
-                mSelect = false;
+                mProgressBarChoose.setText(mContext.getText(R.string.trtckaraoke_btn_choose_song));
+                mProgressBarChoose.setEnabled(true);
+                mProgressBarChoose.setProgress(0);
             }
         }
     }

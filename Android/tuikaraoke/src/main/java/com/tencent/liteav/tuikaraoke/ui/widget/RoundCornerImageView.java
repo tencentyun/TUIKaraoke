@@ -37,8 +37,6 @@ public class RoundCornerImageView extends AppCompatImageView {
     }
 
     private void init(Context context, AttributeSet attrs) {
-        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-
         // 读取配置
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.TRTCKtvRoomRoundCornerImageView);
         mRadius = array.getDimensionPixelOffset(R.styleable.TRTCKtvRoomRoundCornerImageView_radius,

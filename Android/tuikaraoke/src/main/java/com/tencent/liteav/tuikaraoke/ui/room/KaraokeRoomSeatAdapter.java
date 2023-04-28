@@ -100,7 +100,6 @@ public class KaraokeRoomSeatAdapter extends
                 @Override
                 public void onClick(View v) {
                     listener.onItemClick(getLayoutPosition());
-
                 }
             });
             if (model.isClose) {
@@ -117,6 +116,7 @@ public class KaraokeRoomSeatAdapter extends
                         String.valueOf(position + 1)));
                 mIvMute.setVisibility(View.GONE);
                 mIvTalkBorder.setVisibility(View.GONE);
+                mImgNetwork.setVisibility(View.GONE);
             } else {
                 if (TextUtils.isEmpty(model.userAvatar) || !isUrl(model.userAvatar)) {
                     ImageLoader.loadImage(context, mImgSeatHead, R.drawable.trtckaraoke_ic_cover);
@@ -126,10 +126,11 @@ public class KaraokeRoomSeatAdapter extends
                 if (!TextUtils.isEmpty(model.userName)) {
                     mTvName.setText(model.userName);
                 } else {
-                    mTvName.setText(R.string.trtckaraoke_tv_the_anchor_name_is_still_looking_up);
+                    mTvName.setText(model.userId);
                 }
                 setMicMute(model);
                 setVolume(model);
+                setQuality(model);
             }
         }
 
@@ -142,16 +143,18 @@ public class KaraokeRoomSeatAdapter extends
         }
 
         public void setQuality(KaraokeRoomSeatEntity entity) {
-            if (entity.getQuality() == KaraokeRoomSeatEntity.QUALITY_BAD) {
-                //显示网络差的图片
-                if (entity.isUsed) {
-                    mImgNetwork.setVisibility(View.VISIBLE);
-                }
-            } else {
-                //信号质量可以,显示用户头像或默认头像
-                if (entity.isUsed) {
-                    mImgNetwork.setVisibility(View.GONE);
-                }
+            if (!entity.isUsed) {
+                return;
+            }
+            mImgNetwork.setVisibility(View.VISIBLE);
+            if (entity.getQuality() == KaraokeRoomSeatEntity.QUALITY_GOOD) {
+                mImgNetwork.setImageResource(R.drawable.trtckaraoke_network_quality_1);
+            } else if (entity.getQuality() == KaraokeRoomSeatEntity.QUALITY_NORMAL) {
+                mImgNetwork.setImageResource(R.drawable.trtckaraoke_network_quality_2);
+            } else if (entity.getQuality() == KaraokeRoomSeatEntity.QUALITY_BAD) {
+                mImgNetwork.setImageResource(R.drawable.trtckaraoke_network_quality_3);
+            } else if (entity.getQuality() == KaraokeRoomSeatEntity.QUALITY_NONE) {
+                mImgNetwork.setImageResource(R.drawable.trtckaraoke_network_quality_4);
             }
         }
 

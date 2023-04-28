@@ -130,7 +130,7 @@ public class MsgListAdapter extends
                 mTvMsgContent.setBackgroundResource(R.drawable.trtckaraoke_bg_msg_item);
             }
 
-            updateMsgButtom(model);
+            updateMsgButton(model);
 
             mBtnMsg.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -154,7 +154,7 @@ public class MsgListAdapter extends
             });
         }
 
-        private void updateMsgButtom(MsgEntity model) {
+        private void updateMsgButton(MsgEntity model) {
             if (model.type == MsgEntity.TYPE_AGREED) {
                 mBtnMsg.setVisibility(View.GONE);
                 mBtnMsg.setEnabled(false);

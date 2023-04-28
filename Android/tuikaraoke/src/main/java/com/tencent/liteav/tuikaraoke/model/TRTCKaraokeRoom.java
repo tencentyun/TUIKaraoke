@@ -5,6 +5,9 @@ import android.os.Handler;
 
 import com.tencent.liteav.audio.TXAudioEffectManager;
 import com.tencent.liteav.tuikaraoke.model.impl.TRTCKaraokeRoomImpl;
+import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef.UserInfo;
+import com.tencent.qcloud.tuicore.interfaces.TUICallback;
+import com.tencent.qcloud.tuicore.interfaces.TUIValueCallback;
 
 import java.util.List;
 
@@ -39,13 +42,13 @@ public abstract class TRTCKaraokeRoom {
     /**
      * 设置组件回调接口
      * <p>
-     * 您可以通过 TRTCKaraokeRoomDelegate 获得 TRTCKaraokeRoom 的各种状态通知
+     * 您可以通过 TRTCKaraokeRoomObserver 获得 TRTCKaraokeRoom 的各种状态通知
      *
      * @param delegate 回调接口
      * @note TRTCKaraokeRoom 中的事件，默认是在 Main Thread 中回调给您；
      * 如果您需要指定事件回调所在的线程，可使用 {@link TRTCKaraokeRoom#setDelegateHandler(Handler)}
      */
-    public abstract void setDelegate(TRTCKaraokeRoomDelegate delegate);
+    public abstract void setDelegate(TRTCKaraokeRoomObserver delegate);
 
     /**
      * 设置事件回调所在的线程
@@ -62,13 +65,12 @@ public abstract class TRTCKaraokeRoom {
      * @param userSig  腾讯云设计的一种安全保护签名，获取方式请参考 [如何计算 UserSig](https://cloud.tencent.com/document/product/647/17275)。
      * @param callback 登录回调，成功时 code 为0
      */
-    public abstract void login(int sdkAppId, String userId, String userSig,
-                               TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void login(int sdkAppId, String userId, String userSig, TUICallback callback);
 
     /**
      * 退出登录
      */
-    public abstract void logout(TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void logout(TUICallback callback);
 
     /**
      * 设置用户信息，您设置的用户信息会被存储于腾讯云 IM 云服务中。
@@ -77,8 +79,7 @@ public abstract class TRTCKaraokeRoom {
      * @param avatarURL 用户头像
      * @param callback  是否设置成功的结果回调
      */
-    public abstract void setSelfProfile(String userName, String avatarURL,
-                                        TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void setSelfProfile(String userName, String avatarURL, TUICallback callback);
 
     //////////////////////////////////////////////////////////
     //
@@ -99,15 +100,14 @@ public abstract class TRTCKaraokeRoom {
      * @param roomParam 房间信息，用于房间描述的信息，例如房间名称，封面信息等。如果房间列表和房间信息都由您的服务器自行管理，可忽略该参数。
      * @param callback  创建房间的结果回调，成功时 code 为0.
      */
-    public abstract void createRoom(int roomId, TRTCKaraokeRoomDef.RoomParam roomParam,
-                                    TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void createRoom(int roomId, TRTCKaraokeRoomDef.RoomParam roomParam, TUICallback callback);
 
     /**
      * 销毁房间（房主调用）
      * <p>
      * 房主在创建房间后，可以调用这个函数来销毁房间。
      */
-    public abstract void destroyRoom(TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void destroyRoom(TUICallback callback);
 
     /**
      * 进入房间（听众调用）
@@ -122,22 +122,21 @@ public abstract class TRTCKaraokeRoom {
      * @param roomId   房间标识
      * @param callback 进入房间是否成功的结果回调
      */
-    public abstract void enterRoom(int roomId, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void enterRoom(int roomId, TUICallback callback);
 
     /**
      * 退出房间
      *
      * @param callback 退出房间是否成功的结果回调
      */
-    public abstract void exitRoom(TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void exitRoom(TUICallback callback);
 
     /**
      * 获取指定userId的用户信息，如果为null，则获取房间内所有人的信息
      *
-     * @param userlistcallback 用户详细信息回调
+     * @param callback 用户详细信息回调
      */
-    public abstract void getUserInfoList(List<String> userIdList,
-                                         TRTCKaraokeRoomCallback.UserListCallback userlistcallback);
+    public abstract void getUserInfoList(List<String> userIdList, TUIValueCallback<List<UserInfo>> callback);
 
     //////////////////////////////////////////////////////////
     //
@@ -153,7 +152,7 @@ public abstract class TRTCKaraokeRoom {
      * @param seatIndex 需要上麦的麦位序号
      * @param callback  操作回调
      */
-    public abstract void enterSeat(int seatIndex, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void enterSeat(int seatIndex, TUICallback callback);
 
     /**
      * 主动下麦（听众端和主播均可调用）
@@ -162,7 +161,7 @@ public abstract class TRTCKaraokeRoom {
      *
      * @param callback 操作回调
      */
-    public abstract void leaveSeat(TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void leaveSeat(TUICallback callback);
 
     /**
      * 抱人上麦(主播调用)
@@ -173,7 +172,7 @@ public abstract class TRTCKaraokeRoom {
      * @param userId    用户id
      * @param callback  操作回调
      */
-    public abstract void pickSeat(int seatIndex, String userId, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void pickSeat(int seatIndex, String userId, TUICallback callback);
 
     /**
      * 踢人下麦(主播调用)
@@ -183,7 +182,7 @@ public abstract class TRTCKaraokeRoom {
      * @param seatIndex 需要踢下麦的麦位序号
      * @param callback  操作回调
      */
-    public abstract void kickSeat(int seatIndex, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void kickSeat(int seatIndex, TUICallback callback);
 
     /**
      * 静音/解禁对应麦位的麦克风(主播调用)
@@ -195,7 +194,7 @@ public abstract class TRTCKaraokeRoom {
      * @param isMute    true:静音 fasle:解除静音
      * @param callback  操作回调
      */
-    public abstract void muteSeat(int seatIndex, boolean isMute, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void muteSeat(int seatIndex, boolean isMute, TUICallback callback);
 
     /**
      * 封禁/解禁某个麦位(主播调用)
@@ -206,7 +205,7 @@ public abstract class TRTCKaraokeRoom {
      * @param isClose   true:封禁 fasle:解除封禁
      * @param callback  操作回调
      */
-    public abstract void closeSeat(int seatIndex, boolean isClose, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void closeSeat(int seatIndex, boolean isClose, TUICallback callback);
 
     //////////////////////////////////////////////////////////
     //
@@ -225,46 +224,11 @@ public abstract class TRTCKaraokeRoom {
     public abstract void stopMicrophone();
 
     /**
-     * 开启/关闭 耳返
-     *
-     * @param enable 开启/关闭
-     */
-    public abstract void setVoiceEarMonitorEnable(boolean enable);
-
-    /**
-     * 设置音质
-     *
-     * @param quality TRTC_AUDIO_QUALITY_MUSIC/TRTC_AUDIO_QUALITY_DEFAULT/TRTC_AUDIO_QUALITY_SPEECH
-     */
-    public abstract void setAudioQuality(int quality);
-
-    /**
      * 开启本地静音
      *
      * @param mute 是否静音
      */
     public abstract void muteLocalAudio(boolean mute);
-
-    /**
-     * 设置开启扬声器
-     *
-     * @param useSpeaker true:扬声器 false:听筒
-     */
-    public abstract void setSpeaker(boolean useSpeaker);
-
-    /**
-     * 设置麦克风采集音量
-     *
-     * @param volume 采集音量 0-100
-     */
-    public abstract void setAudioCaptureVolume(int volume);
-
-    /**
-     * 设置播放音量
-     *
-     * @param volume 播放音量 0-100
-     */
-    public abstract void setAudioPlayoutVolume(int volume);
 
     //////////////////////////////////////////////////////////
     //
@@ -295,7 +259,14 @@ public abstract class TRTCKaraokeRoom {
     /**
      * 背景音乐音效控制相关
      */
-    public abstract TXAudioEffectManager getBgmMusicAudioEffectManager();
+    public abstract TXAudioEffectManager getMusicAudioEffectManager();
+
+
+    /**
+     * 点歌、切歌等音乐控制相关
+     *
+     */
+    public abstract KaraokeMusicService getKaraokeMusicService();
 
     //////////////////////////////////////////////////////////
     //
@@ -309,7 +280,7 @@ public abstract class TRTCKaraokeRoom {
      * @param message  文本消息
      * @param callback 发送结果回调
      */
-    public abstract void sendRoomTextMsg(String message, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void sendRoomTextMsg(String message, TUICallback callback);
 
     /**
      * 在房间中广播自定义（信令）消息，一般用于广播点赞和礼物消息
@@ -318,7 +289,7 @@ public abstract class TRTCKaraokeRoom {
      * @param message  文本消息
      * @param callback 发送结果回调
      */
-    public abstract void sendRoomCustomMsg(String cmd, String message, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void sendRoomCustomMsg(String cmd, String message, TUICallback callback);
 
     //////////////////////////////////////////////////////////
     //
@@ -335,8 +306,7 @@ public abstract class TRTCKaraokeRoom {
      * @param callback 发送结果回调
      * @return inviteId 用于标识此次邀请ID
      */
-    public abstract String sendInvitation(String cmd, String userId, String content,
-                                          TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract String sendInvitation(String cmd, String userId, String content, TUICallback callback);
 
     /**
      * 接受邀请
@@ -344,7 +314,7 @@ public abstract class TRTCKaraokeRoom {
      * @param id       邀请ID
      * @param callback 接受操作的回调
      */
-    public abstract void acceptInvitation(String id, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void acceptInvitation(String id, TUICallback callback);
 
     /**
      * 拒绝邀请
@@ -352,7 +322,7 @@ public abstract class TRTCKaraokeRoom {
      * @param id       邀请ID
      * @param callback 接受操作的回调
      */
-    public abstract void rejectInvitation(String id, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void rejectInvitation(String id, TUICallback callback);
 
     /**
      * 取消邀请
@@ -360,7 +330,7 @@ public abstract class TRTCKaraokeRoom {
      * @param id       邀请ID
      * @param callback 接受操作的回调
      */
-    public abstract void cancelInvitation(String id, TRTCKaraokeRoomCallback.ActionCallback callback);
+    public abstract void cancelInvitation(String id, TUICallback callback);
 
 
     /**
@@ -368,8 +338,9 @@ public abstract class TRTCKaraokeRoom {
      *
      * @param musicID      音乐的表演ID
      * @param originalUrl  音乐的原唱
+     * @param accompanyUrl 音乐的伴奏
      */
-    public abstract void startPlayMusic(int musicID, String originalUrl);
+    public abstract void startPlayMusic(int musicID, String originalUrl, String accompanyUrl);
 
     /**
      * 停止播放音乐
@@ -385,4 +356,59 @@ public abstract class TRTCKaraokeRoom {
      * 恢复播放音乐
      */
     public abstract void resumePlayMusic();
+
+    /**
+     * 切换伴奏或原唱
+     *
+     * @param isOriginal true：开启；false：关闭
+     */
+    public abstract void switchMusicAccompanimentMode(boolean isOriginal);
+
+    /**
+     * 设置背景音乐的音量。
+     *
+     * @param musicVolume 音量大小，取值范围为0 - 100，默认值：100。
+     */
+    public abstract void setMusicVolume(int musicVolume);
+
+    /**
+     * 开启耳返
+     *
+     * @param enable true：开启；false：关闭
+     */
+    public abstract void enableVoiceEarMonitor(boolean enable);
+
+    /**
+     * 设置语音音量
+     *
+     * @param voiceVolume 音量大小，取值范围为0 - 100，默认值：100。
+     */
+    public abstract void setVoiceVolume(int voiceVolume);
+
+    /**
+     * 调整背景音乐的音调高低
+     *
+     * @param musicPitch 音调，默认值是0.0f，范围是：[-1 ~ 1] 之间的浮点数；
+     */
+    public abstract void setMusicPitch(float musicPitch);
+
+    /**
+     * 设置人声的混响效果
+     *
+     * @param reverbType 混响效果，范围：[0 ~ 7]， 默认值 0
+     */
+    public abstract void setVoiceReverbType(int reverbType);
+
+    /**
+     * 设置人声的变声特效
+     *
+     * @param changerType 混响效果，范围：[0 ~ 11]，默认值 0
+     */
+    public abstract void setVoiceChangerType(int changerType);
+
+    /**
+     * 更新NTP网络校时
+     *
+     */
+    public abstract void updateNetworkTime();
 }

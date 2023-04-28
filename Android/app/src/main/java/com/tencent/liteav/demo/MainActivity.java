@@ -30,19 +30,17 @@ import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
-import com.tencent.liteav.debug.GenerateTestUserSig;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
-import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
-import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomManager;
-import com.tencent.liteav.tuikaraoke.ui.floatwindow.FloatWindow;
+import com.tencent.liteav.tuikaraoke.model.impl.server.TRTCKaraokeRoomManager;
 import com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomAudienceActivity;
 import com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomCreateDialog;
+import com.tencent.qcloud.tuicore.interfaces.TUICallback;
 import com.tencent.trtc.TRTCCloudDef;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.util.Random;
+import java.security.SecureRandom;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -98,14 +96,6 @@ public class MainActivity extends AppCompatActivity {
         initLocalData(this);
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        if (FloatWindow.mIsShowing) {
-            FloatWindow.getInstance().destroy();
-        }
-    }
-
     private void initView() {
         findViewById(R.id.btn_link).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,28 +137,22 @@ public class MainActivity extends AppCompatActivity {
     private void initData() {
         final UserModel userModel = UserModelManager.getInstance().getUserModel();
         mTRTCKaraokeRoom = TRTCKaraokeRoom.sharedInstance(this);
-        mTRTCKaraokeRoom.login(GenerateTestUserSig.SDKAPPID, userModel.userId, userModel.userSig,
-                new TRTCKaraokeRoomCallback.ActionCallback() {
+        mTRTCKaraokeRoom.login(userModel.appId, userModel.userId, userModel.userSig,
+                new TUICallback() {
                     @Override
-                    public void onCallback(int code, String msg) {
-                        Log.d(TAG, "login callback code: " + code + " msg: " + msg);
-                        if (code == 0) {
-                            mTRTCKaraokeRoom.setSelfProfile(userModel.userName, userModel.userAvatar,
-                                    new TRTCKaraokeRoomCallback.ActionCallback() {
-                                        @Override
-                                        public void onCallback(int code, String msg) {
-                                            if (code == 0) {
-                                                Log.d(TAG, "setSelfProfile success");
-                                            }
-                                        }
-                                    });
-                        }
+                    public void onSuccess() {
+                        mTRTCKaraokeRoom.setSelfProfile(userModel.userName, userModel.userAvatar, null);
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        Log.e(TAG, "login callback code: " + code + " msg: " + msg);
                     }
                 });
     }
 
     private void createRoom() {
-        int index = new Random().nextInt(ROOM_COVER_ARRAY.length);
+        int index = new SecureRandom().nextInt(ROOM_COVER_ARRAY.length);
         String coverUrl = ROOM_COVER_ARRAY[index];
         String userName = UserModelManager.getInstance().getUserModel().userName;
         String userId = UserModelManager.getInstance().getUserModel().userId;
@@ -178,11 +162,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void enterRoom(final String roomIdStr) {
-        TRTCKaraokeRoomManager.getInstance().getGroupInfo(roomIdStr, new TRTCKaraokeRoomManager.GetGroupInfoCallback() {
+        TRTCKaraokeRoomManager.getInstance().getGroupInfo(roomIdStr,
+                new TRTCKaraokeRoomManager.GetGroupInfoCallback() {
             @Override
             public void onSuccess(V2TIMGroupInfoResult result) {
                 if (isRoomExist(result)) {
-                    realEnterRoom(roomIdStr);
+                    realEnterRoom(roomIdStr, result.getGroupInfo().getOwner());
                 } else {
                     ToastUtils.showLong(R.string.room_not_exist);
                 }
@@ -195,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void realEnterRoom(String roomIdStr) {
+    private void realEnterRoom(String roomIdStr, String roomOwnerId) {
         UserModel userModel = UserModelManager.getInstance().getUserModel();
         String userId = userModel.userId;
         int roomId;
@@ -204,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             roomId = 10000;
         }
-        KaraokeRoomAudienceActivity.enterRoom(this, roomId, userId, TRTCCloudDef.TRTC_AUDIO_QUALITY_DEFAULT);
+        KaraokeRoomAudienceActivity.enterKaraokeRoom(
+                this, roomId, roomOwnerId, userId, TRTCCloudDef.TRTC_AUDIO_QUALITY_DEFAULT);
     }
 
     private boolean isRoomExist(V2TIMGroupInfoResult result) {
@@ -239,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
         copyAssetsToFile(context, "nuannuan_bz.mp3");
         copyAssetsToFile(context, "nuannuan_yc.mp3");
 
-        copyAssetsToFile(context, "jda.mp3");
+        copyAssetsToFile(context, "jda_yc.mp3");
         copyAssetsToFile(context, "jda_bz.mp3");
 
         copyAssetsToFile(context, "houlai_lrc.vtt");

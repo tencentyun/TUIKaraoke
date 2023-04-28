@@ -4,7 +4,7 @@
     <color name="trtckaraoke_white_alpha">#66FFFFFF</color>
     <color name="trtckaraoke_black">#000000</color>
 
-    <color name="trtckaraoke_text_color_second">#EBF4FF</color>
+    <color name="trtckaraoke_text_color_second">#F95F91</color>
     <color name="trtckaraoke_text_color_hint">#BBBBBB</color>
     <color name="trtckaraoke_transparent">#00000000</color>
     <color name="trtckaraoke_color_line">#DDDDDD</color>
@@ -40,5 +40,14 @@
     <color name="trtckaraoke_gift_dark_orange">#FF8C00</color>
 
     <color name="trtckaraoke_color_progress_alpha">#08B0A1CE</color>
-    <color name="trtckaraoke_color_progress">#B0A1CE</color>
+    <color name="trtckaraoke_color_progress">#F95F91</color>
+    <color name="trtckaraoke_text_music_tag_selected">#FFF95F91</color>
+    <color name="trtckaraoke_color_progress_bg">#40FFFFFF</color>
+
+    <!-- 仪表盘 -->
+    <color name="trtckaraoke_color_dashboard_title">#99FFFFFF</color>
+    <color name="trtckaraoke_color_dashboard_green">#47D4AB</color>
+    <color name="trtckaraoke_color_dashboard_pink">#F95F91</color>
+
+    <color name="trtckaraoke_color_msg_hint">#6B82A8</color>
 </resources>

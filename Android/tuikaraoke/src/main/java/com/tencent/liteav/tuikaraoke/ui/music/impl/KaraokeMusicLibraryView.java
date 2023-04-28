@@ -1,142 +1,119 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
-import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_ADD_MUSIC_EVENT;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_DELETE_MUSIC_EVENT;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_MUSIC_EVENT;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_MUSIC_INFO_KEY;
 
-import android.util.Log;
+import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.blankj.utilcode.util.ToastUtils;
-import com.tencent.liteav.tuikaraoke.R;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicInfo;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokePopularInfo;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicCallback;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicService;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicServiceDelegate;
-import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.tencent.liteav.tuikaraoke.model.KaraokeAddMusicCallback;
+import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicPageInfo;
+import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
+import com.tencent.liteav.tuikaraoke.R;
+import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
+import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
+import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
+import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicTag;
+import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
+import com.tencent.qcloud.tuicore.TUICore;
+import com.tencent.qcloud.tuicore.interfaces.ITUINotification;
+import com.tencent.qcloud.tuicore.interfaces.TUIValueCallback;
+import com.tencent.liteav.tuikaraoke.ui.music.impl.KaraokeMusicLibraryAdapter.ViewHolder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class KaraokeMusicLibraryView extends CoordinatorLayout implements KaraokeMusicServiceDelegate {
-    private static final String  TAG = "KaraokeMusicLibraryView";
-    private              Handler mMainHandler;
+/**
+ *
+ * 曲库列表刷新条件：
+ * 1、首次刷新，根据最新已选歌单刷新--getSelectedMusicList结果存入RoomInfoController的mUserSelectMap
+ * 2、已选歌单中某个歌曲播放完毕--onMusicComplete
+ * 3、已选歌单中切歌--nextMusic
+ * 4、已选歌单中删歌--deleteMusic
+ */
+public class KaraokeMusicLibraryView extends CoordinatorLayout {
+    private static final String TAG = "KaraokeMusicLibraryView";
 
-    private Context                        mContext;
-    private RoomInfoController             mRoomInfoController;
-    private KaraokeMusicLibraryAdapter     mLibraryListAdapter;
-    private List<KaraokeMusicModel>        mLibraryLists;
-    private List<KaraokePopularInfo>       mPopularList;        //热门歌曲分类列表
-    private KaraokeMusicService            mKtvMusicImpl;
-    private int                            mPage         = 0;
-    private int                            mLoadPageSize = 50;
-    private Map<String, KaraokeMusicModel> mUserSelectMap;
-    private long                           lastClickTime = -1;
-    private View                           mProgressBar;
-    private RecyclerView                   mRvList;
+    private ProgressBar                mProgressbarRequest;
+    private RecyclerView               mRecyclerMusic;
+    private RecyclerView               mRecyclerMusicTags;
+    private KaraokeMusicLibraryAdapter mLibraryListAdapter;
+    private KaraokeMusicTagsAdapter    mMusicTagsAdapter;
+    private RoomInfoController         mRoomInfoController;
+
+    private Context                       mContext;
+    private List<KaraokeMusicInfo>        mLibraryLists  = new ArrayList<>();
+    private List<KaraokeMusicTag>         mMusicTagList  = new ArrayList<>();
+    private KaraokeMusicService mKaraokeMusicService;
+
+    private final ITUINotification mDeleteMusicNotification = new ITUINotification() {
+        @Override
+        public void onNotifyEvent(String key, String subKey, Map<String, Object> param) {
+            if (param == null || !param.containsKey(KARAOKE_MUSIC_INFO_KEY)) {
+                return;
+            }
+            KaraokeMusicInfo musicInfo = (KaraokeMusicInfo) param.get(KARAOKE_MUSIC_INFO_KEY);
+            deleteMusicInfo(musicInfo);
+        }
+    };
 
     public KaraokeMusicLibraryView(Context context, RoomInfoController roomInfoController) {
         super(context);
         mContext = context;
         mRoomInfoController = roomInfoController;
-        mKtvMusicImpl = roomInfoController.getMusicServiceImpl();
-        mKtvMusicImpl.setServiceDelegate(this);
-        initView(context);
+        mKaraokeMusicService = roomInfoController.getMusicServiceImpl();
+        LayoutInflater.from(context).inflate(R.layout.trtckaraoke_fragment_library_view, this);
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        initView(mContext);
         initData();
-        initLisenter();
+        TUICore.registerEvent(KARAOKE_MUSIC_EVENT, KARAOKE_DELETE_MUSIC_EVENT, mDeleteMusicNotification);
     }
 
-    private void initData() {
-        mLibraryLists = new ArrayList<>();
-        mPopularList = new ArrayList<>();
-        mUserSelectMap = new HashMap<>();
-        mMainHandler = new Handler(Looper.getMainLooper());
-        mLibraryListAdapter = new KaraokeMusicLibraryAdapter(mContext, mRoomInfoController, mLibraryLists,
-                new KaraokeMusicLibraryAdapter.OnPickItemClickListener() {
-                    @Override
-                    public void onPickSongItemClick(KaraokeMusicInfo info, int layoutPosition) {
-                        if (lastClickTime > 0) {
-                            long current = System.currentTimeMillis();
-                            if (current - lastClickTime < 300) {
-                                return;
-                            }
-                        }
-                        lastClickTime = System.currentTimeMillis();
-                        RecyclerView.ViewHolder holder = mRvList.findViewHolderForAdapterPosition(layoutPosition);
-                        ProgressBar             bar    = null;
-                        if (holder != null) {
-                            bar = holder.itemView.findViewById(R.id.progress_bar_choose_song);
-                        }
-                        updateSelectedList(bar, info);
-                    }
-                });
-        mRvList.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
-        mLibraryListAdapter.setHasStableIds(true);
-        mRvList.setAdapter(mLibraryListAdapter);
-        mLibraryListAdapter.notifyDataSetChanged();
-
-        //先获取热门歌曲分类列表
-        mKtvMusicImpl.ktvGetPopularMusic(new KaraokeMusicCallback.PopularMusicListCallback() {
-            @Override
-            public void onCallBack(List<KaraokePopularInfo> list) {
-                mPopularList.clear();
-                mPopularList.addAll(list);
-                if (mPopularList.size() > 0) {
-                    KaraokePopularInfo info = mPopularList.get(0);
-                    getMusicLibraryList(info.playlistId);
-                }
-            }
-        });
-    }
-
-    //获取到分类列表后去加载详细的歌曲列表信息
-    private void getMusicLibraryList(String playlistId) {
-        mKtvMusicImpl.ktvGetMusicPage(playlistId, new KaraokeMusicCallback.MusicListCallback() {
-            @Override
-            public void onCallback(int code, String msg, List<KaraokeMusicInfo> list) {
-                mLibraryLists.clear();
-                for (KaraokeMusicInfo info : list) {
-                    KaraokeMusicModel model = new KaraokeMusicModel();
-                    model.userId = info.userId;
-                    model.musicId = info.musicId;
-                    model.musicName = info.musicName;
-                    model.singers = info.singers;
-                    model.originUrl = info.originUrl;
-                    model.accompanyUrl = info.accompanyUrl;
-                    model.coverUrl = info.coverUrl;
-                    model.lrcUrl = info.lrcUrl;
-                    model.isSelected = false;
-                    mLibraryLists.add(model);
-                }
-                if (mLibraryListAdapter != null) {
-                    mLibraryListAdapter.notifyDataSetChanged();
-                }
-                if (mProgressBar != null) {
-                    mProgressBar.setVisibility(GONE);
-                }
-            }
-        });
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        TUICore.unRegisterEvent(KARAOKE_MUSIC_EVENT, KARAOKE_DELETE_MUSIC_EVENT, mDeleteMusicNotification);
     }
 
     private void initView(Context context) {
-        View rootView = LayoutInflater.from(context).inflate(R.layout.trtckaraoke_fragment_library_view, this);
-        mRvList = (RecyclerView) rootView.findViewById(R.id.rl_library);
-        mProgressBar = findViewById(R.id.progress_group_library);
-        mProgressBar.setVisibility(VISIBLE);
-    }
+        mProgressbarRequest = findViewById(R.id.progress_request);
+        mRecyclerMusic = findViewById(R.id.recycle_music_list);
+        mRecyclerMusic.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
+        mLibraryListAdapter = new KaraokeMusicLibraryAdapter(mContext, mRoomInfoController, mLibraryLists,
+                new KaraokeMusicLibraryAdapter.OnPickItemClickListener() {
+                    @Override
+                    public void onPickSongItemClick(KaraokeMusicInfo info, int position) {
+                        addMusicToPlaylist(info, position);
+                    }
+                });
+        mRecyclerMusic.setAdapter(mLibraryListAdapter);
 
-    private void initLisenter() {
-        //增加搜索框
+        mRecyclerMusicTags = findViewById(R.id.recycle_music_tags);
+        mRecyclerMusicTags.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false));
+        mMusicTagsAdapter = new KaraokeMusicTagsAdapter(mContext, mMusicTagList,
+                new KaraokeMusicTagsAdapter.OnMusicTagClickListener() {
+                    @Override
+                    public void onMusicTagClick(KaraokeMusicTag musicTag, int position) {
+                        getMusicLibraryList(musicTag.id);
+                    }
+                });
+        mRecyclerMusicTags.setAdapter(mMusicTagsAdapter);
+
         findViewById(R.id.img_search).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -151,116 +128,105 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout implements Karaok
         });
     }
 
-    private void updateSelectedList(final ProgressBar bar, final KaraokeMusicInfo info) {
-        mKtvMusicImpl.downLoadMusic(info, new KaraokeMusicCallback.MusicLoadingCallback() {
+    private void initData() {
+        mKaraokeMusicService.getMusicTagList(new TUIValueCallback<List<KaraokeMusicTag>>() {
             @Override
-            public void onStart(KaraokeMusicInfo musicInfo) {
+            public void onSuccess(List<KaraokeMusicTag> list) {
+                mMusicTagList.clear();
+                mMusicTagList.addAll(list);
+                mMusicTagsAdapter.notifyDataSetChanged();
+                getMusicLibraryList(mMusicTagList.get(0).id);
             }
 
             @Override
+            public void onError(int code, String msg) {
+                TRTCLogger.e(TAG, String.format("getMusicTagList: code=%s, msg=%s", code, msg));
+            }
+        });
+    }
+
+    private void getMusicLibraryList(String musicTagId) {
+        mProgressbarRequest.setVisibility(VISIBLE);
+        mKaraokeMusicService.getMusicsByTagId(musicTagId, "",
+                new TUIValueCallback<KaraokeMusicPageInfo>() {
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        TRTCLogger.e(TAG, String.format("getMusicLibraryList: code=%s, msg=%s", code, msg));
+                        mProgressbarRequest.setVisibility(GONE);
+                    }
+
+                    @Override
+                    public void onSuccess(KaraokeMusicPageInfo object) {
+                        mLibraryLists.clear();
+                        for (KaraokeMusicInfo info : object.musicInfoList) {
+                            KaraokeMusicInfo musicInfo = mRoomInfoController.getUserSelectMap().get(info.musicId);
+                            info.isSelected = musicInfo != null;
+                            if (musicInfo != null) {
+                                info.originUrl = musicInfo.originUrl;
+                                info.lrcUrl = musicInfo.lrcUrl;
+                                info.accompanyUrl = musicInfo.accompanyUrl;
+                            }
+                            mLibraryLists.add(info);
+                        }
+                        mLibraryListAdapter.notifyDataSetChanged();
+                        mProgressbarRequest.setVisibility(GONE);
+                    }
+                });
+    }
+
+    private void addMusicToPlaylist(final KaraokeMusicInfo info, int position) {
+        info.isSelected = true;
+        ViewHolder holder = (ViewHolder) mRecyclerMusic.findViewHolderForAdapterPosition(position);
+        ProgressBar progressBar = holder.itemView.findViewById(R.id.progress_bar_choose_song);
+        holder.updateChooseButton(info.isSelected);
+        mKaraokeMusicService.addMusicToPlaylist(info, new KaraokeAddMusicCallback() {
+            @Override
+            public void onStart(KaraokeMusicInfo musicInfo) {}
+
+            @Override
             public void onProgress(KaraokeMusicInfo musicInfo, float progress) {
-                publishProgress(bar, musicInfo.musicId, progress);
+                int curProgress = (int) (progress * 100);
+                curProgress = Math.max(curProgress, 0);
+                curProgress = Math.min(curProgress, 100);
+                progressBar.setProgress(curProgress);
             }
 
             @Override
             public void onFinish(KaraokeMusicInfo musicInfo, int errorCode, String errorMessage) {
                 if (errorCode != 0 || musicInfo == null) {
-                    Log.d(TAG, "downloadMusic failed errorCode = " + errorCode + " , errorMessage = " + errorMessage);
-                    ToastUtils.showShort(errorMessage);
-                    return;
+                    TRTCLogger.e(TAG, "downloadMusic failed errorCode = "
+                            + errorCode + ",errorMessage = " + errorMessage);
+                    info.isSelected = false;
+                    String tip = getResources().getString(R.string.trtckaraoke_toast_music_download_failed,
+                            musicInfo.musicName);
+                    Toast.show(tip, Toast.LENGTH_SHORT);
+                    holder.updateChooseButton(info.isSelected);
+                    mKaraokeMusicService.deleteMusicFromPlaylist(info, null);
+                } else {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put(KARAOKE_MUSIC_INFO_KEY, info);
+                    TUICore.notifyEvent(KARAOKE_MUSIC_EVENT, KARAOKE_ADD_MUSIC_EVENT, params);
                 }
-                info.lrcUrl = musicInfo.lrcUrl;
-                publishProgress(bar, musicInfo.musicId, 100);
-                //歌词下载完后,更新已点map的lrcUrl
-                KaraokeMusicModel model = mUserSelectMap.get(musicInfo.musicId);
-                if (model != null) {
-                    model.lrcUrl = musicInfo.lrcUrl;
-                }
-                mMainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mLibraryListAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-        });
-        mKtvMusicImpl.pickMusic(info, new KaraokeMusicCallback.ActionCallback() {
-            @Override
-            public void onCallback(int code, String msg) {
-                Log.d(TAG, "updateSelectedList : code = " + code + " , msg = " + msg);
             }
         });
     }
 
-    private void publishProgress(final ProgressBar progressBar, String id, final float progress) {
-        if (progressBar == null || id == null) {
+    private void deleteMusicInfo(KaraokeMusicInfo musicInfo) {
+        if (musicInfo == null) {
             return;
         }
-
-        int curProgress = (int) (progress * 100);
-        if (curProgress < 0) {
-            curProgress = 0;
-        }
-        if (curProgress > 100) {
-            curProgress = 100;
-        }
-        final int finalCurProgress = curProgress;
-        progressBar.post(new Runnable() {
-            @Override
-            public void run() {
-                progressBar.setProgress(finalCurProgress);
-            }
-        });
-    }
-
-    @Override
-    public void onMusicListChange(List<KaraokeMusicModel> musicInfoList) {
-        if (mLibraryLists == null || musicInfoList == null) {
-            Log.d(TAG, "OnMusicListChange: list is error");
-            return;
-        }
-        String userId = mRoomInfoController.getSelfUserId();
-
-        //先清空
-        mUserSelectMap.clear();
-        //将当前用户点过的歌保存,其他人的不保存,这样musicId就是唯一的
-        for (KaraokeMusicModel temp : musicInfoList) {
-            if (temp == null || userId == null) {
-                continue;
-            }
-            if (userId.equals(temp.userId)) {
-                mUserSelectMap.put(temp.musicId, temp);
+        for (int i = 0; i < mLibraryLists.size(); i++) {
+            KaraokeMusicInfo info = mLibraryLists.get(i);
+            if (info != null
+                    && TextUtils.equals(info.musicId, musicInfo.musicId)
+                    && TextUtils.equals(musicInfo.userId, mRoomInfoController.getSelfUserId())) {
+                info.isSelected = false;
+                if (mLibraryListAdapter != null) {
+                    mLibraryListAdapter.notifyItemChanged(i);
+                }
+                return;
             }
         }
-        //列表更新后,将当前用户点的歌态置为已点
-        for (KaraokeMusicModel model : mLibraryLists) {
-            if (model == null || model.musicId == null) {
-                continue;
-            }
-            KaraokeMusicModel selectModel = mUserSelectMap.get(model.musicId);
-            model.isSelected = (selectModel != null);
-        }
-        mRoomInfoController.setUserSelectMap(mUserSelectMap);
-        mLibraryListAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void onShouldSetLyric(KaraokeMusicModel model) {
-
-    }
-
-    @Override
-    public void onShouldPlay(KaraokeMusicModel model) {
-
-    }
-
-    @Override
-    public void onShouldStopPlay(KaraokeMusicModel model) {
-
-    }
-
-    @Override
-    public void onShouldShowMessage(KaraokeMusicModel model) {
-
     }
 }

@@ -215,4 +215,8 @@ public class SlideRecyclerView extends RecyclerView {
             mFlingView.scrollTo(0, 0);
         }
     }
+
+    public boolean isMenuShowing() {
+        return mFlingView != null && mFlingView.getScrollX() != 0;
+    }
 }

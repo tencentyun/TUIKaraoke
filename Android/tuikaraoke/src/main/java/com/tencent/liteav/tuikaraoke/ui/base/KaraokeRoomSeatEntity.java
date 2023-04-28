@@ -14,6 +14,8 @@ public class KaraokeRoomSeatEntity {
     public static final int QUALITY_GOOD   = 101;
     public static final int QUALITY_NORMAL = 102;
     public static final int QUALITY_BAD    = 103;
+    public static final int QUALITY_NONE   = 104;
+    
     private             int quality;
 
     public int getQuality() {

@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#B4FFFFFF"
+        android:background="#FFFFFF"
         android:orientation="horizontal"
         android:paddingTop="10dp"
         android:paddingBottom="10dp">
@@ -24,6 +24,8 @@
             android:inputType="text"
             android:maxLength="32"
             android:maxLines="1"
+            android:hint="@string/trtckaraoke_say_something"
+            android:textColorHint="@color/trtckaraoke_color_msg_hint"
             android:singleLine="true"
             android:textColor="@color/trtckaraoke_black" />
 

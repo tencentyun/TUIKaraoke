@@ -27,6 +27,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginStart="12dp"
             android:src="@drawable/trtckaraoke_ic_search_music"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
         <EditText
@@ -40,8 +41,9 @@
             android:maxLines="1"
             android:singleLine="true"
             android:textColor="@color/trtckaraoke_white"
-            android:textColorHint="@color/trtckaraoke_text_color_hint"
+            android:textColorHint="@color/trtckaraoke_white"
             android:textSize="16sp"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toEndOf="@+id/img_search" />
 
         <ImageView
@@ -51,6 +53,7 @@
             android:layout_marginEnd="8dp"
             android:background="@drawable/trtckaraoke_ic_clear_search"
             android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

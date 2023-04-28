@@ -47,11 +47,6 @@ public class KaraokeMusicDialog extends Dialog {
         setHeightAndBackground();
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     private void initView(Context context) {
         mTopTl = (TabLayout) findViewById(R.id.tl_top);
         mContentVp = (CustomViewPager) findViewById(R.id.vp_content);
@@ -92,7 +87,7 @@ public class KaraokeMusicDialog extends Dialog {
             TRTCLogger.d(TAG, " the window is null");
             return;
         }
-        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int) (screenHeight / 3 * 2));
+        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int) (screenHeight / 4 * 3));
         window.setGravity(Gravity.BOTTOM);
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
     }
@@ -106,5 +101,9 @@ public class KaraokeMusicDialog extends Dialog {
         }
         wm.getDefaultDisplay().getSize(point);
         return point.y;
+    }
+
+    public void setCurrentItem(int index) {
+        mContentVp.setCurrentItem(index);
     }
 }
