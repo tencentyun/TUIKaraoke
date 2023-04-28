@@ -27,8 +27,8 @@ struct SeatInfoModel {
     var isClosed: Bool = false
     var isUsed: Bool = false
     var isOwner: Bool = false
-    var seatInfo: SeatInfo?
-    var seatUser: UserInfo?
+    var seatInfo: KaraokeSeatInfo?
+    var seatUser: KaraokeUserInfo?
     var action: ((Int) -> Void)? // 入参为SeatIndex
     var isTalking: Bool = false
 }
@@ -58,7 +58,7 @@ struct AudienceInfoModel {
     static let TYPE_WAIT_AGREE = 2
     
     var type: Int = 0 // 观众类型
-    var userInfo: UserInfo
+    var userInfo: KaraokeUserInfo
     var action: (Int) -> Void // 点击邀请按钮的动作
 }
 

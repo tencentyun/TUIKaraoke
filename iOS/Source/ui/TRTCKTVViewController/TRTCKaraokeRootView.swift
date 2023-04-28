@@ -49,17 +49,31 @@ class TRTCKaraokeRootView: UIView {
         return view
     }()
     
-    lazy var lyricView: TRTCLyricView = {
-        let view = TRTCLyricView(viewModel: viewModel)
+    lazy var musicPanelView: TRTCMusicPanelView = {
+        let view = TRTCMusicPanelView(viewModel: viewModel)
         return view
+    }()
+    
+    lazy var dashboardAlert: TRTCKaraokeDashboardAlert = {
+        let alert = TRTCKaraokeDashboardAlert(viewModel: viewModel)
+        return alert
+    }()
+    
+    lazy var songSelectorAlert: TRTCKaraokeSongSelectorAlert = {
+        let alert = TRTCKaraokeSongSelectorAlert(viewModel: viewModel)
+        return alert
     }()
     
     let seatCollection: UICollectionView = {
         let layout = UICollectionViewFlowLayout.init()
-        layout.itemSize = CGSize.init(width: 60, height: 78)
-        layout.minimumLineSpacing = 8
-        layout.minimumInteritemSpacing = 20
-        layout.sectionInset = .init(top: 0, left: 20, bottom: 0, right: 20)
+        layout.itemSize = CGSize(width: convertPixel(w: 60),
+                                      height: convertPixel(h:78))
+        layout.minimumLineSpacing = convertPixel(w:8)
+        layout.minimumInteritemSpacing = convertPixel(w:20)
+        layout.sectionInset = UIEdgeInsets(top: 0,
+                                           left: convertPixel(w: 20),
+                                           bottom: 0,
+                                           right: convertPixel(w: 20))
         layout.scrollDirection = .vertical
         let collectionView = UICollectionView.init(frame: .zero, collectionViewLayout: layout)
         collectionView.register(TRTCKaraokeSeatCell.self, forCellWithReuseIdentifier: "TRTCKaraokeSeatCell")
@@ -75,9 +89,8 @@ class TRTCKaraokeRootView: UIView {
     lazy var mainMenuView: TRTCKaraokeMainMenuView = {
         let icons: [IconTuple] = [
             IconTuple(normal: UIImage(named: "room_message", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_message", in: karaokeBundle(), compatibleWith: nil)!, type: .message),
-            IconTuple(normal: UIImage(named: "room_leave_mic", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_leave_mic", in: karaokeBundle(), compatibleWith: nil)!, type: .micoff),
-            IconTuple(normal: UIImage(named: "room_voice_off", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_voice_on", in: karaokeBundle(), compatibleWith: nil)!, type: .mute),
             IconTuple(normal: UIImage(named: "gift", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "gift", in: karaokeBundle(), compatibleWith: nil)!, type: .gift),
+            IconTuple(normal: UIImage(named: "room_voice_off", in: karaokeBundle(), compatibleWith: nil)!, selected: UIImage(named: "room_voice_on", in: karaokeBundle(), compatibleWith: nil)!, type: .mute),
         ]
         icons.forEach { (icon) in
             switch icon.type {
@@ -87,7 +100,7 @@ class TRTCKaraokeRootView: UIView {
                 break
             }
         }
-        let view = TRTCKaraokeMainMenuView.init(icons: icons)
+        let view = TRTCKaraokeMainMenuView(icons: icons, viewModel: viewModel)
         return view
     }()
     
@@ -97,20 +110,14 @@ class TRTCKaraokeRootView: UIView {
         return view
     }()
     
-    lazy var audiceneListView: TRTCKaraokeAudienceListView = {
-        let view = TRTCKaraokeAudienceListView.init(viewModel: viewModel)
-        view.hide()
-        return view
-    }()
-    
     deinit {
-        lyricView.cleanTimer()
         TRTCLog.out("reset audio settings")
     }
     
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        let bgGradientLayer = bgView.gradient(colors: [UIColor(hex: "FF88DD")!.cgColor, UIColor(hex: "1E009B")!.cgColor])
+        let bgGradientLayer = bgView.gradient(colors: [UIColor.tui_color(withHex: "FF88DD").cgColor,
+                                                       UIColor.tui_color(withHex: "1E009B").cgColor,])
         bgGradientLayer.startPoint = CGPoint(x: 0.8, y: 0)
         bgGradientLayer.endPoint = CGPoint(x: 0.2, y: 1)
     }
@@ -128,16 +135,15 @@ class TRTCKaraokeRootView: UIView {
     
     func constructViewHierarchy() {
         /// 此方法内只做add子视图操作
-        backgroundLayer.frame = bounds;
+        backgroundLayer.frame = bounds
         layer.insertSublayer(backgroundLayer, at: 0)
         addSubview(bgView)
         addSubview(topView)
-        addSubview(lyricView)
+        addSubview(musicPanelView)
         addSubview(seatCollection)
         addSubview(tipsView)
         addSubview(mainMenuView)
         addSubview(msgInputView)
-        addSubview(audiceneListView)
     }
 
     func activateConstraints() {
@@ -147,7 +153,7 @@ class TRTCKaraokeRootView: UIView {
         topView.snp.makeConstraints { (make) in
             make.top.leading.trailing.equalToSuperview()
         }
-        lyricView.snp.makeConstraints { (make) in
+        musicPanelView.snp.makeConstraints { (make) in
             make.top.equalTo(topView.snp.bottom)
             make.leading.equalToSuperview().offset(20)
             make.trailing.equalToSuperview().offset(-20)
@@ -156,7 +162,6 @@ class TRTCKaraokeRootView: UIView {
         activateConstraintsOfTipsView()
         activateConstraintsOfMainMenu()
         activateConstraintsOfTextView()
-        activateConstraintsOfAudiceneList()
     }
 
     func bindInteraction() {
@@ -164,6 +169,23 @@ class TRTCKaraokeRootView: UIView {
         seatCollection.dataSource = self
         /// 此方法负责做viewModel和视图的绑定操作
         mainMenuView.delegate = self
+    }
+
+    func checkNetwork()  {
+        let isAnchor = (viewModel.userType == .anchor)
+        let networklevel = viewModel.getCurrentNetworkLevel()
+        if networklevel > 2 && isAnchor {
+            makeToast(.anchorNetworkChekcText, duration: ToastManager.shared.duration, position:ToastPosition.center)
+        }
+        if networklevel > 2 && !isAnchor {
+            if networklevel == 6 {
+                makeToast(.audienceNetworkChekcText,
+                          duration: ToastManager.shared.duration,
+                          position:ToastPosition.center)
+            } else {
+                makeToast(.handupCheckNetworkText, duration: ToastManager.shared.duration, position:ToastPosition.center)
+            }
+        }
     }
 }
 
@@ -190,12 +212,6 @@ extension TRTCKaraokeRootView: TRTCKaraokeMainMenuDelegate {
         case .gift:
             showGiftAlert()
             break
-        case .micoff:
-            let seatIndex = viewModel.mSelfSeatIndex
-            if seatIndex > 0 && seatIndex <= viewModel.anchorSeatList.count {
-                viewModel.leaveSeat()
-            }
-            break
         }
         return false
     }
@@ -221,9 +237,12 @@ extension TRTCKaraokeRootView: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TRTCKaraokeSeatCell", for: indexPath)
         let model = viewModel.anchorSeatList[indexPath.item]
+        if let userId = model.seatUser?.userId {
+            model.seatUser?.networkLevel = Int32(viewModel.getNetworkLevel(userId: userId))
+        }
         if let seatCell = cell as? TRTCKaraokeSeatCell {
             // 配置 seatCell 信息
-            seatCell.setCell(model: model, userMuteMap: viewModel.userMuteMap, seatIndex: indexPath.item)
+            seatCell.setCell(model: model, seatIndex: indexPath.item)
         }
         return cell
     }
@@ -232,8 +251,8 @@ extension TRTCKaraokeRootView: UICollectionViewDataSource {
 extension TRTCKaraokeRootView {
     func activateConstraintsOfCustomSeatArea() {
         seatCollection.snp.makeConstraints { (make) in
-            make.top.equalTo(lyricView.snp.bottom).offset(8)
-            make.height.equalTo(78*2+8)
+            make.top.equalTo(musicPanelView.snp.bottom).offset(8)
+            make.height.equalTo(convertPixel(h: 78*2+8))
             make.left.equalToSuperview()
             make.right.equalToSuperview()
         }
@@ -252,7 +271,7 @@ extension TRTCKaraokeRootView {
             make.left.right.equalToSuperview()
             make.height.equalTo(52)
             if #available(iOS 11.0, *) {
-                make.bottom.equalTo(safeAreaLayoutGuide.snp.bottom).offset(-20)
+                make.bottom.equalTo(safeAreaLayoutGuide.snp.bottom)
             } else {
                 // Fallback on earlier versions
                 make.bottom.equalToSuperview().offset(-20)
@@ -266,18 +285,46 @@ extension TRTCKaraokeRootView {
         }
     }
     
-    func activateConstraintsOfAudiceneList() {
-        audiceneListView.snp.makeConstraints { (make) in
-            make.top.left.bottom.right.equalToSuperview()
+    func activateConstraintsOfSongSelectorAlert() {
+        songSelectorAlert.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
         }
-        
     }
 }
 
 extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
+    func onSongSelectorAlertMusicListChanged() {
+        songSelectorAlert.reloadSongSelectorView(dataSource: viewModel.effectViewModel.musicList)
+    }
     
-    func onUpdateDownloadMusic(musicId: String) {
-        lyricView.updateChorusBtnStatus(musicId: musicId)
+    func onSongSelectorAlertSelectedMusicListChanged() {
+        songSelectorAlert.reloadSelectedSongView(dataSource: viewModel.effectViewModel.musicSelectedList)
+    }
+    
+    func onManageSongBtnClick() {
+        if songSelectorAlert.superview == nil {
+            addSubview(songSelectorAlert)
+            songSelectorAlert.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
+            }
+            songSelectorAlert.layoutIfNeeded()
+        }
+        songSelectorAlert.show(index: 1)
+    }
+    
+    func onShowSongSelectorAlert() {
+        if songSelectorAlert.superview == nil {
+            addSubview(songSelectorAlert)
+            songSelectorAlert.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
+            }
+            songSelectorAlert.layoutIfNeeded()
+        }
+        songSelectorAlert.show()
+    }
+    
+    func updateChorusBtnStatus(musicId: String) {
+        musicPanelView.updateChorusBtnStatus(musicId: musicId)
     }
     
     func showGiftAnimation(giftInfo: TUIGiftInfo) {
@@ -288,12 +335,7 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         mainMenuView.audienceType()
     }
     
-    func recoveryVoiceSetting() {
-        
-    }
-    
     func audienceListRefresh() {
-        audiceneListView.refreshList()
         topView.reloadAudienceList()
     }
     
@@ -319,11 +361,30 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         mainMenuView.changeMixStatus(isMute: isMute)
     }
     
-    func onAnchorMute(isMute: Bool) {
+    func onAnchorMute() {
         seatCollection.reloadData()
     }
+        
+    func refreshDashboard() {
+        if dashboardAlert.superview != nil {
+            dashboardAlert.refreshData()
+        }
+    }
     
-    func showAlert(info: (title: String, message: String), sureAction: @escaping () -> Void, cancelAction: (() -> Void)?) {
+    func onDashboardButtonPress() {
+        if dashboardAlert.superview == nil {
+            addSubview(dashboardAlert)
+            dashboardAlert.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
+            }
+            dashboardAlert.layoutIfNeeded()
+        }
+        dashboardAlert.show()
+    }
+    
+    func showAlert(info: (title: String, message: String),
+                   sureAction: @escaping () -> Void,
+                   cancelAction: (() -> Void)?) {
         let alertController = UIAlertController.init(title: info.title, message: info.message, preferredStyle: .alert)
         let sureAlertAction = UIAlertAction.init(title: .acceptText, style: .default) { (action) in
             sureAction()
@@ -336,6 +397,17 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         rootViewController?.present(alertController, animated: false, completion: {
             
         })
+    }
+    
+    func showUpdateNetworkAlert(info: (isUpdateSuccessed: Bool, message: String), retryAction: (() -> Void)?, cancelAction: @escaping (() -> Void)) {
+        let alertModel = TUIAlertModel(titleText: "",
+                                       descText: info.message,
+                                       cancelButtonText: info.isUpdateSuccessed ? nil : .retryText,
+                                       sureButtonText: info.isUpdateSuccessed ? .acceptText : .cancelText,
+                                       cancelButtonAction: retryAction,
+                                       sureButtonAction: cancelAction)
+        let alertView = TUIAlertView(frame: .zero)
+        alertView.show(alertModel: alertModel)
     }
     
     func showActionSheet(actionTitles: [String], actions: @escaping (Int) -> Void) {
@@ -369,22 +441,11 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         alert.show()
     }
     
-    func showAudienceAlert(seat: SeatInfoModel) {
-        let audienceList = viewModel.memberAudienceList
-        let alert = TRTCKaraokeAudienceAlert(viewModel: viewModel, seatModel: seat, audienceList: audienceList)
-        addSubview(alert)
-        alert.snp.makeConstraints { (make) in
-            make.edges.equalToSuperview()
-        }
-        alert.layoutIfNeeded()
-        alert.show()
-    }
-    
     func showToast(message: String) {
-        makeToast(message)
+        makeToast(message, duration: 2, position: .center)
     }
     
-    func showToastActivity(){
+    func showToastActivity() {
         makeToastActivity(.center)
     }
     
@@ -406,16 +467,17 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
             viewModel.userType = .anchor
             mainMenuView.anchorType()
         }
-        lyricView.checkBtnShouldHidden()
+        musicPanelView.checkBtnShouldHidden()
     }
     
-    func changeRoom(info: RoomInfo) {
+    func changeRoom(info: KaraokeRoomInfo) {
         topView.reloadRoomInfo(info)
     }
     
     func refreshAnchorInfos() {
         refreshRoomInfo()
         seatCollection.reloadData()
+        checkNetwork()
     }
     
     func refreshRoomInfo() {
@@ -434,19 +496,13 @@ extension TRTCKaraokeRootView: TRTCKaraokeViewResponder {
         }
     }
     
-    func audiceneList(show: Bool) {
-        if show {
-            audiceneListView.show()
-        } else {
-            audiceneListView.hide()
-        }
-    }
-    
 }
 
 extension TRTCKaraokeRootView: TUIGiftPanelViewDelegate {
     func show(giftModel: TUIGiftModel) {
-        giftAnimator.show(giftInfo: TUIGiftInfo.init(giftModel: giftModel, sendUser: TRTCKaraokeIMManager.shared.curUserName, sendUserHeadIcon: TRTCKaraokeIMManager.shared.curUserAvatar))
+        giftAnimator.show(giftInfo: TUIGiftInfo(giftModel: giftModel,
+                                                sendUser: viewModel.loginUserName,
+                                                sendUserHeadIcon: viewModel.loginUserFaceUrl))
         viewModel.sendGift(giftId: giftModel.giftId) { [weak self] (code, msg) in
             if code != 0 {
                 guard let `self` = self else { return }
@@ -461,10 +517,14 @@ fileprivate extension String {
     static let mutedText = karaokeLocalize("Demo.TRTC.Salon.seatmuted")
     static let unmutedText = karaokeLocalize("Demo.TRTC.Salon.seatunmuted")
     static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    static let retryText = karaokeLocalize("Demo.TRTC.LiveRoom.retry")
     static let refuseText = karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
     static let selectText = karaokeLocalize("Demo.TRTC.Salon.pleaseselect")
     static let cancelText = karaokeLocalize("Demo.TRTC.LiveRoom.cancel")
     static let seatmutedText = karaokeLocalize("Demo.TRTC.Karaoke.onseatmuted")
+    static let anchorNetworkChekcText = karaokeLocalize("Demo.TRTC.Karaoke.anchorCheckNetwork")
+    static let audienceNetworkChekcText = karaokeLocalize("Demo.TRTC.Karaoke.audienceCheckNetwork")
+    static let handupCheckNetworkText = karaokeLocalize("Demo.TRTC.Karaoke.handupCheckNetwork")
 }
 
 

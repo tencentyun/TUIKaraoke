@@ -9,9 +9,8 @@ import UIKit
 
 public enum IconTupleType : Int {
     case message = 1
-    case micoff
-    case mute
     case gift
+    case mute
 }
 
 class IconTuple: NSObject {
@@ -27,48 +26,9 @@ class IconTuple: NSObject {
     }
 }
 
-protocol TRTCKaraokeMainMenuDelegate: class {
+protocol TRTCKaraokeMainMenuDelegate: AnyObject {
     func menuView(menu: TRTCKaraokeMainMenuView, click item: IconTuple) -> Bool
     func menuView(menu: TRTCKaraokeMainMenuView, shouldClick item: IconTuple) -> Bool
-}
-
-class TRTCKaraokeMainMenuLayout: UICollectionViewFlowLayout {
-    override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
-        return true
-    }
-    override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        let attrs = super.layoutAttributesForElements(in: rect)
-        if let attrs = attrs {
-            if attrs.count == 1 {
-                var frame = attrs.first!.frame
-                frame.origin.x = 0
-                attrs.first!.frame = frame
-            }
-            else if attrs.count == 5 {
-                minimumInteritemSpacing = (ScreenWidth - 5 * itemSize.width) / 6
-                for (i, attr) in attrs.enumerated() {
-                    var frame = attr.frame
-                    frame.origin.x = minimumInteritemSpacing*CGFloat(i+1) + itemSize.width*CGFloat(i)
-                    attr.frame = frame
-                }
-            }
-            else {
-                for (i, attr) in attrs.enumerated() {
-                    if i == 0 {
-                        var frame = attr.frame
-                        frame.origin.x = 20
-                        attr.frame = frame
-                    }
-                    else {
-                        var frame = attr.frame
-                        frame.origin.x = ScreenWidth-itemSize.width*CGFloat(attrs.count-i)-minimumInteritemSpacing*CGFloat(attrs.count-1-i)-20
-                        attr.frame = frame
-                    }
-                }
-            }
-        }
-        return attrs
-    }
 }
 
 class TRTCKaraokeMainMenuView: UIView {
@@ -76,17 +36,19 @@ class TRTCKaraokeMainMenuView: UIView {
     private let icons: [IconTuple]
     var dataSource: [IconTuple] = []
     weak var delegate: TRTCKaraokeMainMenuDelegate?
+    let viewModel: TRTCKaraokeViewModel
     /// 初始化方法
     /// - Parameters:
     ///   - frame: 视图frame
     ///   - icons: 视图菜单icons（最多5个，最少1个）
-    init(frame: CGRect = .zero, icons: [IconTuple] ) {
+    init(frame: CGRect = .zero, icons: [IconTuple], viewModel: TRTCKaraokeViewModel) {
         icons.forEach { (tuple) in
             if tuple.type == .mute {
                 tuple.isSelect = true
             }
         }
         self.icons = icons
+        self.viewModel = viewModel
         super.init(frame: frame)
     }
     
@@ -101,13 +63,25 @@ class TRTCKaraokeMainMenuView: UIView {
     }()
     
     lazy var collectionView: UICollectionView = {
-        let layout = TRTCKaraokeMainMenuLayout()
+        let layout = UICollectionViewFlowLayout()
         layout.itemSize = CGSize(width: 44, height: 44)
-        layout.minimumInteritemSpacing = 20
+        layout.minimumInteritemSpacing = 10
         layout.minimumLineSpacing = 20
+        layout.sectionInset = UIEdgeInsets(top: 8, left: 20, bottom: 0, right: 0)
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
         return collectionView
+    }()
+    
+    lazy var songSelectorBtn: UIButton = {
+        let btn = UIButton(type: .custom)
+        btn.setTitle(.songSelectorText, for: .normal)
+        btn.setImage(UIImage(named: "musicSelect", in: karaokeBundle(), compatibleWith: nil), for: .normal)
+        btn.clipsToBounds = true
+        btn.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 16)
+        btn.titleLabel?.textColor = .white
+        btn.imageEdgeInsets = UIEdgeInsets(top: 0, left: -4, bottom: 0, right: 4)
+        return btn
     }()
     
     // MARK: - 视图的生命周期
@@ -125,11 +99,21 @@ class TRTCKaraokeMainMenuView: UIView {
     deinit {
         TRTCLog.out("deinit \(type(of: self))")
     }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        let selectBtnLayer = songSelectorBtn.gradient(colors: [UIColor.tui_color(withHex:"FF88DD").cgColor,
+                                                               UIColor.tui_color(withHex: "7D00BD").cgColor,])
+        selectBtnLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        selectBtnLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        songSelectorBtn.layer.cornerRadius = songSelectorBtn.frame.height * 0.5
+    }
 
     func constructViewHierarchy() {
         /// 此方法内只做add子视图操作
         addSubview(menuStack)
         menuStack.addSubview(collectionView)
+        menuStack.addSubview(songSelectorBtn)
     }
 
     func activateConstraints() {
@@ -143,6 +127,12 @@ class TRTCKaraokeMainMenuView: UIView {
         collectionView.snp.makeConstraints { (make) in
             make.edges.equalToSuperview()
         }
+        songSelectorBtn.snp.makeConstraints { make in
+            make.right.equalToSuperview().offset(-20)
+            make.bottom.equalTo(collectionView.snp.bottom)
+            make.height.equalTo(44)
+            make.width.equalTo(102)
+        }
     }
 
     func bindInteraction() {
@@ -150,6 +140,7 @@ class TRTCKaraokeMainMenuView: UIView {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(TRTCKaraokeMainMenuViewCell.self, forCellWithReuseIdentifier: "TRTCKaraokeMainMenuViewCell")
+        songSelectorBtn.addTarget(self, action: #selector(songSelectorBtnClick), for: .touchUpInside)
     }
     
     public func anchorType() {
@@ -177,7 +168,20 @@ class TRTCKaraokeMainMenuView: UIView {
     public func changeMixStatus(isMute: Bool) {
         collectionView.reloadData()
     }
+    
+    @objc func songSelectorBtnClick() {
+        if !viewModel.updateNetworkSuccessed {
+            viewModel.viewResponder?.showToast(message: .updateNetworkFailedText)
+            return
+        }
+        if !viewModel.isOwner {
+            viewModel.viewResponder?.showToast(message: .onlyOwnerText)
+            return
+        }
+        viewModel.showSongSelectorAlert()
+    }
 }
+
 extension TRTCKaraokeMainMenuView : UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return dataSource.count
@@ -190,6 +194,7 @@ extension TRTCKaraokeMainMenuView : UICollectionViewDataSource {
         return cell
     }
 }
+
 extension TRTCKaraokeMainMenuView : UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let model = dataSource[indexPath.item]
@@ -201,6 +206,7 @@ extension TRTCKaraokeMainMenuView : UICollectionViewDelegate {
             }
         }
     }
+    
     func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
         let model = dataSource[indexPath.item]
         guard let delegate = delegate else {
@@ -274,10 +280,10 @@ extension UIButton {
     }
 }
 
-/// MARK: - internationalization string
+// MARK: - internationalization string
+
 fileprivate extension String {
-    
+    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    static let updateNetworkFailedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
+    static let onlyOwnerText = karaokeLocalize("Demo.TRTC.Karaoke.onlyownercanoperation")
 }
-
-
-

@@ -42,32 +42,50 @@ class TRTCKaraokeSeatView: UIView {
         
         speakView.layer.cornerRadius = speakView.frame.height*0.5
         speakView.layer.borderWidth = 4
-        speakView.layer.borderColor = UIColor.init(0x0FA968).cgColor
+        speakView.layer.borderColor = UIColor(0x0FA968).cgColor
     }
     let speakView: UIView = {
-        let view = UIView.init()
+        let view = UIView()
         view.backgroundColor = UIColor.clear
         view.isHidden = true
         return view
     }()
     let avatarImageView: UIImageView = {
-        let imageView = UIImageView.init(frame: .zero)
+        let imageView = UIImageView(frame: .zero)
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage.init(named: "Karaoke_placeholder_avatar", in: karaokeBundle(), compatibleWith: nil)
+        imageView.image = UIImage(named: "Karaoke_placeholder_avatar", in: karaokeBundle(), compatibleWith: nil)
         imageView.layer.masksToBounds = true
         return imageView
     }()
     
     let muteImageView: UIImageView = {
-        let imageView = UIImageView.init(frame: .zero)
+        let imageView = UIImageView(frame: .zero)
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage.init(named: "audience_voice_off", in: karaokeBundle(), compatibleWith: nil)
+        imageView.image = UIImage(named: "audience_voice_off", in: karaokeBundle(), compatibleWith: nil)
         imageView.isHidden = true
         return imageView
     }()
-    
+
+    let userContainerView: UIStackView = {
+        let view = UIStackView(frame: .zero)
+        view.backgroundColor = .clear
+        view.axis = .horizontal
+        view.alignment = .fill
+        view.spacing = 3
+        view.contentMode = .scaleToFill
+        return view
+    }()
+
+    let networkImageView: UIImageView = {
+        let imageView = UIImageView(frame: .zero)
+        imageView.contentMode = .scaleAspectFit
+        imageView.image = UIImage(named: "signal_full", in: karaokeBundle(), compatibleWith: nil)
+        imageView.isHidden = true
+        return imageView
+    }()
+
     let nameLabel: UILabel = {
-        let label = UILabel.init(frame: .zero)
+        let label = UILabel(frame: .zero)
         label.text = .handsupText
         label.font = UIFont(name: "PingFangSC-Regular", size: 12)
         label.textColor = .white
@@ -97,7 +115,9 @@ class TRTCKaraokeSeatView: UIView {
         /// 此方法内只做add子视图操作
         addSubview(avatarImageView)
         addSubview(muteImageView)
-        addSubview(nameLabel)
+        addSubview(userContainerView)
+        userContainerView.addArrangedSubview(nameLabel)
+        userContainerView.addArrangedSubview(networkImageView)
         avatarImageView.addSubview(speakView)
     }
 
@@ -111,10 +131,17 @@ class TRTCKaraokeSeatView: UIView {
         muteImageView.snp.makeConstraints { (make) in
             make.trailing.bottom.equalTo(avatarImageView)
         }
-        nameLabel.snp.makeConstraints { (make) in
-            make.leading.trailing.bottom.equalToSuperview()
+        userContainerView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.bottom.equalToSuperview()
             make.top.equalTo(avatarImageView.snp.bottom).offset(4)
-            make.width.lessThanOrEqualTo(120)
+            make.width.lessThanOrEqualToSuperview().offset(6)
+        }
+        nameLabel.snp.makeConstraints { (make) in
+            make.height.equalToSuperview()
+        }
+        networkImageView.snp.makeConstraints { make in
+            make.height.width.equalTo(15)
         }
         speakView.snp.makeConstraints { (make) in
             make.edges.equalToSuperview()
@@ -125,47 +152,65 @@ class TRTCKaraokeSeatView: UIView {
         /// 此方法负责做viewModel和视图的绑定操作
     }
     
-    func isMute(userId: String, map: [String:Bool]) -> Bool {
-        if map.keys.contains(userId) {
-            return map[userId]!
+    func setNetworkIcon(level: Int) -> Void {
+        switch level {
+        case 1,2:
+            networkImageView.image = UIImage(named: "signal_full", in: karaokeBundle(), compatibleWith: nil)
+            networkImageView.isHidden = false
+            break
+        case 3,4:
+            networkImageView.image = UIImage(named: "signal_mid", in: karaokeBundle(), compatibleWith: nil)
+            networkImageView.isHidden = false
+            break
+        case 5:
+            networkImageView.image = UIImage(named: "signal_low", in: karaokeBundle(), compatibleWith: nil)
+            networkImageView.isHidden = false
+            break
+        case 6:
+            networkImageView.image = UIImage(named: "signal_unable", in: karaokeBundle(), compatibleWith: nil)
+            networkImageView.isHidden = false
+            break
+        default:
+            networkImageView.isHidden = true
+            return
         }
-        return true
     }
-    
-    func setSeatInfo(model: SeatInfoModel, userMuteMap: [String:Bool], seatIndex: Int) {
-        
+
+    func setSeatInfo(model: SeatInfoModel, seatIndex: Int) {
         if model.isUsed {
             // 有人
             if let userSeatInfo = model.seatUser {
-                let placeholder = UIImage.init(named: "avatar2_100", in: karaokeBundle(), compatibleWith: nil)
-                let avatarStr = TRTCKaraokeIMManager.shared.checkAvatar(userSeatInfo.userAvatar)
-                if let avatarURL = URL.init(string: avatarStr) {
+                let placeholder = UIImage(named: "Karaoke_placeholder_avatar", in: karaokeBundle(), compatibleWith: nil)
+                let avatarStr = userSeatInfo.avatarURL
+                if let avatarURL = URL(string: avatarStr) {
                     avatarImageView.kf.setImage(with: avatarURL, placeholder: placeholder)
                 } else {
                     avatarImageView.image = placeholder
                 }
-                nameLabel.text = userSeatInfo.userName
+                nameLabel.text = userSeatInfo.userName.isEmpty ? userSeatInfo.userId : userSeatInfo.userName
             }
         } else {
             // 无人
-            avatarImageView.image = UIImage.init(named: "seatDefault", in: karaokeBundle(), compatibleWith: nil)
+            avatarImageView.image = UIImage(named: "seatDefault", in: karaokeBundle(), compatibleWith: nil)
             nameLabel.text = localizeReplaceXX(.seatIndexText, "\(seatIndex + 1)")
         }
         
         if model.isClosed {
             // close 状态
-            avatarImageView.image = UIImage.init(named: "room_lockseat", in: karaokeBundle(), compatibleWith: nil)
+            avatarImageView.image = UIImage(named: "room_lockseat", in: karaokeBundle(), compatibleWith: nil)
             speakView.isHidden = true
             muteImageView.isHidden = true
+            networkImageView.isHidden = true
             return
         }
         
         if let user = model.seatUser {
-            let userMute = isMute(userId: user.userId, map: userMuteMap)
-            muteImageView.isHidden = !((model.seatInfo?.mute ?? false) || userMute)
+            muteImageView.isHidden = !user.mute
+            setNetworkIcon(level: Int(user.networkLevel))
         }
         else {
             muteImageView.isHidden = true
+            networkImageView.isHidden = true
         }
         
         if (model.isTalking) {

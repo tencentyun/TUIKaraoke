@@ -8,9 +8,9 @@
 import MJRefresh
 import UIKit
 public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDelegate {
-    var dataSource: [KaraokeMusicModel] = []
+    var dataSource: [KaraokeMusicInfo] = []
     var dismissCallCack: ((_ data: [String: Any]) -> Void)?
-    private var page: Int
+    private var scrollToken: String = ""
     lazy var loading: UIActivityIndicatorView = {
         let loading = UIActivityIndicatorView()
         if #available(iOS 13.0, *) {
@@ -34,7 +34,9 @@ public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDeleg
     let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
         searchBar.backgroundImage = UIImage()
-        searchBar.placeholder = .searchPlaceholderText
+        let attributedPlaceholderText = NSAttributedString(string: .searchPlaceholderText,
+                                                           attributes: [NSAttributedString.Key.foregroundColor: UIColor.white])
+        searchBar.searchTextField.attributedPlaceholder = attributedPlaceholderText
         searchBar.backgroundColor = UIColor(white: 1, alpha: 0.1)
         searchBar.barTintColor = .clear
         searchBar.returnKeyType = .search
@@ -77,7 +79,6 @@ public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDeleg
     let viewModel: TRTCKaraokeViewModel
     init(viewModel: TRTCKaraokeViewModel) {
         self.viewModel = viewModel
-        page = 0
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -86,6 +87,7 @@ public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDeleg
     }
 
     deinit {
+        scrollToken = ""
         TRTCLog.out("deinit \(type(of: self))")
     }
 
@@ -175,47 +177,44 @@ public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDeleg
         dismiss(animated: true) { [weak self] in
             guard let self = self else { return }
             self.dismissCallCack?([:])
+            self.scrollToken = ""
         }
     }
-
-    public func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
-        if let input = searchBar.text, input.count > 0 {
-            page = 1
-            dataSource = []
-            tableView.reloadData()
-            searchMusic(input: input, page: page)
-        }
+    
+    public func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        scrollToken = ""
+        dataSource = []
+        tableView.reloadData()
+        searchMusic(input: searchText, scrollToken: scrollToken)
     }
 
-    public func searchMusic(input: String, page: Int) {
-        if page == 1 {
+    public func searchMusic(input: String, scrollToken: String) {
+        if scrollToken == "" {
             loading.startAnimating()
-            searchBar.isUserInteractionEnabled = false
-            tableView.isUserInteractionEnabled = false
             tableView.mj_footer?.isHidden = true
         }
-        viewModel.musicDataSource?.ktvSearchMusicByKeyWords(offset: dataSource.count, pageSize:10,  keyWords: input, callback: { [weak self] errorCode, errorMessage, list in
+        viewModel.musicService?.getMusicsByKeywords(keyWord: input,
+                                                    limit: 10,
+                                                    scrollToken: scrollToken,
+                                                    callback: { [weak self] errorCode, errorMessage, list, scrollToken in
             guard let self = self else { return }
-            self.searchBar.isUserInteractionEnabled = true
-            self.tableView.isUserInteractionEnabled = true
             self.tableView.mj_footer?.endRefreshing()
             self.loading.stopAnimating()
             if errorCode == 0 {
-                if page == 1 {
+                if self.scrollToken == "" {
                     self.dataSource = []
                 }
+                self.scrollToken = scrollToken
                 if list.count > 0 {
-                    self.page = page + 1
                     for sourceModel in list {
-                        let model = KaraokeMusicModel(sourceModel: sourceModel)
+                        let model = sourceModel
                         self.dataSource.append(model)
                     }
                     self.tableView.reloadData()
                     self.tableView.mj_footer?.resetNoMoreData()
                 } else {
                     self.tableView.mj_footer?.endRefreshingWithNoMoreData()
-                    if page == 1 {
+                    if scrollToken == "" {
                         self.view.makeToast(.searchNoResult)
                     }
                 }
@@ -229,11 +228,12 @@ public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDeleg
             }
         })
     }
+        
 
     @objc
     func loadMoreDataAction() {
         if let input = searchBar.text, input.count > 0 {
-            searchMusic(input: input, page: page)
+            searchMusic(input: input, scrollToken: scrollToken)
         }
     }
 }
@@ -248,13 +248,9 @@ extension TRTCKaraokeSearchViewController: UITableViewDataSource {
         let model = dataSource[indexPath.row]
         if let scell = cell as? TRTCKaraokeSongSelectorTableViewCell {
             let userSelectedSong = viewModel.effectViewModel.userSelectedSong
-            model.isSelected = userSelectedSong[model.music.getMusicId()] ?? false
-            if !model.isSelected {
-                model.isSelected = (viewModel.cacheSelectd.object(forKey: model.music.getMusicId() as NSString) != nil)
-            }
+            model.isSelected = userSelectedSong[model.getMusicId()] ?? false
             scell.model = model
-            scell.listAction = viewModel.effectViewModel.listAction
-            scell.downloadAction = viewModel.effectViewModel.downloadAction
+            scell.viewModel = viewModel
             scell.setSearchUi(indexPath: indexPath)
         }
         return cell

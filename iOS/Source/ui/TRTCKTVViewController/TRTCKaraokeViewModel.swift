@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import ImSDK_Plus
+import TUICore
 
 public enum RoomUserType {
     case anchor//主播
@@ -20,40 +20,39 @@ protocol TRTCKaraokeViewResponder: AnyObject {
     func hiddenToastActivity()
     func popToPrevious()
     func switchView(type: RoomUserType)
-    func changeRoom(info: RoomInfo)
+    func changeRoom(info: KaraokeRoomInfo)
     func refreshAnchorInfos()
     func onSeatMute(isMute: Bool)
-    func onAnchorMute(isMute: Bool)
+    func onAnchorMute()
     func showAlert(info: (title: String, message: String), sureAction: @escaping () -> Void, cancelAction: (() -> Void)?)
     func showActionSheet(actionTitles:[String], actions: @escaping (Int) -> Void)
     func refreshMsgView()
     func msgInput(show: Bool)
-    func audiceneList(show: Bool)
     func audienceListRefresh()
     func stopPlayBGM() // 停止播放音乐
-    func recoveryVoiceSetting() // 恢复音效设置
-    func showAudienceAlert(seat: SeatInfoModel)
     func showGiftAnimation(giftInfo: TUIGiftInfo)
-    func onUpdateDownloadMusic(musicId: String)
+    func updateChorusBtnStatus(musicId: String)
+    func showUpdateNetworkAlert(info: (isUpdateSuccessed: Bool, message: String), retryAction: (() -> Void)?, cancelAction: @escaping (() -> Void))
+    func onDashboardButtonPress()
+    func refreshDashboard()
+    func onShowSongSelectorAlert()
+    func onManageSongBtnClick()
+    func onSongSelectorAlertMusicListChanged()
+    func onSongSelectorAlertSelectedMusicListChanged()
 }
 
 class TRTCKaraokeViewModel: NSObject {
-    public var cacheSelectd: NSCache<NSString,NSString> = NSCache<NSString,NSString>()
+    var muteItem: IconTuple?
     private let kSendGiftCmd = "0"
     private let dependencyContainer: TRTCKaraokeEnteryControl
     private let giftManager = TUIGiftManager.sharedManager()
     private var roomType: KaraokeViewType = .audience
     public weak var viewResponder: TRTCKaraokeViewResponder?
-    var currentMusicModel: KaraokeMusicModel? = nil
-    public weak var musicDataSource: KaraokeMusicService? {
-        didSet {
-            musicDataSource?.setRoomInfo(roomInfo: roomInfo)
-            musicDataSource?.setServiceDelegate(self)
-        }
-    }
+    var currentMusicModel: KaraokeMusicInfo? = nil
+    var musicService: KaraokeMusicService?
     public weak var rootVC: TRTCKaraokeViewController?
     var isOwner: Bool {
-        return TRTCKaraokeIMManager.shared.curUserID == roomInfo.ownerId
+        return TUILogin.getUserID() == roomInfo.ownerId
     }
     var ownerID: String {
         return roomInfo.ownerId
@@ -64,13 +63,11 @@ class TRTCKaraokeViewModel: NSObject {
     
     private var isTakeSeat: Bool = false
     
-    private(set) var roomInfo: RoomInfo
+    private(set) var roomInfo: KaraokeRoomInfo
     private(set) var isSeatInitSuccess: Bool = false
     private(set) var mSelfSeatIndex: Int = -1
-    private(set) var isOwnerMute: Bool = false
     
     // UI相关属性
-    private(set) var roomOwnerID: UserInfo?
     private(set) var anchorSeatList: [SeatInfoModel] = []
     /// 观众信息记录
     private(set) var memberAudienceList: [AudienceInfoModel] = []
@@ -97,80 +94,123 @@ class TRTCKaraokeViewModel: NSObject {
     /// 抱麦信息记录
     private var mPickSeatInvitationDic: [String: SeatInvitation] = [:]
     
-    public var userMuteMap : [String : Bool] = [:]
+    var trtcStatisics: TRTCStatistics?
     
-    /// 初始化方法
-    /// - Parameter container: 依赖管理容器，负责Karaoke模块的依赖管理
-    init(container: TRTCKaraokeEnteryControl, roomInfo: RoomInfo, roomType: KaraokeViewType) {
-        self.dependencyContainer = container
-        self.roomType = roomType
-        self.roomInfo = roomInfo
-        super.init()
-        Karaoke.setDelegate(delegate: self)
-        initAnchorListData()
+    var userVolumeDic : [String : UInt] = [:]
+    
+    private var userNetworkMap : [String : Int] = [:]
+
+    /// NTP网络校时是否成功
+    var updateNetworkSuccessed: Bool = false
+    
+    var loginUserName: String {
+        TUILogin.getNickName() ?? ""
     }
     
-    deinit {
-        TRTCLog.out("deinit \(type(of: self))")
+    var loginUserFaceUrl: String {
+        TUILogin.getFaceUrl() ?? ""
     }
     
-    public var Karaoke: TRTCKaraokeRoom {
-        return dependencyContainer.getKaraoke()
-    }
-    
-    public func getSeatIndexByUserId(userId:String) -> NSInteger {
-        // 修改座位列表的user信息
-        for index in 0..<self.anchorSeatList.count {
-            let seatInfo = anchorSeatList[index]
-            if seatInfo.seatInfo?.userId == userId {
-                return seatInfo.seatIndex
-            }
-        }
-        return 0
-    }
-    public func getSeatUserByUserId(userId:String) -> UserInfo? {
-        // 修改座位列表的user信息
-        for index in 0..<self.anchorSeatList.count {
-            let seatInfo = anchorSeatList[index]
-            if seatInfo.seatInfo?.userId == userId {
-                return seatInfo.seatUser
-            }
-        }
-        return nil
+    var loginUserId: String {
+        TUILogin.getUserID() ?? ""
     }
     
     lazy var effectViewModel: TRTCKaraokeSoundEffectViewModel = {
         return TRTCKaraokeSoundEffectViewModel(self)
     }()
     
+    /// 初始化方法
+    /// - Parameter container: 依赖管理容器，负责Karaoke模块的依赖管理
+    init(container: TRTCKaraokeEnteryControl, roomInfo: KaraokeRoomInfo, roomType: KaraokeViewType) {
+        self.dependencyContainer = container
+        self.roomType = roomType
+        self.roomInfo = roomInfo
+        self.musicService = container.getMusicService(roomInfo: roomInfo)
+        super.init()
+        Karaoke.setObserver(observer: self)
+        self.musicService?.addObserver(self)
+        initAnchorListData()
+    }
+    
+    deinit {
+        TRTCLog.out("deinit \(type(of: self))")
+        dependencyContainer.clearKaraoke()
+    }
+    
+    public var Karaoke: TRTCKaraokeRoom {
+        return dependencyContainer.getKaraoke()
+    }
+    
+    func getNetworkLevel(userId:String) -> Int {
+        if !userNetworkMap.keys.contains(userId) {
+            return 0
+        }
+        if let networklevel = userNetworkMap[userId] {
+            return networklevel
+        }
+        return 0
+    }
+
+    func getCurrentNetworkLevel() -> Int {
+        return getNetworkLevel(userId: loginUserId)
+    }
+
+    public func getSeatIndexByUserId(userId:String) -> NSInteger {
+        // 修改座位列表的user信息
+        for index in 0..<self.anchorSeatList.count {
+            let seatInfo = anchorSeatList[index]
+            if seatInfo.seatInfo?.user == userId {
+                return seatInfo.seatIndex
+            }
+        }
+        return 0
+    }
+    
+    func getSeatUserByUserId(userId:String) -> KaraokeUserInfo? {
+        // 修改座位列表的user信息
+        for index in 0..<self.anchorSeatList.count {
+            let seatInfo = anchorSeatList[index]
+            if seatInfo.seatInfo?.user == userId {
+                return seatInfo.seatUser
+            }
+        }
+        return nil
+    }
+    
     func exitRoom(completion: @escaping (() -> ())) {
         guard !isExitingRoom else { return }
-        musicDataSource?.onExitRoom()
+        musicService?.destroyService()
+        if isOwner {
+            musicService?.clearPlaylistByUserId(userID: loginUserId, callback: { (code, msg) in
+                
+            })
+        }
         viewResponder?.popToPrevious()
         isExitingRoom = true
-        if isOwner && roomType == .owner {
-            dependencyContainer.destroyRoom(roomID: "\(roomInfo.roomID)", success: {
-                TRTCLog.out("---deinit room success")
-            }) { (code, message) in
-                TRTCLog.out("---deinit room failed")
-            }
-            Karaoke.destroyRoom { [weak self] (code, message) in
-                guard let `self` = self else { return }
+        Karaoke.exitRoom { [weak self] (code, message) in
+            guard let self = self else { return }
+            if self.isOwner && self.roomType == .owner {
+                self.dependencyContainer.destroyRoom(roomID: self.roomInfo.roomId, success: {
+                    TRTCLog.out("---deinit room success")
+                }) { (code, message) in
+                    TRTCLog.out("---deinit room failed")
+                }
+                self.Karaoke.destroyRoom { [weak self] (code, message) in
+                    guard let self = self else { return }
+                    self.isExitingRoom = false
+                    completion()
+                }
+            } else {
                 self.isExitingRoom = false
                 completion()
             }
-            return
         }
-        Karaoke.exitRoom { [weak self] (code, message) in
-            guard let `self` = self else { return }
-            self.isExitingRoom = false
-            completion()
-        }
+        updateNetworkSuccessed = false
     }
     
     public var voiceEarMonitor: Bool = false {
         willSet {
-            self.Karaoke.setVoiceEarMonitor(enable: newValue)
+            self.Karaoke.enableVoiceEarMonitor(enable: newValue)
         }
     }
     
@@ -182,23 +222,19 @@ class TRTCKaraokeViewModel: NSObject {
         viewResponder?.msgInput(show: true)
     }
     
-    public var muteItem: IconTuple?
-    
     public func muteAction(isMute: Bool) -> Bool {
-        if mSelfSeatIndex > 0, mSelfSeatIndex < anchorSeatList.count, let user = anchorSeatList[mSelfSeatIndex].seatUser, !(anchorSeatList[mSelfSeatIndex].seatInfo?.mute ?? true) {
-            userMuteMap[user.userId] = isMute
-            viewResponder?.onAnchorMute(isMute: isMute)
-        }
-        guard !isOwnerMute else {
+        if let userSeatInfo = getUserSeatInfo(userId: loginUserId)?.seatInfo, userSeatInfo.mute {
             viewResponder?.showToast(message: .seatmutedText)
             return false
         }
         isSelfMute = isMute
         Karaoke.muteLocalAudio(mute: isMute)
+        let userSeatInfo = getUserSeatInfo(userId: loginUserId)
+        userSeatInfo?.seatUser?.mute = isMute
+        viewResponder?.onAnchorMute()
         if isMute {
             viewResponder?.showToast(message: .micmutedText)
         } else {
-            viewResponder?.recoveryVoiceSetting()
             viewResponder?.showToast(message: .micunmutedText)
         }
         return true
@@ -234,26 +270,36 @@ class TRTCKaraokeViewModel: NSObject {
         self.Karaoke.closeSeat(seatIndex: model.seatIndex, isClose: isLock, callback: nil)
     }
     
-    public func enterRoom(toneQuality: Int = KaraokeToneQuality.defaultQuality.rawValue) {
-        Karaoke.enterRoom(roomID: roomInfo.roomID) { [weak self] (code, message) in
+    func enterRoom() {
+        guard let intRoomId = Int32(roomInfo.roomId) else { return }
+        Karaoke.enterRoom(roomID: intRoomId) { [weak self] (code, message) in
             guard let `self` = self else { return }
             if code == 0 {
+                self.Karaoke.updateNetworkTime()
                 self.viewResponder?.showToast(message: .enterSuccessText)
-                self.Karaoke.setAuidoQuality(quality: toneQuality)
                 self.getAudienceList()
+                if self.isOwner {
+                    // 房主自己进房更新UI信息
+                    self.viewResponder?.changeRoom(info: self.roomInfo)
+                    self.roomType = .owner
+                    self.userType = .anchor
+                    self.refreshView()
+                } else {
+                    self.roomType = .audience
+                }
             } else {
                 self.viewResponder?.showToast(message: .enterFailedText)
                 self.viewResponder?.popToPrevious()
             }
         }
     }
-    public func createRoom(toneQuality: Int = 0) {
-        let faceUrl = TRTCKaraokeIMManager.shared.curUserAvatar
-        Karaoke.setAuidoQuality(quality: toneQuality)
+    
+    func createRoom() {
+        let faceUrl = TUILogin.getFaceUrl() ?? ""
         Karaoke.setSelfProfile(userName: roomInfo.ownerName, avatarURL: faceUrl) { [weak self] (code, message) in
             guard let `self` = self else { return }
             TRTCLog.out("setSelfProfile\(code):\(message)")
-            self.dependencyContainer.createRoom(roomID: "\(self.roomInfo.roomID)") {  [weak self] in
+            self.dependencyContainer.createRoom(roomID: self.roomInfo.roomId) {  [weak self] in
                 guard let `self` = self else { return }
                 self.internalCreateRoom()
             } failed: { [weak self] code, message in
@@ -273,7 +319,7 @@ class TRTCKaraokeViewModel: NSObject {
             return
         }
         // 消息回显示
-        let entity = MsgEntity.init(userId: TRTCKaraokeIMManager.shared.curUserID, userName: .meText, content: message, invitedId: "", type: .normal)
+        let entity = MsgEntity(userId: loginUserId, userName: .meText, content: message, invitedId: "", type: .normal)
         notifyMsg(entity: entity)
         Karaoke.sendRoomTextMsg(message: message) { [weak self] (code, message) in
             guard let `self` = self else { return }
@@ -283,11 +329,12 @@ class TRTCKaraokeViewModel: NSObject {
     
     public func acceptTakeSeat(identifier: String) {
         if let audience = memberAudienceDic[identifier] {
-            acceptTakeSeatInviattion(userInfo: audience.userInfo)
+            acceptTakeSeatInvitation(userInfo: audience.userInfo)
         }
     }
-    public func sendGift(giftId: String, callback: ActionCallback?) {
-        let giftMsgInfo = TUIGiftMsgInfo.init(giftId: giftId, sendUser: TRTCKaraokeIMManager.shared.curUserName, sendUserHeadIcon: TRTCKaraokeIMManager.shared.curUserAvatar)
+    
+    func sendGift(giftId: String, callback: KaraokeCallback?) {
+        let giftMsgInfo = TUIGiftMsgInfo(giftId: giftId, sendUser: TUILogin.getNickName() ?? "", sendUserHeadIcon: TUILogin.getFaceUrl() ?? "")
         do {
             let encoder = JSONEncoder.init()
             let data = try encoder.encode(giftMsgInfo)
@@ -298,15 +345,42 @@ class TRTCKaraokeViewModel: NSObject {
         }
     }
     
-    public func showSelectedMusic(music: KaraokeMusicModel) {
+    func sendSelectedMusic(musicInfo: KaraokeMusicInfo) {
+        let userId = musicInfo.userId
+        let musicName = musicInfo.musicName
+        guard let data = try? JSONSerialization.data(withJSONObject: [gKaraoke_VALUE_CMD_MUSICNAME: musicName,
+                                                                         gKaraoke_VALUE_CMD_USERID: userId,],
+                                                     options: .prettyPrinted) else { return }
+        guard let message = String(data: data, encoding: .utf8) else { return }
+        Karaoke.sendRoomCustomMsg(cmd: gKaraoke_KEY_CMD_SELECTED_MUSIC, message: message)
+    }
+    
+    func showSelectedMusic(music: KaraokeMusicInfo) {
         var action: (() -> ())? = nil
         if isOwner {
             action = { [weak self] in
                 guard let `self` = self else { return }
-                self.effectViewModel.viewResponder?.onManageSongBtnClick()
+                self.viewResponder?.onManageSongBtnClick()
             }
         }
-        showNotifyMsg(messsage: localizeReplaceThreeCharacter(.xxSeatSelectzzSongText, "\(music.seatIndex + 1)", "xxx", music.musicName), userName: music.bookUserName, type: isOwner ? .manage_song : .normal, action: action)
+        let userInfo = getSeatUserByUserId(userId: music.userId)
+        let seatIndex = getSeatIndexByUserId(userId: music.userId)
+        showNotifyMsg(messsage: localizeReplaceThreeCharacter(.xxSeatSelectzzSongText, "\(seatIndex + 1)", "xxx", music.musicName),
+                      userName: userInfo?.userName ?? "",
+                      type: isOwner ? .manage_song : .normal,
+                      action: action)
+    }
+    
+    func showSongSelectorAlert() {
+        viewResponder?.onShowSongSelectorAlert()
+    }
+    
+    func notiMusicListChange() {
+        viewResponder?.onSongSelectorAlertMusicListChanged()
+    }
+    
+    func notiSelectedMusicListChange() {
+        viewResponder?.onSongSelectorAlertSelectedMusicListChanged()
     }
 }
 
@@ -314,27 +388,40 @@ class TRTCKaraokeViewModel: NSObject {
 extension TRTCKaraokeViewModel {
     
     private func internalCreateRoom() {
-        let param = RoomParam.init()
+        guard let intRoomId = Int32(roomInfo.roomId) else { return }
+        let param = KaraokeRoomParam()
         param.roomName = roomInfo.roomName
-        param.needRequest = roomInfo.needRequest
-        param.seatCount = roomInfo.memberCount
-        param.coverUrl = roomInfo.coverUrl
+        param.needRequest = roomInfo.needRequest == 1
+        param.coverUrl = roomInfo.cover
         param.seatCount = 8
         param.seatInfoList = []
         for _ in 0..<param.seatCount {
-            let seatInfo = SeatInfo.init()
+            let seatInfo = KaraokeSeatInfo()
             param.seatInfoList.append(seatInfo)
         }
-        Karaoke.createRoom(roomID: Int32(roomInfo.roomID), roomParam: param) { [weak self] (code, message) in
+        Karaoke.createRoom(roomID: intRoomId, roomParam: param) { [weak self] (code, message) in
             guard let `self` = self else { return }
             if code == 0 {
-                self.viewResponder?.changeRoom(info: self.roomInfo)
-                self.getAudienceList()
-                if self.isOwner {
-                    self.startTakeSeat(seatIndex: 0)
+                self.Karaoke.enterRoom(roomID: intRoomId) { [weak self] code, message in
+                    guard let self = self else { return }
+                    if code == 0 {
+                        self.Karaoke.updateNetworkTime()
+                        self.viewResponder?.changeRoom(info: self.roomInfo)
+                        self.getAudienceList()
+                        self.roomType = self.isOwner ? .owner : .audience
+                        if self.isOwner && self.mSelfSeatIndex == -1 {
+                            self.startTakeSeat(seatIndex: 0)
+                        }
+                    } else {
+                        self.viewResponder?.showToast(message: .enterFailedText)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                            guard let `self` = self else { return }
+                            self.viewResponder?.popToPrevious()
+                        }
+                    }
                 }
             } else {
-                self.viewResponder?.showToast(message: .enterFailedText)
+                self.viewResponder?.showToast(message: .createRoomFailedText)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
                     guard let `self` = self else { return }
                     self.viewResponder?.popToPrevious()
@@ -355,7 +442,7 @@ extension TRTCKaraokeViewModel {
                         if index == 0 {
                             self.sendInvitation(userInfo: userInfo)
                         } else {
-                            self.acceptTakeSeatInviattion(userInfo: userInfo)
+                            self.acceptTakeSeatInvitation(userInfo: userInfo)
                         }
                     }
                 }
@@ -374,11 +461,10 @@ extension TRTCKaraokeViewModel {
                 guard let `self` = self else { return }
                 if seatIndex >= 0 && seatIndex <= self.anchorSeatList.count {
                     let model = self.anchorSeatList[seatIndex]
-                    print("=====\(model.seatIndex)")
                     self.clickSeat(model: model)
                 }
             }
-            model.isOwner = TRTCKaraokeIMManager.shared.curUserID == roomInfo.ownerId
+            model.isOwner = isOwner
             model.isClosed = false
             model.isUsed = false
             anchorSeatList.append(model)
@@ -390,8 +476,18 @@ extension TRTCKaraokeViewModel {
             viewResponder?.showToast(message: .seatLockedText)
             return
         }
+        let networklevel = getCurrentNetworkLevel()
+        if networklevel > 2 {
+            if networklevel == 6 {
+                viewResponder?.showToast(message: .audienceCheckNetworkText)
+            } else {
+                viewResponder?.showToast(message: .handupCheckNetworkText)
+            }
+            return
+        }
+
         if model.isUsed {
-            if TRTCKaraokeIMManager.shared.curUserID == model.seatUser?.userId ?? "" {
+            if loginUserId == model.seatUser?.userId ?? "" {
                 viewResponder?.showAlert(info: (title: .sureToLeaveSeatText, message: ""), sureAction: { [weak self] in
                     guard let `self` = self else { return }
                     self.leaveSeat()
@@ -422,7 +518,7 @@ extension TRTCKaraokeViewModel {
     private func ownerClickItem(model: SeatInfoModel) {
         var model = model
         if model.isUsed {
-            if model.seatUser?.userId == TRTCKaraokeIMManager.shared.curUserID {
+            if model.seatUser?.userId == loginUserId {
                 viewResponder?.showAlert(info: (title: .sureToLeaveSeatText, message: ""), sureAction: { [weak self] in
                     guard let `self` = self else { return }
                     self.leaveSeat()
@@ -481,7 +577,7 @@ extension TRTCKaraokeViewModel {
         }
     }
     
-    private func sendInvitation(userInfo: UserInfo) {
+    private func sendInvitation(userInfo: KaraokeUserInfo) {
         guard currentInvitateSeatIndex != -1 else { return }
         // 邀请
         let seatEntity = anchorSeatList[currentInvitateSeatIndex]
@@ -499,10 +595,9 @@ extension TRTCKaraokeViewModel {
                                                     }
         }
         mPickSeatInvitationDic[inviteId] = seatInvitation
-        viewResponder?.audiceneList(show: false)
     }
     
-    private func acceptTakeSeatInviattion(userInfo: UserInfo) {
+    private func acceptTakeSeatInvitation(userInfo: KaraokeUserInfo) {
         // 接受
         guard let inviteID = mTakeSeatInvitationDic[userInfo.userId] else {
             viewResponder?.showToast(message: .reqExpiredText)
@@ -557,7 +652,18 @@ extension TRTCKaraokeViewModel {
             }
         }
         else {
-            // 需要申请上麦
+            // 观众端上麦，检查NTP校时是否成功
+            if !updateNetworkSuccessed {
+                viewResponder?.showUpdateNetworkAlert(info: (isUpdateSuccessed: false,
+                                                             message: .updateNetworkFailedDonotEnterSeatText),
+                                                      retryAction: { [weak self] in
+                    guard let self = self else { return }
+                    self.Karaoke.updateNetworkTime()
+                }, cancelAction: {
+                    
+                })
+                return
+            }
             guard roomInfo.ownerId != "" else {
                 viewResponder?.showToast(message: .roomNotReadyText)
                 return
@@ -645,7 +751,7 @@ extension TRTCKaraokeViewModel {
         viewResponder?.refreshMsgView()
     }
     
-    private func changeAudience(status: Int, user: UserInfo) {
+    private func changeAudience(status: Int, user: KaraokeUserInfo) {
         guard [AudienceInfoModel.TYPE_IDEL, AudienceInfoModel.TYPE_IN_SEAT, AudienceInfoModel.TYPE_WAIT_AGREE].contains(status) else { return }
         if isOwner && roomType == .owner {
             let audience = memberAudienceDic[user.userId]
@@ -662,32 +768,79 @@ extension TRTCKaraokeViewModel {
         }
         viewResponder?.audienceListRefresh()
     }
+    
+    /// 根据userId查询用户的麦位信息
+    /// - Parameter userId: 需要查询的用户id
+    /// - Returns: 查询到的用户麦位信息 SeatInfoModel， 找不到返回nil
+    private func getUserSeatInfo(userId:String) -> SeatInfoModel? {
+        if userId.isEmpty {
+            return nil
+        }
+        for item in anchorSeatList {
+            if let seatInfo = item.seatInfo, seatInfo.user == userId {
+                return item
+            }
+        }
+        return nil
+    }
 }
 
-// MARK:- room delegate
-extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
-    func genUserSign(_ userId: String, completion: @escaping (String) -> Void) {
-        if let delegate = dependencyContainer.delegate {
-            delegate.genUserSign(userId: userId, completion: completion)
+// MARK: - TRTCKaraokeRoomObserver
+extension TRTCKaraokeViewModel: TRTCKaraokeRoomObserver {
+    
+    func genUserSign(userId: String, completion: @escaping (String) -> Void) {
+        self.dependencyContainer.genUserSign(userId: userId, completion: completion)
+    }
+    
+    func onNetWorkQuality(trtcQuality: TRTCQualityInfo, arrayList: [TRTCQualityInfo]) {
+        self.userNetworkMap[loginUserId] = trtcQuality.quality.rawValue
+        for quality in arrayList {
+            if let userId = quality.userId {
+                self.userNetworkMap[userId] = quality.quality.rawValue
+            }
+        }
+        self.viewResponder?.refreshAnchorInfos()
+    }
+
+    func onUpdateNetworkTime(errCode: Int32, message errMsg: String, retryHandler: @escaping (Bool) -> Void) {
+        /*
+         errCode 0 为合适参与合唱；
+                 1 建议 UI 提醒当前网络不够好，可能会影响合唱效果；（同样建议 UI 提醒）
+                -1 需要重新校时（同样建议 UI 提醒）
+         */
+        if errCode == 0 {
+            updateNetworkSuccessed = true
+            viewResponder?.showUpdateNetworkAlert(info: (isUpdateSuccessed: true,
+                                                         message: .updateNetworkSuccessedText),
+                                                  retryAction: {
+            }, cancelAction: {
+                retryHandler(false)
+            })
+        } else {
+            updateNetworkSuccessed = false
+            viewResponder?.showUpdateNetworkAlert(info: (isUpdateSuccessed: false,
+                                                         message: .updateNetworkFailedText),
+                                                  retryAction: {
+                retryHandler(true)
+            }, cancelAction: {
+                retryHandler(false)
+            })
         }
     }
     
     func onReceiveAnchorSendChorusMsg(musicId: String, startDelay: Int) {
-        guard let musicID = Int32(musicId) else {
-            return
-        }
         if userType == .audience { return }
-        musicDataSource?.ktvGetSelectedMusicList({ [weak self] errorCode, errorMessage, list in
-            list.forEach { [weak self] musicModel in
-                guard let self = self else { return }
-                if musicModel.musicID == musicID {
-                    self.effectViewModel.viewResponder?.showStartAnimationAndPlay(startDelay: startDelay)
-                    self.effectViewModel.setVolume(music: self.effectViewModel.currentMusicVolum)
-                    self.Karaoke.startPlayMusic(musicID: musicModel.musicID, originalUrl: musicModel.contentUrl, accompanyUrl: "")
-                    return
-                }
+        effectViewModel.musicSelectedList.forEach { [weak self] musicInfo in
+            guard let self = self else { return }
+            if musicInfo.performId == musicId {
+                self.effectViewModel.viewResponder?.onReceiveStartChorusCmd(musicId: musicId)
+                self.effectViewModel.setVolume(music: self.effectViewModel.musicVolume)
+                self.Karaoke.startPlayMusic(musicID: Int32(musicInfo.performId) ?? 0,
+                                            originalUrl: musicInfo.originUrl,
+                                            accompanyUrl: musicInfo.accompanyUrl ?? "")
+                return
             }
-        })
+        }
     }
     
     func onError(code: Int32, message: String) {
@@ -700,6 +853,11 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
     
     func onDebugLog(message: String) {
         
+    }
+    
+    func onStatistics(statistics: TRTCStatistics) {
+        trtcStatisics = statistics
+        viewResponder?.refreshDashboard()
     }
     
     func onRoomDestroy(message: String) {
@@ -727,17 +885,16 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
 #endif
     }
     
-    func onRoomInfoChange(roomInfo: RoomInfo) {
+    func onRoomInfoChange(roomInfo: KaraokeRoomInfo) {
         // 值为-1表示该接口没有返回数量信息
         if roomInfo.memberCount == -1 {
             roomInfo.memberCount = self.roomInfo.memberCount
         }
         self.roomInfo = roomInfo
         viewResponder?.changeRoom(info: self.roomInfo)
-        musicDataSource?.setRoomInfo(roomInfo: roomInfo)
     }
     
-    func onSeatListChange(seatInfoList: [SeatInfo]) {
+    func onSeatListChange(seatInfoList: [KaraokeSeatInfo]) {
         TRTCLog.out("roomLog: onSeatListChange: \(seatInfoList)")
         isSeatInitSuccess = true
         seatInfoList.enumerated().forEach { (item) in
@@ -756,7 +913,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             anchorSeatInfo.isUsed = seatInfo.status == 1
             anchorSeatInfo.isClosed = seatInfo.status == 2
             anchorSeatInfo.seatIndex = seatIndex
-            anchorSeatInfo.isOwner = roomInfo.ownerId == TRTCKaraokeIMManager.shared.curUserID
+            anchorSeatInfo.isOwner = isOwner
             let listIndex = seatIndex
             if anchorSeatList.count == seatInfoList.count {
                 // 说明有数据
@@ -772,9 +929,9 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             }
         }
         let seatUserIds = seatInfoList.filter({ (seat) -> Bool in
-            return seat.userId != ""
+            return seat.user != ""
         }).map { (seatInfo) -> String in
-            return seatInfo.userId
+            return seatInfo.user
         }
         guard seatUserIds.count > 0 else {
             viewResponder?.refreshAnchorInfos()
@@ -783,7 +940,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
         Karaoke.getUserInfoList(userIDList: seatUserIds) { [weak self] (code, message, userInfos) in
             guard let `self` = self else { return }
             guard code == 0 else { return }
-            var userdic: [String : UserInfo] = [:]
+            var userdic: [String : KaraokeUserInfo] = [:]
             userInfos.forEach { (info) in
                 userdic[info.userId] = info
             }
@@ -797,40 +954,35 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             // 修改座位列表的user信息
             for index in 0..<self.anchorSeatList.count {
                 let seatInfo = seatInfoList[index] // 从观众开始更新
-                if self.anchorSeatList[index].seatUser == nil, let user = userdic[seatInfo.userId], !self.userMuteMap.keys.contains(user.userId) {
-                    self.userMuteMap[user.userId] = true
+                if let seatUser = userdic[seatInfo.user] {
+                    seatUser.mute = seatInfo.mute
+                    self.anchorSeatList[index].seatUser = seatUser
                 }
-                self.anchorSeatList[index].seatUser = userdic[seatInfo.userId]
             }
             self.viewResponder?.refreshAnchorInfos()
-            self.viewResponder?.onAnchorMute(isMute: false)
+            self.viewResponder?.onAnchorMute()
         }
     }
     
-    func onAnchorEnterSeat(index: Int, user: UserInfo) {
+    func onAnchorEnterSeat(index: Int, user: KaraokeUserInfo) {
         showNotifyMsg(messsage: localizeReplace(.beyySeatText, "xxx", String(index + 1)), userName: user.userName)
-        if user.userId == TRTCKaraokeIMManager.shared.curUserID {
+        if user.userId == loginUserId {
             userType = .anchor
             refreshView()
             mSelfSeatIndex = index
-            TRTCKaraokeIMManager.shared.seatIndex = index
-            viewResponder?.recoveryVoiceSetting() // 自己上麦，恢复音效设置
         }
-        userMuteMap[user.userId] = false
         changeAudience(status: AudienceInfoModel.TYPE_IN_SEAT, user: user)
     }
     
-    func onAnchorLeaveSeat(index: Int, user: UserInfo) {
+    func onAnchorLeaveSeat(index: Int, user: KaraokeUserInfo) {
         showNotifyMsg(messsage: localizeReplace(.audienceyySeatText, "xxx", String(index + 1)), userName: user.userName)
-        if user.userId == TRTCKaraokeIMManager.shared.curUserID {
+        if user.userId == loginUserId {
             userType = .audience
             refreshView()
             mSelfSeatIndex = -1
-            isOwnerMute = false
-            TRTCKaraokeIMManager.shared.seatIndex = index
             // 自己下麦，停止音效播放
             effectViewModel.stopPlay()
-            musicDataSource?.deleteAllMusic(userID: TRTCKaraokeIMManager.shared.curUserID, callback: { (code, msg) in
+            musicService?.clearPlaylistByUserId(userID: loginUserId, callback: { (code, msg) in
                 
             })
         }
@@ -846,7 +998,6 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
     }
     
     func onSeatMute(index: Int, isMute: Bool) {
-        debugPrint("seat \(index) is mute : \(isMute ? "true" : "false")")
         if isMute {
             showNotifyMsg(messsage: localizeReplaceXX(.bemutedxxText, String(index)), userName: "")
         } else {
@@ -855,23 +1006,26 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
         if index >= 0 && index <= anchorSeatList.count {
             anchorSeatList[index].seatInfo?.mute = isMute
         }
-        if mSelfSeatIndex == index {
-            isOwnerMute = isMute
+        if let userSeatInfo = getUserSeatInfo(userId: loginUserId),
+            userSeatInfo.seatIndex == index {
+            userSeatInfo.seatInfo?.mute = isMute
+            isSelfMute = isMute
             viewResponder?.onSeatMute(isMute: isMute)
         }
-        viewResponder?.onAnchorMute(isMute: isMute)
+        viewResponder?.onAnchorMute()
     }
     
     func onUserMicrophoneMute(userId: String, mute: Bool) {
-        userMuteMap[userId] = mute
-        viewResponder?.onAnchorMute(isMute: mute)
+        let userSeatInfo = getUserSeatInfo(userId: userId)
+        userSeatInfo?.seatUser?.mute = mute
+        viewResponder?.onAnchorMute()
     }
     
     func onSeatClose(index: Int, isClose: Bool) {
         showNotifyMsg(messsage: localizeReplace(.ownerxxSeatText, isClose ? .banSeatText : .unmuteOneText, String(index + 1)), userName: "")
     }
     
-    func onAudienceEnter(userInfo: UserInfo) {
+    func onAudienceEnter(userInfo: KaraokeUserInfo) {
         showNotifyMsg(messsage: localizeReplaceXX(.inRoomText, "xxx"), userName: userInfo.userName)
         // 主播端(房主)
         let memberEntityModel = AudienceInfoModel.init(type: 0, userInfo: userInfo) { [weak self] (index) in
@@ -879,8 +1033,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             if index == 0 {
                 self.sendInvitation(userInfo: userInfo)
             } else {
-                self.acceptTakeSeatInviattion(userInfo: userInfo)
-                self.viewResponder?.audiceneList(show: false)
+                self.acceptTakeSeatInvitation(userInfo: userInfo)
             }
         }
         if !memberAudienceDic.keys.contains(userInfo.userId) {
@@ -891,7 +1044,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
         changeAudience(status: AudienceInfoModel.TYPE_IDEL, user: userInfo)
     }
     
-    func onAudienceExit(userInfo: UserInfo) {
+    func onAudienceExit(userInfo: KaraokeUserInfo) {
         showNotifyMsg(messsage: localizeReplaceXX(.exitRoomText, "xxx"), userName: userInfo.userName)
         memberAudienceList.removeAll { (model) -> Bool in
             return model.userInfo.userId == userInfo.userId
@@ -908,13 +1061,14 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             if let userId = info.userId {
                 volumeDic[userId] = info.volume
             } else {
-                volumeDic[TRTCKaraokeIMManager.shared.curUserID] = info.volume
+                volumeDic[loginUserId] = info.volume
             }
         }
+        userVolumeDic = volumeDic
         var needRefreshUI = false
         for (index, seat) in self.anchorSeatList.enumerated() {
             if let user = seat.seatUser {
-                let isTalking = (volumeDic[user.userId] ?? 0) > 25
+                let isTalking = (userVolumeDic[user.userId] ?? 0) > 25
                 if seat.isTalking != isTalking {
                     self.anchorSeatList[index].isTalking = isTalking
                     needRefreshUI = true
@@ -927,7 +1081,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
         }
     }
     
-    func onRecvRoomTextMsg(message: String, userInfo: UserInfo) {
+    func onRecvRoomTextMsg(message: String, userInfo: KaraokeUserInfo) {
         let msgEntity = MsgEntity.init(userId: userInfo.userId,
                                        userName: userInfo.userName,
                                        content: message,
@@ -936,7 +1090,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
         notifyMsg(entity: msgEntity)
     }
     
-    func onRecvRoomCustomMsg(cmd: String, message: String, userInfo: UserInfo) {
+    func onRecvRoomCustomMsg(cmd: String, message: String, userInfo: KaraokeUserInfo) {
         if cmd == kSendGiftCmd {
             // 收到发送礼物的自定义消息
             guard let data = message.data(using: .utf8) else { return }
@@ -954,6 +1108,17 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
                     }
                 }
             }
+        } else if cmd == gKaraoke_KEY_CMD_SELECTED_MUSIC {
+            guard let data = message.data(using: .utf8) else { return }
+            guard let obj = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: String] else { return }
+            guard let musicName = obj[gKaraoke_VALUE_CMD_MUSICNAME] else { return }
+            guard let userId = obj[gKaraoke_VALUE_CMD_USERID] else { return }
+            let userInfo = getSeatUserByUserId(userId: userId)
+            let seatIndex = getSeatIndexByUserId(userId: userId)
+            showNotifyMsg(messsage: localizeReplaceThreeCharacter(.xxSeatSelectzzSongText, "\(seatIndex + 1)", "xxx", musicName),
+                          userName: userInfo?.userName ?? "",
+                          type: .normal,
+                          action: nil)
         }
     }
     
@@ -1023,76 +1188,51 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomDelegate {
             viewResponder?.showToast(message: localizeReplaceXX(.refuseBespeakerText, audience.userInfo.userName))
             changeAudience(status: AudienceInfoModel.TYPE_IDEL, user: audience.userInfo)
         }
-        
     }
     
     func onInvitationCancelled(identifier: String, invitee: String) {
         
     }
     
-    func onMusicPrepareToPlay(musicID: Int32) {
-        effectViewModel.viewResponder?.bgmOnPrepareToPlay(performId: musicID)
-        musicDataSource?.prepareToPlay(musicID: String(musicID))
+    func onMusicPlayCompleted(musicID: Int32) {
+        effectViewModel.viewResponder?.updateMusicPanel(musicInfo: nil)
+        effectViewModel.musicSelectedList.forEach { musicInfo in
+            if musicInfo.performId == String(musicID) {
+                musicService?.completePlaying(musicInfo: musicInfo, callback: { [weak self] _, _ in
+                    guard let self = self else { return }
+                    self.notiMusicListChange()
+                })
+            }
+        }
     }
     
     func onMusicProgressUpdate(musicID: Int32, progress: Int, total: Int) {
-        effectViewModel.viewResponder?.bgmOnPlaying(performId: musicID, current: Double(progress) / 1000.0, total: Double(total) / 1000.0)
+        effectViewModel.viewResponder?.bgmOnPlaying(musicId: musicID,
+                                                    current: Double(progress) / 1_000.0,
+                                                    total: Double(total) / 1_000.0)
     }
     
-    func onMusicCompletePlaying(musicID: Int32) {
-        effectViewModel.currentPlayingModel = nil
-        musicDataSource?.completePlaying(musicID: String(musicID))
+    func onMusicAccompanimentModeChanged(musicId: String, isOrigin: Bool) {
+        effectViewModel.viewResponder?.onMusicAccompanimentModeChanged(musicId: musicId,
+                                                                       isOrigin: isOrigin)
     }
 }
 
-extension TRTCKaraokeViewModel: KaraokeMusicServiceDelegate {
-    func onMusicListChange(musicInfoList: [KaraokeMusicModel], reason: Int) {
+extension TRTCKaraokeViewModel: KaraokeMusicServiceObserver {
+    func onMusicListChanged(musicInfoList: [KaraokeMusicInfo]) {
         effectViewModel.musicSelectedList = musicInfoList
+        
         var userSelectedSong: [String:Bool] = [:]
-        for musicModel in musicInfoList {
-            if musicModel.music.userId == TRTCKaraokeIMManager.shared.curUserID {
-                userSelectedSong[musicModel.music.getMusicId()] = true
-            }
+        for musicModel in musicInfoList where musicModel.userId == loginUserId {
+            userSelectedSong[musicModel.getMusicId()] = true
         }
-        effectViewModel.userSelectedSong = userSelectedSong;
-        effectViewModel.viewResponder?.onSelectedMusicListChanged()
-        effectViewModel.viewResponder?.onMusicListChanged()
-    }
-    
-    func onShouldSetLyric(musicID: String) {
-        effectViewModel.viewResponder?.bgmOnPrepareToPlay(performId: Int32(musicID) ?? 0)
-    }
-    
-    func onShouldPlay(_ music: KaraokeMusicModel) -> Bool {
-        if mSelfSeatIndex >= 0 {
-            currentMusicModel = music
+        effectViewModel.userSelectedSong = userSelectedSong
+        currentMusicModel = musicInfoList.first
+        effectViewModel.viewResponder?.updateMusicPanel(musicInfo: currentMusicModel)
+        if currentMusicModel?.userId == loginUserId {
             effectViewModel.viewResponder?.onStartChorusBtnClick()
-            return true
         }
-        return false
-    }
-    
-    func onShouldStopPlay(_ music: KaraokeMusicModel?) {
-        effectViewModel.stopPlay()
-    }
-    
-    func onShouldShowMessage(_ music: KaraokeMusicModel) {
-        for seat in anchorSeatList {
-            if let user = seat.seatUser, user.userId == music.music.userId {
-                music.seatIndex = seat.seatIndex
-                music.bookUserName = user.userName
-                music.bookUserAvatar = user.userAvatar
-                break
-            }
-        }
-        showSelectedMusic(music: music)
-    }
-    
-    func onDownloadMusicComplete(_ musicId: String) {
-        TRTCLog.out("____ onDownloadMusicComplete \(musicId)")
-        if let viewResponder = self.viewResponder {
-            viewResponder.onUpdateDownloadMusic(musicId: musicId)
-        }
+        effectViewModel.viewResponder?.onSelectedMusicListChanged()
     }
 }
 
@@ -1160,4 +1300,9 @@ fileprivate extension String {
     static let lockSeatText = karaokeLocalize("Demo.TRTC.Karaoke.lockseat")
     static let unlockSeatText = karaokeLocalize("Demo.TRTC.Karaoke.unlockseat")
     static let xxSeatSelectzzSongText = karaokeLocalize("Demo.TRTC.Karaoke.xxmicyyselectzz")
+    static let updateNetworkSuccessedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkSuccessed")
+    static let updateNetworkFailedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
+    static let updateNetworkFailedDonotEnterSeatText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailedDonotEnterSeat")
+    static let handupCheckNetworkText = karaokeLocalize("Demo.TRTC.Karaoke.handupCheckNetwork")
+    static let audienceCheckNetworkText = karaokeLocalize("Demo.TRTC.Karaoke.audienceCheckNetwork")
 }

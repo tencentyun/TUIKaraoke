@@ -12,7 +12,7 @@ public class TRTCKaraokeFloatingWindowManager: NSObject {
     // MARK: - Public Interface
     public static func shared() -> TRTCKaraokeFloatingWindowManager { staticInstance }
     
-    public var enableFloatingWindow: Bool = true
+    public var enableFloatingWindow: Bool = false
     
     public var windowIsShowing: Bool {
         get {
@@ -37,12 +37,12 @@ public class TRTCKaraokeFloatingWindowManager: NSObject {
         }
     }
     
-    public var currentRoomID: Int {
+    public var currentRoomID: String {
         get {
             guard let viewModel = sourceVC?.viewModel else {
-                return -1
+                return "-1"
             }
-            return viewModel.roomInfo.roomID
+            return viewModel.roomInfo.roomId
         }
     }
     
@@ -59,7 +59,7 @@ public class TRTCKaraokeFloatingWindowManager: NSObject {
         snapshotWindow?.frame.origin = .zero
         snapshotWindow?.makeKeyAndVisible()
         
-        if let url = URL(string: TRTCKaraokeIMManager.shared.checkBgImage(vc.viewModel?.roomInfo.coverUrl ?? "")) {
+        if let url = URL(string: vc.viewModel?.roomInfo.cover ?? "") {
             presentWindow?.thumbnailImageView.kf.setImage(with: .network(url))
         }
         

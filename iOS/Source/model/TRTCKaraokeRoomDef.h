@@ -8,55 +8,53 @@
 
 #import <Foundation/Foundation.h>
 
-NS_ASSUME_NONNULL_BEGIN
+typedef NS_ENUM(NSUInteger, KaraokeSeatStatus) {
+    kKaraokeSeatStatusUnused = 0,
+    kKaraokeSeatStatusUsed = 1,
+    kKaraokeSeatStatusClose = 2,
+};
 
+NS_ASSUME_NONNULL_BEGIN
 // 群属性写冲突，请先拉取最新的群属性后再尝试写操作，IMSDK5.6及其以上版本支持，麦位信息已经发生变化，需要重新拉取
 static int gERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT = 10056;
 
-@interface SeatInfo : NSObject
-
+@interface KaraokeSeatInfo : NSObject
 @property (nonatomic, assign) NSInteger status;
 @property (nonatomic, assign) BOOL mute;
-@property (nonatomic,  copy ) NSString *userId;
-
+@property (nonatomic,  copy ) NSString *user;
 @end
 
-@interface RoomParam : NSObject
-
+@interface KaraokeRoomParam : NSObject
 @property (nonatomic,  copy ) NSString *roomName;
 @property (nonatomic,  copy ) NSString *coverUrl;
 @property (nonatomic, assign) BOOL needRequest;
 @property (nonatomic, assign) NSInteger seatCount;
-@property (nonatomic, strong) NSArray<SeatInfo *> *seatInfoList;
-
-
+@property (nonatomic, strong) NSArray<KaraokeSeatInfo *> *seatInfoList;
 @end
 
-@interface UserInfo : NSObject
-
+@interface KaraokeUserInfo : NSObject
 @property (nonatomic,  copy ) NSString *userId;
 @property (nonatomic,  copy ) NSString *userName;
-@property (nonatomic,  copy ) NSString *userAvatar;
+@property (nonatomic,  copy ) NSString *avatarURL;
 @property (nonatomic, assign) BOOL mute;
-
+@property (nonatomic, assign) int networkLevel;
 @end
 
-@interface RoomInfo : NSObject
-
-@property (nonatomic, assign) NSInteger roomID;
-@property (nonatomic,  copy ) NSString *roomName;
-@property (nonatomic,  copy ) NSString *coverUrl;
+@interface KaraokeRoomInfo : NSObject
+@property (nonatomic,  copy ) NSString *roomId;
 @property (nonatomic,  copy ) NSString *ownerId;
 @property (nonatomic,  copy ) NSString *ownerName;
+@property (nonatomic,  copy ) NSString *roomName;
+@property (nonatomic,  copy ) NSString *cover;
+@property (nonatomic, assign) NSInteger seatSize;
+@property (nonatomic, assign) NSInteger needRequest;
 @property (nonatomic, assign) NSInteger memberCount;
-@property (nonatomic, assign) BOOL needRequest;
 
--(instancetype)initWithRoomID:(NSInteger)roomID ownerId:(NSString *)ownerId memberCount:(NSInteger)memberCount;
-
+- (instancetype)initWithRoomID:(NSString *)roomId ownerId:(NSString *)ownerId memberCount:(NSInteger)memberCount;
 @end
 
-typedef void(^ActionCallback)(int code, NSString * _Nonnull message);
-typedef void(^KaraokeInfoCallback)(int code, NSString * _Nonnull message, NSArray<RoomInfo * > * _Nonnull roomInfos);
-typedef void(^KaraokeUserListCallback)(int code, NSString * _Nonnull message, NSArray<UserInfo * > * _Nonnull userInfos);
+typedef void(^KaraokeCallback)(int code, NSString *message);
+typedef void(^KaraokeUserListCallback)(int code, NSString *message, NSArray<KaraokeUserInfo *> *userInfos);
+typedef void(^KaraokeRoomInfoListCallback)(int code, NSString *message, NSArray<KaraokeRoomInfo *> *roomInfos);
 
 NS_ASSUME_NONNULL_END

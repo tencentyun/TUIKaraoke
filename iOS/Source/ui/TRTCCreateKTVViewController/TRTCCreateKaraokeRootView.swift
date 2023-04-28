@@ -8,6 +8,7 @@
 
 import Foundation
 import TXAppBasic
+import Toast_Swift
 
 class TRTCCreateKaraokeRootView: UIView {
     
@@ -40,7 +41,7 @@ class TRTCCreateKaraokeRootView: UIView {
         textView.text = localizeReplaceXX(.defaultCreateText, viewModel.userName).subString(toByteLength: createRoomTextMaxByteLength)
         textView.textColor = .black
         textView.layer.cornerRadius = 20
-        textView.backgroundColor = UIColor(hex: "F4F5F9")
+        textView.backgroundColor = UIColor.tui_color(withHex: "F4F5F9")
 #if RTCube_APPSTORE
         textView.isUserInteractionEnabled = false
 #endif
@@ -68,8 +69,6 @@ class TRTCCreateKaraokeRootView: UIView {
     }
     
     private let viewModel: TRTCCreateKaraokeViewModel
-    
-    weak var rootViewController: UIViewController?
     
     init(viewModel: TRTCCreateKaraokeViewModel, frame: CGRect = .zero) {
         self.viewModel = viewModel
@@ -117,7 +116,8 @@ class TRTCCreateKaraokeRootView: UIView {
         super.draw(rect)
         createBtn.layer.cornerRadius = createBtn.frame.height*0.5
         contentView.roundedRect(rect: contentView.bounds, byRoundingCorners: [.topLeft, .topRight], cornerRadii: CGSize(width: 12, height: 12))
-        createBtn.gradient(colors: [UIColor(hex: "FF88DD")!.cgColor, UIColor(hex: "7D00BD")!.cgColor])
+        createBtn.gradient(colors: [UIColor.tui_color(withHex: "FF88DD").cgColor,
+                                    UIColor.tui_color(withHex: "7D00BD").cgColor,])
     }
     
     private func constructViewHierarchy() {
@@ -157,6 +157,7 @@ class TRTCCreateKaraokeRootView: UIView {
     private func bindInteraction() {
         createBtn.addTarget(self, action: #selector(createBtnClick), for: .touchUpInside)
         textView.delegate = self
+        viewModel.viewResponder = self
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -168,7 +169,7 @@ class TRTCCreateKaraokeRootView: UIView {
         }
         else {
             textView.resignFirstResponder()
-            rootViewController?.navigationController?.popViewController(animated: false)
+            viewModel.popViewController()
         }
     }
     
@@ -241,7 +242,7 @@ extension UITextView {
     func endEdit() {
         if self.text == "" {
             self.text = .placeholderTitleText
-            self.textColor = UIColor(hex: "BBBBBB")
+            self.textColor = UIColor.tui_color(withHex: "BBBBBB")
         }
         self.resignFirstResponder()
     }
@@ -270,20 +271,8 @@ extension UIView {
 }
 
 extension TRTCCreateKaraokeRootView : TRTCCreateKaraokeViewResponder {
-    func push(viewController: UIViewController) {
-        rootViewController?.navigationController?.pushViewController(viewController, animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-            guard let `self` = self else { return }
-            guard let vc = self.rootViewController else { return }
-            guard let vcs = vc.navigationController?.viewControllers else {
-                return
-            }
-            var controllers = vcs
-            if let index = controllers.firstIndex(of: vc) {
-                controllers.remove(at: index)
-                vc.navigationController?.viewControllers = controllers
-            }
-        }
+    func showToast(message: String) {
+        self.makeToast(message)
     }
 }
 

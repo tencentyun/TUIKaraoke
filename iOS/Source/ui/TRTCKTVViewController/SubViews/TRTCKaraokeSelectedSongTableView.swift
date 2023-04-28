@@ -21,7 +21,7 @@ enum BtnActionType {
 }
 
 class TRTCKaraokeSelectedSongTableView: UIView {
-    var dataSource: [KaraokeMusicModel] {
+    var dataSource: [KaraokeMusicInfo] {
         return viewModel.effectViewModel.musicSelectedList
     }
 
@@ -89,10 +89,10 @@ extension TRTCKaraokeSelectedSongTableView: UITableViewDataSource, UITableViewDe
         let cell = tableView.dequeueReusableCell(withIdentifier: "TRTCKaraokeSelectedSongTableViewCell", for: indexPath)
         let model = dataSource[indexPath.row]
         if let scell = cell as? TRTCKaraokeSelectedSongTableViewCell {
-            model.seatIndex = viewModel.getSeatIndexByUserId(userId: model.music.userId)
-            let seatUser = viewModel.getSeatUserByUserId(userId: model.music.userId)
-            model.bookUserName = seatUser?.userName ?? ""
-            model.bookUserAvatar = seatUser?.userAvatar ?? ""
+            let userInfo = viewModel.getSeatUserByUserId(userId: model.userId)
+            let seatIndex = viewModel.getSeatIndexByUserId(userId: model.userId)
+            scell.update(userName: userInfo?.userName ?? "",
+                         seatIndex: seatIndex)
             scell.model = model
             let index = indexPath.item
             if index == 0 {
@@ -135,36 +135,61 @@ extension TRTCKaraokeSelectedSongTableView: UITableViewDataSource, UITableViewDe
             return true
         }
         let model = dataSource[indexPath.row]
-        return model.music.userId == TRTCKaraokeIMManager.shared.curUserID
+        return model.userId == viewModel.loginUserId
     }
-
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        guard indexPath.row != 0, editingStyle == .delete else {
-            return
-        }
-
-        let musicSelectedList = viewModel.effectViewModel.musicSelectedList
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard indexPath.row != 0 else { return nil }
+        let musicSelectedList = self.viewModel.effectViewModel.musicSelectedList
         if musicSelectedList.count > indexPath.row {
             let deleteModel = musicSelectedList[indexPath.row]
-            viewModel.musicDataSource?.deleteMusic(musicInfo: deleteModel.music, callback: { [weak self] code, msg in
+            let action = UIContextualAction(style: .normal, title: "") { [weak self] action, sourceView, handle in
                 guard let self = self else { return }
-                if code != 0 {
-                    self.superview?.makeToast(msg)
-                }
-            })
+                self.viewModel.viewResponder?.showAlert(info: (title: "",
+                                                               message: localizeReplaceXX(.deleteText, deleteModel.musicName)),
+                                                        sureAction: { [weak self] in
+                    guard let self = self else { return }
+                    self.viewModel.musicService?.deleteMusicFromPlaylist(musicInfo: deleteModel, callback: { [weak self] code, msg in
+                        guard let self = self else { return }
+                        self.viewModel.notiMusicListChange()
+                        if code != 0 {
+                            self.superview?.makeToast(msg)
+                        }
+                    })
+                }, cancelAction: {
+                    handle(true)
+                })
+            }
+            action.image = UIImage(named: "delete",
+                                   in: karaokeBundle(),
+                                   compatibleWith: nil)
+            action.backgroundColor = .clear
+            let configuration = UISwipeActionsConfiguration(actions: [action])
+            configuration.performsFirstActionWithFullSwipe = false
+            return configuration
         }
+        return nil
+    }
+    
+    func tableView(_ tableView: UITableView, willBeginEditingRowAt indexPath: IndexPath) {
+        traverseView(view: tableView)
     }
 
-    func tableView(_ tableView: UITableView, titleForDeleteConfirmationButtonForRowAt indexPath: IndexPath) -> String? {
-        guard indexPath.row != 0 else {
-            return ""
+    private func traverseView(view: UIView) {
+        if type(of: view) == NSClassFromString("UISwipeActionStandardButton") {
+            for subView in view.subviews {
+                subView.backgroundColor = .clear
+            }
+        } else {
+            for subView in view.subviews {
+                traverseView(view: subView)
+            }
         }
-        return .deleteText
     }
 }
 
 class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
-    public var selectedAction: ((_ v: KaraokeMusicModel, _ callBack: @escaping cellClickCallback) -> Void)?
+    var selectedAction: ((_ v: KaraokeMusicInfo, _ callBack: @escaping cellClickCallback) -> Void)?
     private var isClicking: Bool = false
     lazy var playImageView: UIImageView = {
         let imageView = UIImageView(frame: .zero)
@@ -227,21 +252,20 @@ class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
         return btn
     }()
 
-    var model: KaraokeMusicModel? {
+    var model: KaraokeMusicInfo? {
         didSet {
             isClicking = false
-            guard let model = model else {
-                return
-            }
-            if let url = URL(string: model.bookUserAvatar) {
-                headerImageView.kf.setImage(with: .network(url), placeholder: UIImage(named: "voiceChange_loli_sel", in: karaokeBundle(), compatibleWith: nil))
+            guard let model = model else { return }
+            titleLabel.text = model.musicName
+            authorLabel.text = localizeReplaceXX(.originSingerText, model.singer())
+            if let url = URL(string: model.coverUrl) {
+                headerImageView.kf.setImage(with: .network(url),
+                                            placeholder: UIImage(named: "voiceChange_loli_sel",
+                                                                 in: karaokeBundle(),
+                                                                 compatibleWith: nil))
             } else {
                 headerImageView.image = UIImage(named: "voiceChange_loli_sel", in: karaokeBundle(), compatibleWith: nil)
             }
-            titleLabel.text = model.musicName
-            authorLabel.text = localizeReplaceXX(.originSingerText, model.singer)
-            micOrderLabel.text = localizeReplaceXX(.seatIndexText, "\(model.seatIndex + 1)")
-            userNameLabel.text = model.bookUserName
         }
     }
 
@@ -330,6 +354,11 @@ class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
     func bindInteraction() {
         topBtn.addTarget(self, action: #selector(topBtnClick), for: .touchUpInside)
     }
+    
+    func update(userName: String, seatIndex: Int) {
+        micOrderLabel.text = localizeReplaceXX(.seatIndexText, "\(seatIndex + 1)")
+        userNameLabel.text = userName
+    }
 
     @objc func topBtnClick() {
         if isClicking {
@@ -377,7 +406,7 @@ class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let deleteText = karaokeLocalize("Demo.TRTC.Karaoke.delete")
+    static let deleteText = karaokeLocalize("Demo.TRTC.Karaoke.DeleteMusicFromPlayListxxx")
     static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
     static let originSingerText = karaokeLocalize("Demo.TRTC.Karaoke.singerisxx")
 }

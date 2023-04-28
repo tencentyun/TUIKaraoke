@@ -25,10 +25,11 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
         return view
     }()
 
-    lazy var scrollView: UIScrollView = {
-        let scrollView = UIScrollView(frame: .zero)
+    lazy var scrollView: TRTCKaraokeScrollView = {
+        let scrollView = TRTCKaraokeScrollView(frame: .zero)
         scrollView.backgroundColor = .clear
         scrollView.isPagingEnabled = true
+        scrollView.bounces = false
         scrollView.contentInsetAdjustmentBehavior = .never
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
@@ -52,7 +53,7 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
 
     lazy var btnSelectLineView: UIView = {
         let view = UIView(frame: .zero)
-        view.backgroundColor = UIColor(hex: "F95F91")
+        view.backgroundColor = UIColor.tui_color(withHex: "F95F91")
         view.layer.cornerRadius = 2
         return view
     }()
@@ -63,8 +64,8 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
         return view
     }()
 
-    lazy var songSelectorView: TRTCKaraokeSongSelectorTableView = {
-        let view = TRTCKaraokeSongSelectorTableView(viewModel: viewModel)
+    lazy var songSelectorView: TRTCKaraokeSongSelectorView = {
+        let view = TRTCKaraokeSongSelectorView(viewModel: viewModel)
         return view
     }()
 
@@ -73,11 +74,11 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
         return view
     }()
 
-    func reloadSongSelectorView(dataSource: [KaraokeMusicModel]) {
+    func reloadSongSelectorView(dataSource: [KaraokeMusicInfo]) {
         songSelectorView.updateDataSource()
     }
 
-    func reloadSelectedSongView(dataSource: [KaraokeMusicModel]) {
+    func reloadSelectedSongView(dataSource: [KaraokeMusicInfo]) {
         selectedView.updateDataSource()
     }
 
@@ -104,9 +105,9 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
         selectedView.updateDataSource()
     }
 
-    func refreshScrollEnable() {
-        scrollView.isScrollEnabled = !viewModel.isOwner && viewModel.userType == .audience
-    }
+//    func refreshScrollEnable() {
+//        scrollView.isScrollEnabled = !viewModel.isOwner && viewModel.userType == .audience
+//    }
 
     override init(frame: CGRect = .zero, viewModel: TRTCKaraokeViewModel) {
         super.init(viewModel: viewModel)
@@ -122,14 +123,14 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
 
         selectBtn(index == 0 ? songSelectorBtn : selectedSongBtn)
         scrollView.setContentOffset(CGPoint(x: scrollView.frame.width * CGFloat(index), y: 0), animated: false)
-        refreshScrollEnable()
+//        refreshScrollEnable()
     }
 
     override func show() {
         super.show()
         selectBtn(songSelectorBtn)
         scrollView.setContentOffset(.zero, animated: false)
-        refreshScrollEnable()
+//        refreshScrollEnable()
     }
 
     override func constructViewHierarchy() {
@@ -188,12 +189,8 @@ class TRTCKaraokeSongSelectorAlert: TRTCKaraokeAlertContentView {
 
     override func bindInteraction() {
         super.bindInteraction()
-
         songSelectorBtn.addTarget(self, action: #selector(songSelectorBtnClick), for: .touchUpInside)
         selectedSongBtn.addTarget(self, action: #selector(selectedSongBtnClick), for: .touchUpInside)
-
-        viewModel.effectViewModel.reloadSelectedMusicList(nil)
-
         configScrollView()
     }
 }
@@ -251,13 +248,30 @@ fileprivate extension UIButton {
 
         let selAttr = NSMutableAttributedString(string: title)
         selAttr.addAttribute(.font, value: UIFont(name: "PingFangSC-Medium", size: 18) ?? UIFont.systemFont(ofSize: 18), range: totalRange)
-        selAttr.addAttribute(.foregroundColor, value: UIColor(hex: "F95F91") ?? .systemPink, range: totalRange)
+        selAttr.addAttribute(.foregroundColor, value: UIColor.tui_color(withHex: "F95F91"), range: totalRange)
         setAttributedTitle(selAttr, for: .selected)
 
         let norAttr = NSMutableAttributedString(string: title)
         norAttr.addAttribute(.font, value: UIFont(name: "PingFangSC-Regular", size: 18) ?? UIFont.systemFont(ofSize: 18), range: totalRange)
         norAttr.addAttribute(.foregroundColor, value: UIColor(white: 1, alpha: 0.6), range: totalRange)
         setAttributedTitle(norAttr, for: .normal)
+    }
+}
+
+class TRTCKaraokeScrollView: UIScrollView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension TRTCKaraokeScrollView: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 }
 
