@@ -12,7 +12,7 @@
     <string name="trtckaraoke_delete">删除</string>
 
     <string name="trtckaraoke_tips_open_audio">请先打开麦克风权限</string>
-    <string name="trtckaraoke_room_id">房间ID:%d</string>
+    <string name="trtckaraoke_room_id">房间ID:%s</string>
     <string name="trtckaraoke_lock">锁定</string>
     <string name="trtckaraoke_unlock">解锁</string>
     <string name="trtckaraoke_seat_already_mute">当前座位已经被静音，无法打开麦克风</string>
@@ -81,8 +81,10 @@
     <string name="trtckaraoke_msg_order_song_seat">%d号麦位</string>
     <string name="trtckaraoke_msg_order_song">点歌《%s》</string>
     <string name="trtckaraoke_singer">原唱: %s</string>
-    <string name="trtckaraoke_no_song">暂无已点歌曲</string>
-
+    <string name="trtckaraoke_tune">调音</string>
+    <string name="trtckaraoke_music_coming">即将播放...</string>
+    <string name="trtckaraoke_song_accompany">伴奏</string>
+    <string name="trtckaraoke_song_original">原唱</string>
 
     <!--    礼物面板-->
     <string name="trtckaraoke_gift_title">礼物</string>
@@ -113,7 +115,7 @@
     <string name="trtckaraoke_audio_reverb_type_heavymetal">金属声</string>
     <string name="trtckaraoke_audio_reverb_type_hongliang">洪亮</string>
 
-    <string name="trtckaraoke_search_music_hint">搜索你想唱的歌曲</string>
+    <string name="trtckaraoke_search_music_hint">搜索歌曲或者歌手名称</string>
     <string name="trtckaraoke_loading_no_data">抱歉，没有找到你想唱的歌曲</string>
     <string name="trtckaraoke_loading_more_music">正在加载更多的数据</string>
     <string name="trtckaraoke_loading_no_more_data">没有更多数据了</string>
@@ -124,4 +126,19 @@
     <string name="trtckaraoke_permission_mic_reason">需要访问您的麦克风权限，开启后用于一起合唱、Karaoke、语音聊天室、语音沙龙、视频互动、秀场直播、语音通话、多人语音通话、视频通话、多人视频通话、多人音视频房间等功能，并且开启后录制的视频才会有声音</string>
     <string name="trtckaraoke_btn_start_chorus">开始合唱</string>
     <string name="trtckaraoke_toast_room_owner_can_operate_it">抱歉，该操作仅限房主</string>
+    <string name="trtckaraoke_dashboard">仪表盘</string>
+    <string name="trtckaraoke_network_info">网络信息</string>
+    <string name="trtckaraoke_local_audio_info">本地音频流信息</string>
+    <string name="trtckaraoke_remote_audio_info">远端音频流信息</string>
+    <string name="trtckaraoke_toast_supported_chorus_with_poor_network">当前网络较差，无法保证合唱效果</string>
+    <string name="trtckaraoke_toast_not_supported_chorus">当前网络较差，暂不支持合唱功能</string>
+    <string name="trtckaraoke_toast_network_not_available">当前网络不可用，请检查网络后重试</string>
+    <string name="trtckaraoke_toast_muisc_no_accompaniment">当前歌曲没有伴奏</string>
+    <string name="trtckaraoke_say_something">说点什么</string>
+    <string name="trtckaraoke_upate_network_time_fail_tips">当前环境不理想，无法保证 Karaoke 体验，暂不支持上麦</string>
+    <string name="trtckaraoke_retry">重试</string>
+    <string name="trtckaraoke_confirm_to_delete_music">是否要删除《%s》</string>
+    <string name="trtckaraoke_audio_headset_check_tip">为保证演唱效果，建议佩戴耳机演唱，外放场景下建议使用伴奏模式，且勿随意调整系统音量</string>
+    <string name="trtckaraoke_toast_music_download_failed">《%s》下载失败，请尝试重新点歌</string>
+    <string name="trtckaraoke_lyric_empty_hint">暂无歌词</string>
 </resources>

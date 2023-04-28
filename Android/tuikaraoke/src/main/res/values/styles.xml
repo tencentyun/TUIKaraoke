@@ -10,8 +10,8 @@
     </style>
 
     <style name="TRTCKtvRoomButtonStyle">
-        <item name="android:layout_width">52dp</item>
-        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
         <item name="android:scaleType">fitXY</item>
         <item name="android:background">@android:color/transparent</item>
     </style>
@@ -62,13 +62,14 @@
         <item name="android:thumb">@drawable/trtckaraoke_seekbar_progress_thumb</item>
     </style>
 
-    <style name="TRTCKtvAudioEffetcNumStyle">
-        <item name="android:layout_width">wrap_content</item>
+    <style name="TRTCKtvAudioEffectNumStyle">
+        <item name="android:layout_width">40dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_gravity">center_vertical</item>
         <item name="android:textColor">@color/trtckaraoke_white</item>
         <item name="android:textSize">16sp</item>
         <item name="android:text">100</item>
+        <item name="android:layout_marginLeft">5dp</item>
         <item name="android:gravity">right</item>
     </style>
 

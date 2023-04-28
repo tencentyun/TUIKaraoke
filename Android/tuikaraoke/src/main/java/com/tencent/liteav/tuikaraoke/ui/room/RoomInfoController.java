@@ -1,9 +1,9 @@
 package com.tencent.liteav.tuikaraoke.ui.room;
 
-import com.tencent.liteav.basic.UserModelManager;
-import com.tencent.liteav.tuikaraoke.ui.base.KaraokeMusicModel;
+import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
-import com.tencent.liteav.tuikaraoke.ui.music.KaraokeMusicService;
+import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
+import com.tencent.qcloud.tuicore.TUILogin;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,16 +14,16 @@ public class RoomInfoController {
     private String                         mRoomOwnerId; //房主的Id
     private String                         mSelfUserId;  //用户的Id
     private List<KaraokeRoomSeatEntity>    mKaraokeRoomSeatEntityList;
-    private KaraokeMusicService            mKaraokeMusicServiceImpl;
-    private KaraokeMusicModel              mTopModel;
-    private Map<String, KaraokeMusicModel> mUserSelectMap;
+    private KaraokeMusicService           mKaraokeMusicServiceImpl;
+    private KaraokeMusicInfo              mTopModel;
+    private Map<String, KaraokeMusicInfo> mUserSelectMap = new HashMap<>(); // key:musicId value:model
 
     public String getSelfUserId() {
         return mSelfUserId;
     }
 
     public RoomInfoController() {
-        mSelfUserId = UserModelManager.getInstance().getUserModel().userId;
+        mSelfUserId = TUILogin.getLoginUser();
     }
 
     public String getRoomOwnerId() {
@@ -44,6 +44,10 @@ public class RoomInfoController {
 
     //是否是主播
     public boolean isAnchor() {
+        if (isRoomOwner()) {
+            // mKaraokeRoomSeatEntityList 需要等到座位表回调才有值
+            return true;
+        }
         if (mSelfUserId == null || mKaraokeRoomSeatEntityList == null || mKaraokeRoomSeatEntityList.size() <= 0) {
             return false;
         }
@@ -83,23 +87,15 @@ public class RoomInfoController {
         return null;
     }
 
-    public void setTopModel(KaraokeMusicModel model) {
+    public void setTopModel(KaraokeMusicInfo model) {
         this.mTopModel = model;
     }
 
-    public KaraokeMusicModel getTopModel() {
+    public KaraokeMusicInfo getTopModel() {
         return mTopModel;
     }
 
-    //key:musicId value:model
-    public void setUserSelectMap(Map<String, KaraokeMusicModel> map) {
-        this.mUserSelectMap = map;
-    }
-
-    public Map<String, KaraokeMusicModel> getUserSelectMap() {
-        if (mUserSelectMap == null) {
-            mUserSelectMap = new HashMap<>();
-        }
+    public Map<String, KaraokeMusicInfo> getUserSelectMap() {
         return mUserSelectMap;
     }
 

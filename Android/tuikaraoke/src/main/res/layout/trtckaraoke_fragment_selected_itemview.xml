@@ -124,15 +124,17 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tv_delete"
-        android:layout_width="64dp"
-        android:layout_height="match_parent"
-        android:background="#ff0000"
-        android:clickable="true"
-        android:gravity="center"
-        android:text="@string/trtckaraoke_delete"
-        android:textColor="#ffffff"
-        android:textSize="14sp" />
-
+    <LinearLayout
+        android:layout_width="54dp"
+        android:layout_height="match_parent">
+        <ImageButton
+            android:id="@+id/btn_delete"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginLeft="10dp"
+            android:layout_gravity="center_vertical"
+            android:clickable="true"
+            android:background="@drawable/trtckaraoke_ic_delete"
+            android:gravity="center" />
+    </LinearLayout>
 </LinearLayout>

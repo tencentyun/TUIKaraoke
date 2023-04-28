@@ -3,28 +3,25 @@ package com.tencent.liteav.tuikaraoke.model;
 import java.util.List;
 
 public class TRTCKaraokeRoomDef {
-    //群属性写冲突，请先拉取最新的群属性后再尝试写操作，IMSDK5.6及其以上版本支持，麦位信息已经发生变化，需要重新拉取
-    public static final int ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT = 10056;
-
     public static class SeatInfo {
 
-        public static final transient int STATUS_UNUSED = 0;
-        public static final transient int STATUS_USED   = 1;
-        public static final transient int STATUS_CLOSE  = 2;
+        public static final int STATUS_UNUSED = 0;
+        public static final int STATUS_USED   = 1;
+        public static final int STATUS_CLOSE  = 2;
 
         /// 【字段含义】座位状态 0(unused)/1(used)/2(close)
         public int     status;
         /// 【字段含义】座位是否禁言
         public boolean mute;
         /// 【字段含义】座位状态为1，存储userInfo
-        public String  userId;
+        public String  user;
 
         @Override
         public String toString() {
             return "SeatInfo{"
                     + "status=" + status
                     + ", mute=" + mute
-                    + ", userId='" + userId + '\''
+                    + ", userId='" + user + '\''
                     + '}';
         }
     }
@@ -60,44 +57,48 @@ public class TRTCKaraokeRoomDef {
         /// 【字段含义】用户昵称
         public String userName;
         /// 【字段含义】用户头像
-        public String userAvatar;
+        public String avatarURL;
 
         @Override
         public String toString() {
             return "UserInfo{"
                     + "userId='" + userId + '\''
                     + ", userName='" + userName + '\''
-                    + ", userAvatar='" + userAvatar + '\''
+                    + ", userAvatar='" + avatarURL + '\''
                     + '}';
         }
     }
 
     public static class RoomInfo {
         /// 【字段含义】房间唯一标识
-        public int     roomId;
+        public String  roomId;
         /// 【字段含义】房间名称
-        public String  roomName;
+        public String roomName;
         /// 【字段含义】房间封面图
-        public String  coverUrl;
+        public String cover;
         /// 【字段含义】房主id
-        public String  ownerId;
+        public String ownerId;
         /// 【字段含义】房主昵称
         public String  ownerName;
         /// 【字段含义】房间人数
         public int     memberCount;
+        /// 【字段含义】 麦位数量
+        public Integer seatSize;
         /// 【字段含义】是否需要房主确认上麦
-        public boolean needRequest;
+        public int needRequest;
+
 
         @Override
         public String toString() {
             return "RoomInfo{"
                     + "roomId=" + roomId
                     + ", roomName='" + roomName + '\''
-                    + ", coverUrl='" + coverUrl + '\''
+                    + ", coverUrl='" + cover + '\''
                     + ", ownerId='" + ownerId + '\''
                     + ", ownerName='" + ownerName + '\''
-                    + ", memberCount=" + memberCount
-                    + ", needRequest=" + needRequest
+                    + ", memberCount=" + memberCount + '\''
+                    + ", seatSize=" + seatSize + '\''
+                    + ", needRequest=" + needRequest + '\''
                     + '}';
         }
     }

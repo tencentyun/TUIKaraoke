@@ -122,14 +122,14 @@
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/ll_anchor_info" />
 
-    <com.tencent.liteav.tuikaraoke.ui.lrc.widget.LyricsView
+    <com.tencent.liteav.tuikaraoke.ui.lyric.LyricView
         android:id="@+id/lrc_view"
         android:layout_width="match_parent"
-        android:layout_height="82dp"
+        android:layout_height="60dp"
         android:layout_gravity="bottom"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="90dp"
+        android:layout_marginTop="120dp"
         android:layout_marginBottom="10dp"
         app:layout_constraintTop_toBottomOf="@+id/ll_anchor_info"/>
 
@@ -172,28 +172,60 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_msg"
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_more_gift"
+        style="@style/TRTCKtvRoomButtonStyle"
+        app:layout_constraintLeft_toRightOf="@id/btn_msg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/trtckaraoke_ic_gift" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/btn_mic"
+        style="@style/TRTCKtvRoomButtonStyle"
+        app:layout_constraintLeft_toRightOf="@id/btn_more_gift"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone"
+        android:background="@drawable/trtckaraoke_button_mic" />
+
+    <RelativeLayout
+        android:id="@+id/container_choose_song"
+        android:layout_width="95dp"
+        android:layout_height="40dp"
+        android:paddingLeft="20dp"
+        android:paddingTop="12dp"
+        android:paddingRight="20dp"
+        android:paddingBottom="12dp"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_more_gift"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintTop_toTopOf="@+id/btn_msg">
+        android:gravity="center_vertical"
+        android:background="@drawable/trtckaraoke_button_border">
 
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/btn_mic"
-            style="@style/TRTCKtvRoomButtonStyle"
-            android:layout_marginEnd="20dp"
-            android:background="@drawable/trtckaraoke_button_mic"
-            android:visibility="gone" />
+        <ImageView
+            android:id="@+id/btn_choose_song"
+            android:layout_width="16dp"
+            android:layout_height="19dp"
+            android:layout_centerVertical="true"
+            android:background="@drawable/trtckaraoke_choose_song_subtract" />
 
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/btn_more_gift"
-            style="@style/TRTCKtvRoomButtonStyle"
-            android:layout_marginEnd="20dp"
-            android:background="@drawable/trtckaraoke_ic_gift" />
-    </LinearLayout>
+        <TextView
+            android:layout_width="32dp"
+            android:layout_height="22dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="2dp"
+            android:layout_toRightOf="@id/btn_choose_song"
+            android:text="@string/trtckaraoke_btn_choose_song"
+            android:includeFontPadding="false"
+            android:gravity="center"
+            android:textColor="@color/trtckaraoke_white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
 
     <com.tencent.liteav.tuikaraoke.ui.gift.imp.GiftAnimatorLayout
         android:id="@+id/gift_animator_layout"

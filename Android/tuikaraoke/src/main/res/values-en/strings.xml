@@ -11,7 +11,7 @@
     <string name="trtckaraoke_warning_not_empty">The input field must not be empty!</string>
     <string name="trtckaraoke_delete">delete</string>
     <string name="trtckaraoke_tips_open_audio">Please turn on the microphone permission first</string>
-    <string name="trtckaraoke_room_id">Room Id: %d</string>
+    <string name="trtckaraoke_room_id">Room Id: %s</string>
     <string name="trtckaraoke_lock">Lock</string>
     <string name="trtckaraoke_unlock">UnLock</string>
     <string name="trtckaraoke_seat_already_mute">Cannot turn mic on as the seat is muted</string>
@@ -73,7 +73,10 @@
     <string name="trtckaraoke_msg_order_song_seat">Mic No.%d</string>
     <string name="trtckaraoke_msg_order_song">Request《%s》</string>
     <string name="trtckaraoke_singer">Singer: %s</string>
-    <string name="trtckaraoke_no_song">No songs requested</string>
+    <string name="trtckaraoke_tune">Tune</string>
+    <string name="trtckaraoke_music_coming">Coming soon...</string>
+    <string name="trtckaraoke_song_accompany">Accompany</string>
+    <string name="trtckaraoke_song_original">Original</string>
 
     <string name="trtckaraoke_gift_title">Gift</string>
     <string name="trtckaraoke_gift_send_out">Sent</string>
@@ -111,4 +114,20 @@
     <string name="trtckaraoke_permission_mic_reason">Needs access to your microphone, and it can be used for functions such as Interactive Video Streaming, Show Live, Video Call, Group Video Call, Multi-person audio and video room, etc.</string>
     <string name="trtckaraoke_btn_start_chorus">Start Duet</string>
     <string name="trtckaraoke_toast_room_owner_can_operate_it">Room owner can operate it</string>
+    <string name="trtckaraoke_dashboard">Dashboard</string>
+    <string name="trtckaraoke_network_info">Network Info</string>
+    <string name="trtckaraoke_local_audio_info">Local Audio Info</string>
+    <string name="trtckaraoke_remote_audio_info">Remote Audio Info</string>
+    <string name="trtckaraoke_toast_supported_chorus_with_poor_network">The current network is poor, and the chorus effect cannot be guaranteed</string>
+    <string name="trtckaraoke_toast_not_supported_chorus">The current network is poor, and the chorus function is temporarily not supported</string>
+    <string name="trtckaraoke_toast_network_not_available">The current network is not available</string>
+    <string name="trtckaraoke_toast_muisc_no_accompaniment">Current song has no accompaniment</string>
+    <string name="trtckaraoke_say_something">Say something</string>
+    <string name="trtckaraoke_upate_network_time_fail_tips">The current network is bad, the Karaoke experience cannot
+        be guaranteed，so not support take seat now.</string>
+    <string name="trtckaraoke_retry">Retry</string>
+    <string name="trtckaraoke_confirm_to_delete_music">Do you want to delete %s</string>
+    <string name="trtckaraoke_audio_headset_check_tip">In order to ensure the singing effect, it is recommended to wear headphones to sing. It is recommended to use the accompaniment mode in the external playback scene, and do not adjust the system volume at will</string>
+    <string name="trtckaraoke_toast_music_download_failed">%s failed to download, please try ordering the song again</string>
+    <string name="trtckaraoke_lyric_empty_hint">lyric is empty</string>
 </resources>

@@ -3,9 +3,9 @@ package com.tencent.liteav.tuikaraoke.ui.widget;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.PorterDuff;
+import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -13,9 +13,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.tencent.liteav.tuikaraoke.R;
+import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
 
 /**
  * Module:   InputTextMsgDialog
@@ -58,7 +58,7 @@ public class InputTextMsgDialog extends Dialog {
                     mEditMessage.setText("");
                     dismiss();
                 } else {
-                    Toast.makeText(mContext, R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG).show();
+                    Toast.show(R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
                 }
                 mEditMessage.setText(null);
             }
@@ -74,7 +74,7 @@ public class InputTextMsgDialog extends Dialog {
                             mInputMethodManager.hideSoftInputFromWindow(mEditMessage.getWindowToken(), 0);
                             dismiss();
                         } else {
-                            Toast.makeText(mContext, R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG).show();
+                            Toast.show(R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
                         }
                         return true;
                     case KeyEvent.KEYCODE_BACK:
@@ -92,24 +92,15 @@ public class InputTextMsgDialog extends Dialog {
             public void onClick(View v) {
                 String msg = mEditMessage.getText().toString().trim();
                 if (!TextUtils.isEmpty(msg)) {
-
                     mOnTextSendListener.onTextSend(msg);
                     mInputMethodManager.showSoftInput(mEditMessage, InputMethodManager.SHOW_FORCED);
                     mInputMethodManager.hideSoftInputFromWindow(mEditMessage.getWindowToken(), 0);
                     mEditMessage.setText("");
                     dismiss();
                 } else {
-                    Toast.makeText(mContext, R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG).show();
+                    Toast.show(R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
                 }
                 mEditMessage.setText(null);
-            }
-        });
-
-        mEditMessage.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                Log.d("My test", "onKey " + keyEvent.getCharacters());
-                return false;
             }
         });
 
@@ -133,7 +124,13 @@ public class InputTextMsgDialog extends Dialog {
         });
     }
 
-    public void setmOnTextSendListener(OnTextSendListener onTextSendListener) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mEditMessage.requestFocus();
+    }
+
+    public void setOnTextSendListener(OnTextSendListener onTextSendListener) {
         this.mOnTextSendListener = onTextSendListener;
     }
 

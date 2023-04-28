@@ -6,149 +6,140 @@
     android:background="@drawable/trtckaraoke_bg_main_show"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/ll_info"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:orientation="horizontal">
+        android:gravity="center_vertical"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
 
-        <TextView
-            android:id="@+id/tv_seat_name"
+        <LinearLayout
+            android:id="@+id/ll_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/trtckaraoke_white"
-            android:textSize="12sp" />
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_user_name"
+            <LinearLayout
+                android:id="@+id/ll_music_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_gravity="center_vertical"
+                android:orientation="horizontal">
+                <ImageView
+                    android:id="@+id/img_song_head"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/trtckaraoke_ic_music" />
+                <TextView
+                    android:id="@+id/tv_music_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:textColor="@color/trtckaraoke_white"
+                    android:textSize="12sp" />
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="2dp"
+                    android:src="@drawable/trtckaraoke_arrow_right"/>
+            </LinearLayout>
+            <TextView
+                android:id="@+id/tv_music_playing_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:textColor="@color/trtckaraoke_white"
+                android:textSize="9sp"
+                tools:text="Jessica" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_weight="1"
-            android:textColor="@color/trtckaraoke_white"
-            android:textSize="12sp"
-            tools:text="Jessica" />
-
-        <Button
-            android:id="@+id/btn_switch_music"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
             android:layout_marginEnd="10dp"
-            android:background="@drawable/trtckaraoke_ic_origin_music"
-            android:visibility="gone" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btn_effect"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/trtckaraoke_changetype_kongling_normal"
-            android:visibility="gone" />
+            <LinearLayout
+                android:id="@+id/ll_change_voice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/btn_change_voice"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/trtckaraoke_btn_change_voice"
-            android:visibility="gone" />
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:background="@drawable/trtckaraoke_btn_change_voice" />
 
-        <Button
-            android:id="@+id/btn_choose_song"
-            android:layout_width="76dp"
-            android:layout_height="38dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/trtckaraoke_button_border"
-            android:text="@string/trtckaraoke_btn_choose_song"
-            android:textAllCaps="false"
-            android:textColor="@color/trtckaraoke_white"
-            android:textSize="14sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="2dp"
+                    android:includeFontPadding="false"
+                    android:text="@string/trtckaraoke_tune"
+                    android:textColor="@color/trtckaraoke_white"
+                    android:textSize="16sp" />
+            </LinearLayout>
 
-    </LinearLayout>
+            <com.tencent.liteav.tuikaraoke.ui.widget.TextSwitchView
+                android:id="@+id/switch_music"
+                android:layout_width="80dp"
+                android:layout_height="26dp"
+                android:layout_marginLeft="4dp"
+                android:checked="false"
+                android:showText="true"
+                android:textOff="@string/trtckaraoke_song_accompany"
+                android:textOn="@string/trtckaraoke_song_original"
+                android:thumb="@drawable/trtckaraoke_song_switch_thumb"
+                android:track="@drawable/trtckaraoke_song_switch_track" />
+        </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/ll_song_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:orientation="horizontal">
+    </RelativeLayout>
 
-        <ImageView
-            android:id="@+id/img_song_head"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/trtckaraoke_ic_music" />
-
-        <TextView
-            android:id="@+id/tv_song_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:textColor="@color/trtckaraoke_white"
-            android:textSize="12sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/ll_empty"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="24dp"
-        android:layout_marginTop="58dp"
-        android:layout_marginRight="24dp"
-        android:orientation="vertical"
-        android:visibility="visible">
-
-        <TextView
-            android:id="@+id/tv_empty"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:text="@string/trtckaraoke_no_song"
-            android:textColor="@color/trtckaraoke_white"
-            android:textSize="14sp" />
-
-        <Button
-            android:id="@+id/btn_empty_choose_song"
-            android:layout_width="76dp"
-            android:layout_height="38dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/trtckaraoke_button_border"
-            android:text="@string/trtckaraoke_btn_choose_song"
-            android:textAllCaps="false"
-            android:textColor="@color/trtckaraoke_white"
-            android:textSize="14sp" />
-    </LinearLayout>
+    <Button
+        android:id="@+id/btn_empty_choose_song"
+        android:layout_width="76dp"
+        android:layout_height="38dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/trtckaraoke_bg_empty_choose_song"
+        android:text="@string/trtckaraoke_btn_choose_song"
+        android:textAllCaps="false"
+        android:textColor="@color/trtckaraoke_white"
+        android:textSize="14sp" />
 
     <Button
         android:id="@+id/btn_start_chorus"
-        android:enabled="false"
         android:layout_width="76dp"
         android:layout_height="38dp"
         android:layout_gravity="center"
         android:layout_marginTop="20dp"
         android:background="@drawable/trtckaraoke_button_border"
+        android:enabled="false"
         android:text="@string/trtckaraoke_btn_start_chorus"
         android:textAllCaps="false"
         android:textColor="@color/trtckaraoke_white"
         android:textSize="14sp"
-        android:visibility="gone"
-        />
+        android:visibility="gone" />
 
     <TextView
-        android:id="@+id/tv_timer"
+        android:id="@+id/tv_music_coming"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:text="3"
-        android:textSize="60dp"
-        android:visibility="gone"/>
+        android:layout_marginTop="50dp"
+        android:textSize="18sp"
+        android:text="@string/trtckaraoke_music_coming"
+        android:visibility="gone" />
 </LinearLayout>

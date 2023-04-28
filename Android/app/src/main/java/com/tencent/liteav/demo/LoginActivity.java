@@ -16,6 +16,7 @@ import com.tencent.liteav.basic.UserModel;
 import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.debug.GenerateTestUserSig;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 public class LoginActivity extends AppCompatActivity {
@@ -50,9 +51,10 @@ public class LoginActivity extends AppCompatActivity {
     private void login() {
         String          userId    = mEditUserId.getText().toString().trim();
         final UserModel userModel = new UserModel();
+        userModel.appId = GenerateTestUserSig.SDKAPPID;
         userModel.userId = userId;
         userModel.userName = userId;
-        int    index    = new Random().nextInt(AvatarConstant.USER_AVATAR_ARRAY.length);
+        int    index    = new SecureRandom().nextInt(AvatarConstant.USER_AVATAR_ARRAY.length);
         String coverUrl = AvatarConstant.USER_AVATAR_ARRAY[index];
         userModel.userAvatar = coverUrl;
         userModel.userSig = GenerateTestUserSig.genTestUserSig(userId);

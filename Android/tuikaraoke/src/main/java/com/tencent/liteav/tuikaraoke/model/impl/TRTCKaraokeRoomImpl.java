@@ -4,91 +4,134 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 
-import com.google.gson.Gson;
+import androidx.annotation.NonNull;
+
 import com.tencent.liteav.audio.TXAudioEffectManager;
+import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
-import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomCallback;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
-import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDelegate;
-import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomManager;
+import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef.UserInfo;
+import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomObserver;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
-import com.tencent.liteav.tuikaraoke.model.impl.base.TXCallback;
-import com.tencent.liteav.tuikaraoke.model.impl.base.TXRoomInfo;
-import com.tencent.liteav.tuikaraoke.model.impl.base.TXSeatInfo;
-import com.tencent.liteav.tuikaraoke.model.impl.base.TXUserInfo;
-import com.tencent.liteav.tuikaraoke.model.impl.base.TXUserListCallback;
-import com.tencent.liteav.tuikaraoke.model.impl.chorus.ChorusExtension;
-import com.tencent.liteav.tuikaraoke.model.impl.room.ITXRoomServiceDelegate;
-import com.tencent.liteav.tuikaraoke.model.impl.room.impl.TXRoomService;
-import com.tencent.liteav.tuikaraoke.model.impl.trtc.TRTCKtvRoomService;
-import com.tencent.liteav.tuikaraoke.model.impl.trtc.TRTCKtvRoomServiceDelegate;
-import com.tencent.liteav.tuikaraoke.model.KaraokeSEIJsonData;
-import com.tencent.qcloud.tuicore.TUILogin;
-import com.tencent.rtmp.ui.TXCloudVideoView;
+import com.tencent.liteav.tuikaraoke.model.impl.chorus.KaraokeChorusExtension;
+import com.tencent.liteav.tuikaraoke.model.impl.chorus.KaraokeChorusObserver;
+import com.tencent.liteav.tuikaraoke.model.impl.im.KaraokeIMService;
+import com.tencent.liteav.tuikaraoke.model.impl.im.KaraokeIMServiceObserver;
+import com.tencent.liteav.tuikaraoke.model.impl.server.TRTCKaraokeRoomManager;
+import com.tencent.liteav.tuikaraoke.model.impl.trtc.KaraokeTRTCService;
+import com.tencent.liteav.tuikaraoke.model.impl.trtc.KaraokeTRTCServiceObserver;
+import com.tencent.qcloud.tuicore.interfaces.TUICallback;
+import com.tencent.qcloud.tuicore.interfaces.TUIValueCallback;
+import com.tencent.rtmp.TXLiveBase;
+import com.tencent.rtmp.TXLiveBaseListener;
 import com.tencent.trtc.TRTCCloud;
 import com.tencent.trtc.TRTCCloudDef;
+import com.tencent.trtc.TRTCStatistics;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServiceDelegate, TRTCKtvRoomServiceDelegate,
-        ChorusExtension.ChorusListener {
+public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMServiceObserver,
+        KaraokeTRTCServiceObserver {
     private static final String TAG = "TRTCKaraokeRoomImpl";
 
-    private static final int    TYPE_ORIGIN    = 0; //原唱
-    private static final int    TYPE_ACCOMPANY = 1; //伴奏
     private static final String MIX_ROBOT      = "_robot";
     private static final String AUDIO_BGM      = "_bgm";
 
-    private static TRTCKaraokeRoomImpl     sInstance;
-    private final  Context                 mContext;
-    private        TRTCKaraokeRoomDelegate mDelegate;
-    // 所有调用都切到主线程使用，保证内部多线程安全问题
-    private        Handler                 mMainHandler;
-    // 外部可指定的回调线程
-    private        Handler                 mDelegateHandler;
-    private        int                     mSdkAppId;
-    private        String                  mUserId;
-    private        String                  mUserSig;
+    private static final int DEFAULT_MUSIC_VOLUME = 60;
+    private static final int DEFAULT_VOICE_VOLUME = 80;
+
+    private static TRTCKaraokeRoomImpl    sInstance;
+    private final Context                 mContext;
+    private       TRTCKaraokeRoomObserver mDelegate;
+
+    private Handler mMainHandler;    // 所有调用都切到主线程使用，保证内部多线程安全问题
+    private Handler mDelegateHandler;     // 外部可指定的回调线程
+    private int     mSdkAppId;
+    private String  mUserId;
+    private String  mUserSig;
+    private int     mTakeSeatIndex;
+    private int     mRoomId;
+    private String  mBgmUserId;        //双实例bgm流的userId
+    private String  mMixRobotUserId;   //混流机器人userId
+    private int     mCurrentPlayingOriginalMusicID = 0;
+    private boolean mIsOriginalMusic               = false;
+    private int     mMusicVolume                   = DEFAULT_MUSIC_VOLUME;
+    private float   mMusicPitch                    = 0.0f;
 
     // 已抛出的观众列表
     private Set<String>                            mAudienceList;
     private List<TRTCKaraokeRoomDef.SeatInfo>      mSeatInfoList;
-    private TRTCKaraokeRoomCallback.ActionCallback mEnterSeatCallback;
-    private TRTCKaraokeRoomCallback.ActionCallback mLeaveSeatCallback;
-    private TRTCKaraokeRoomCallback.ActionCallback mPickSeatCallback;
-    private TRTCKaraokeRoomCallback.ActionCallback mKickSeatCallback;
-    private int                                    mTakeSeatIndex;
+    private TUICallback mEnterSeatCallback;
+    private TUICallback mLeaveSeatCallback;
+    private TUICallback mPickSeatCallback;
+    private TUICallback mKickSeatCallback;
 
-    private boolean            mIsAuthor;         //是否是主播
-    private int                mRoomId;
-    private TRTCKtvRoomService mTRTCVoiceService; //人声实例
-    private TRTCKtvRoomService mTRTCBgmService;   //bgm实例
-    private String             mBgmUserId;        //双实例bgm流的userId
-    private String             mMixRobotUserId;   //混流机器人userId
-    private ChorusExtension    mChorusExtension;
-    private String             mBgmUserSig;
+    private KaraokeTRTCService     mTRTCVoiceService; //人声实例
+    private KaraokeTRTCService     mTRTCMusicService; //音乐实例
+    private KaraokeIMService       mKaraokeIMService;
+    private KaraokeMusicService    mKaraokeMusicService;
+    private KaraokeChorusExtension mChorusExtension;
+
+    private static final TXAudioEffectManager.TXVoiceChangerType[] VOICE_CHANGER_ARR = {
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_0,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_1,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_2,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_3,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_4,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_5,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_6,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_7,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_8,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_9,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_10,
+            TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_11};
+
+    private static final TXAudioEffectManager.TXVoiceReverbType[] VOICE_REVERB_ARR = {
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_0,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_1,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_2,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_3,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_4,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_5,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_6,
+            TXAudioEffectManager.TXVoiceReverbType.TXLiveVoiceReverbType_7};
+
+
+    private TXLiveBaseListener mTXLiveBaseListener = new TXLiveBaseListener() {
+        @Override
+        public void onUpdateNetworkTime(int code, String message) {
+            runOnDelegateThread(new Runnable() {
+                @Override
+                public void run() {
+                    TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onUpdateNetworkTime code: " + code
+                            + " message: " + message);
+                    if (mDelegate != null) {
+                        mDelegate.onUpdateNetworkTime(code, message);
+                    }
+                }
+            });
+
+        }
+    };
 
     public static synchronized TRTCKaraokeRoom sharedInstance(Context context) {
         if (sInstance == null) {
             sInstance = new TRTCKaraokeRoomImpl(context.getApplicationContext());
+            TRTCLogger.i(TAG, "TRTCKaraokeRoom api: sharedInstance@" + sInstance.hashCode());
         }
         return sInstance;
     }
 
     public static synchronized void destroySharedInstance() {
         if (sInstance != null) {
-            sInstance.destroy();
+            TRTCLogger.i(TAG, "TRTCKaraokeRoom api: destroySharedInstance@" + sInstance.hashCode());
             sInstance = null;
         }
-    }
-
-    private void destroy() {
-        TXRoomService.getInstance().destroy();
     }
 
     private TRTCKaraokeRoomImpl(Context context) {
@@ -98,13 +141,14 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         mSeatInfoList = new ArrayList<>();
         mAudienceList = new HashSet<>();
         mTakeSeatIndex = -1;
-        TXRoomService.getInstance().init(context);
-        TXRoomService.getInstance().setDelegate(this);
+        mKaraokeIMService = new KaraokeIMService(context);
+        mKaraokeIMService.setDelegate(this);
+        TXLiveBase.setListener(mTXLiveBaseListener);
     }
 
-    private TRTCKtvRoomService createBgmService() {
-        TRTCCloud voiceCloud = mTRTCVoiceService.getMainCloud();
-        TRTCKtvRoomService service = new TRTCKtvRoomService(voiceCloud, TRTCKtvRoomService.AUDIO_BGM_MUSIC);
+    private KaraokeTRTCService createMusicService() {
+        TRTCCloud voiceCloud = mTRTCVoiceService.getTRTCCloud();
+        KaraokeTRTCService service = new KaraokeTRTCService(voiceCloud, KaraokeTRTCService.AUDIO_MUSIC);
         return service;
     }
 
@@ -113,15 +157,20 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         mAudienceList.clear();
         if (mChorusExtension != null && mChorusExtension.isChorusOn()) {
             mChorusExtension.stopChorus();
-            mChorusExtension.setListener(null);
+            mChorusExtension.setObserver(null);
         }
         if (mTRTCVoiceService != null) {
             mTRTCVoiceService.setDelegate(null);
         }
-        mTRTCBgmService = null;
-        mTRTCVoiceService = null;
-        mChorusExtension = null;
-        mIsAuthor = false;
+        resetAudioEffect();
+        mTakeSeatIndex = -1;
+    }
+
+    private void resetAudioEffect() {
+        mCurrentPlayingOriginalMusicID = 0;
+        mIsOriginalMusic = false;
+        mMusicVolume = DEFAULT_MUSIC_VOLUME;
+        mMusicPitch = 0.0f;
     }
 
     private void runOnMainThread(Runnable runnable) {
@@ -151,46 +200,44 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void setDelegate(TRTCKaraokeRoomDelegate delegate) {
+    public void setDelegate(TRTCKaraokeRoomObserver delegate) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setDelegate @" + delegate);
         mDelegate = delegate;
     }
 
     @Override
     public void setDelegateHandler(Handler handler) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setDelegateHandler @" + handler);
         mDelegateHandler = handler;
     }
 
     @Override
     public void login(final int sdkAppId, final String userId, final String userSig,
-                      final TRTCKaraokeRoomCallback.ActionCallback callback) {
+                      final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 TRTCLogger.i(TAG,
-                        "start login, sdkAppId:" + sdkAppId + " userId:" + userId + " sign is empty:"
-                                + TextUtils.isEmpty(userSig));
+                        "TRTCKaraokeRoom api: login, sdkAppId:" + sdkAppId + " userId:" + userId
+                                + " sign is empty:" + TextUtils.isEmpty(userSig));
                 if (sdkAppId == 0 || TextUtils.isEmpty(userId) || TextUtils.isEmpty(userSig)) {
                     TRTCLogger.e(TAG, "start login fail. params invalid.");
-                    if (callback != null) {
-                        callback.onCallback(-1, "登录失败，参数有误");
-                    }
+                    TUICallback.onError(callback, -1, "start login fail. params invalid.");
                     return;
                 }
                 mSdkAppId = sdkAppId;
                 mUserId = userId;
                 mUserSig = userSig;
                 TRTCLogger.i(TAG, "start login room service");
-                TXRoomService.getInstance().login(sdkAppId, userId, userSig, new TXCallback() {
+                mKaraokeIMService.login(sdkAppId, userId, userSig, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -198,27 +245,25 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void logout(final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void logout(final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "start logout");
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: logout");
                 mSdkAppId = 0;
                 mUserId = "";
                 mUserSig = "";
                 TRTCLogger.i(TAG, "start logout room service");
-                TXRoomService.getInstance().logout(new TXCallback() {
+                mKaraokeIMService.logout(new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        TRTCLogger.i(TAG, "logout room service finish, code:" + code + " msg:" + msg);
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        TRTCLogger.e(TAG, "logout room service finish, code:" + code + " msg:" + msg);
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -227,23 +272,22 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void setSelfProfile(final String userName, final String avatarURL,
-                               final TRTCKaraokeRoomCallback.ActionCallback callback) {
+                               final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "set profile, user name:" + userName + " avatar url:" + avatarURL);
-                TXRoomService.getInstance().setSelfProfile(userName, avatarURL, new TXCallback() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setSelfProfile, user name:" + userName
+                        + " avatar url:" + avatarURL);
+                mKaraokeIMService.setSelfProfile(userName, avatarURL, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
                         TRTCLogger.i(TAG, "set profile finish, code:" + code + " msg:" + msg);
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -252,88 +296,38 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void createRoom(final int roomId, final TRTCKaraokeRoomDef.RoomParam roomParam,
-                           final TRTCKaraokeRoomCallback.ActionCallback callback) {
+                           final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "create room, room id:" + roomId + " info:" + roomParam);
-                if (roomId == 0) {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: createRoom, roomId:" + roomId + " info:" + roomParam);
+                if (roomId == 0 || roomParam == null || TextUtils.isEmpty(roomParam.roomName)
+                        || TextUtils.isEmpty(roomParam.coverUrl) || roomParam.seatCount < 0) {
                     TRTCLogger.e(TAG, "create room fail. params invalid");
                     return;
                 }
                 mRoomId = roomId;
-                mIsAuthor = true;
-                final String strRoomId = String.valueOf(roomId);
-                clearList();
-                mTRTCVoiceService = new TRTCKtvRoomService(mContext, TRTCKtvRoomService.AUDIO_VOICE);
-                mTRTCVoiceService.setDelegate(TRTCKaraokeRoomImpl.this);
-                mTRTCBgmService = createBgmService();
-                mChorusExtension = new ChorusExtension(mContext, mTRTCVoiceService, mTRTCBgmService);
-                mChorusExtension.setListener(TRTCKaraokeRoomImpl.this);
-                final String roomName = (roomParam == null ? "" : roomParam.roomName);
-                final String roomCover = (roomParam == null ? "" : roomParam.coverUrl);
-                final boolean isNeedRequest = (roomParam != null && roomParam.needRequest);
-                final int seatCount = (roomParam == null ? 8 : roomParam.seatCount);
-                final List<TXSeatInfo> txSeatInfoList = new ArrayList<>();
-                if (roomParam != null && roomParam.seatInfoList != null) {
-                    for (TRTCKaraokeRoomDef.SeatInfo seatInfo : roomParam.seatInfoList) {
-                        TXSeatInfo item = new TXSeatInfo();
-                        item.status = seatInfo.status;
-                        item.mute = seatInfo.mute;
-                        item.user = seatInfo.userId;
-                        txSeatInfoList.add(item);
-                        mSeatInfoList.add(seatInfo);
-                    }
+
+                if (roomParam.seatInfoList != null) {
+                    mSeatInfoList.addAll(roomParam.seatInfoList);
                 } else {
-                    for (int i = 0; i < seatCount; i++) {
-                        txSeatInfoList.add(new TXSeatInfo());
+                    for (int i = 0; i < roomParam.seatCount; i++) {
                         mSeatInfoList.add(new TRTCKaraokeRoomDef.SeatInfo());
                     }
                 }
-                mBgmUserId = TUILogin.getLoginUser() + AUDIO_BGM;
-                mMixRobotUserId = roomId + MIX_ROBOT;
-                // 创建房间
-                TXRoomService.getInstance().createRoom(strRoomId, roomName, roomCover, isNeedRequest, txSeatInfoList,
-                        new TXCallback() {
-                            @Override
-                            public void onCallback(final int code, final String msg) {
-                                TRTCLogger.i(TAG, "create room in service, code:" + code + " msg:" + msg);
-                                if (code == 0) {
-                                    TRTCKaraokeRoomManager.getInstance().genUserSig(mBgmUserId,
-                                            new TRTCKaraokeRoomManager.GenUserSigCallback() {
-                                                @Override
-                                                public void onSuccess(String userSig) {
-                                                    TRTCLogger.e(TAG, "onSuccess.");
-                                                    mBgmUserSig = userSig;
-                                                    enterTRTCRoomInner(roomId, mUserId, mUserSig,
-                                                            TRTCCloudDef.TRTCRoleAnchor, callback);
-                                                }
 
-                                                @Override
-                                                public void onError(int errorCode, String message) {
-                                                    TRTCLogger.e(TAG,
-                                                            "onError code:" + errorCode + " message:" + message);
-                                                }
-                                            });
-                                    return;
-                                } else {
-                                    runOnDelegateThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if (mDelegate != null) {
-                                                mDelegate.onError(code, msg);
-                                            }
-                                        }
-                                    });
-                                }
-                                runOnDelegateThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (callback != null) {
-                                            callback.onCallback(code, msg);
-                                        }
-                                    }
-                                });
+                mKaraokeIMService.createRoom(String.valueOf(roomId), roomParam.roomName,
+                        roomParam.coverUrl, roomParam.needRequest, mSeatInfoList, new TUICallback() {
+                            @Override
+                            public void onSuccess() {
+                                notifyCallbackEvent(callback, 0, "");
+                            }
+
+                            @Override
+                            public void onError(int code, String msg) {
+                                TRTCLogger.e(TAG, "create room in service, code:" + code + " msg:" + msg);
+                                notifyCallbackEvent(callback, code, msg);
+                                notifyErrorEvent(code, msg);
                             }
                         });
             }
@@ -341,107 +335,45 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void destroyRoom(final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void enterRoom(final int roomId, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "start destroy room.");
-                // TRTC 房间退房结果不关心
-                TRTCLogger.i(TAG, "start exit trtc room.");
-                mTRTCVoiceService.stopTRTCPublish();
-                mTRTCBgmService.destroySubCloud();
-                mTRTCVoiceService.exitRoom(new TXCallback() {
-                    @Override
-                    public void onCallback(final int code, final String msg) {
-                        TRTCLogger.i(TAG, "exit trtc room finish, code:" + code + " msg:" + msg);
-                        if (code != 0) {
-                            runOnDelegateThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (mDelegate != null) {
-                                        mDelegate.onError(code, msg);
-                                    }
-                                }
-                            });
-                        }
-                    }
-                });
-
-                TRTCLogger.i(TAG, "start destroy room service.");
-                TXRoomService.getInstance().destroyRoom(new TXCallback() {
-                    @Override
-                    public void onCallback(final int code, final String msg) {
-                        TRTCLogger.i(TAG, "destroy room finish, code:" + code + " msg:" + msg);
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
-                    }
-                });
-
-                // 恢复设定
-                clearList();
-            }
-        });
-    }
-
-    @Override
-    public void enterRoom(final int roomId, final TRTCKaraokeRoomCallback.ActionCallback callback) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                // 恢复设定
-                clearList();
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: enterRoom roomId:" + roomId);
                 mRoomId = roomId;
-                mTRTCVoiceService = new TRTCKtvRoomService(mContext, TRTCKtvRoomService.AUDIO_VOICE);
-                mTRTCVoiceService.setDelegate(TRTCKaraokeRoomImpl.this);
-                mChorusExtension = new ChorusExtension(mContext, mTRTCVoiceService);
-                mChorusExtension.setListener(TRTCKaraokeRoomImpl.this);
-                TRTCLogger.i(TAG, "start enter room, room id:" + roomId);
                 mMixRobotUserId = roomId + MIX_ROBOT;
-                enterTRTCRoomInner(roomId, mUserId, mUserSig, TRTCCloudDef.TRTCRoleAudience,
-                        new TRTCKaraokeRoomCallback.ActionCallback() {
-                            @Override
-                            public void onCallback(final int code, final String msg) {
-                                TRTCLogger.i(TAG,
-                                        "trtc enter room finish, room id:" + roomId + " code:" + code
-                                                + " msg:" + msg);
-                                runOnDelegateThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        if (callback != null) {
-                                            callback.onCallback(code, msg);
-                                        }
-                                    }
-                                });
-                            }
-                        });
-                String strRoomId = String.valueOf(roomId);
-                TXRoomService.getInstance().enterRoom(strRoomId, new TXCallback() {
+                mTRTCVoiceService = new KaraokeTRTCService(mContext, KaraokeTRTCService.AUDIO_VOICE);
+                mTRTCVoiceService.setDelegate(TRTCKaraokeRoomImpl.this);
+                mTRTCVoiceService.setAudioCaptureVolume(DEFAULT_VOICE_VOLUME);
+
+                if (mKaraokeIMService.isOwner()) {
+                    mTRTCMusicService = createMusicService();
+                    mChorusExtension = new KaraokeChorusExtension(mContext, mTRTCVoiceService, mTRTCMusicService);
+                } else {
+                    mChorusExtension = new KaraokeChorusExtension(mContext, mTRTCVoiceService);
+                }
+                mChorusExtension.setObserver(mKaraokeChorusObserver);
+
+                enterIMRoomInner(String.valueOf(roomId), new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        TRTCLogger.i(TAG,
-                                "enter room service finish, room id:" + roomId
-                                        + " code:" + code + " msg:" + msg);
-                        runOnMainThread(new Runnable() {
+                    public void onError(int errorCode, String errorMessage) {
+                        notifyCallbackEvent(callback, errorCode, errorMessage);
+                    }
+
+                    @Override
+                    public void onSuccess() {
+                        int roleType = mKaraokeIMService.isOwner()
+                                ? TRTCCloudDef.TRTCRoleAnchor
+                                : TRTCCloudDef.TRTCRoleAudience;
+                        enterTRTCRoomInner(roomId, mUserId, mUserSig, roleType, new TUICallback() {
                             @Override
-                            public void run() {
-                                if (code != 0) {
-                                    runOnDelegateThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if (mDelegate != null) {
-                                                mDelegate.onError(code, msg);
-                                            }
-                                        }
-                                    });
-                                } else {
-                                    mBgmUserId = TXRoomService.getInstance().getOwnerUserId() + AUDIO_BGM;
-                                }
+                            public void onSuccess() {
+                                notifyCallbackEvent(callback, 0, "");
+                            }
+
+                            @Override
+                            public void onError(int errorCode, String errorMessage) {
+                                notifyCallbackEvent(callback, errorCode, errorMessage);
                             }
                         });
                     }
@@ -450,17 +382,160 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         });
     }
 
+    private void enterIMRoomInner(String roomId, TUICallback callback) {
+        mKaraokeIMService.enterRoom(roomId, new TUICallback() {
+            @Override
+            public void onSuccess() {
+                mBgmUserId = mKaraokeIMService.getOwnerUserId() + AUDIO_BGM;
+                notifyCallbackEvent(callback, 0, "");
+            }
+
+            @Override
+            public void onError(int code, String msg) {
+                TRTCLogger.e(TAG, "enter room service finish, room id:" + roomId
+                        + " code:" + code + " msg:" + msg);
+                notifyErrorEvent(code, msg);
+                notifyCallbackEvent(callback, code, msg);
+            }
+        });
+    }
+
+    private void genBgmUserSigInner(TUIValueCallback<String> callback) {
+        TRTCKaraokeRoomManager.getInstance().genUserSig(mBgmUserId,
+                new TRTCKaraokeRoomManager.GenUserSigCallback() {
+                    @Override
+                    public void onSuccess(String userSig) {
+                        TRTCLogger.i(TAG, "successfully generated bgm " + "instance usersig.");
+                        TUIValueCallback.onSuccess(callback, userSig);
+                    }
+
+                    @Override
+                    public void onError(int errorCode, String message) {
+                        TRTCLogger.e(TAG, "request generated bgm instance usersig, "
+                                + "error code:" + errorCode + "message:" + message);
+                        TUIValueCallback.onError(callback, errorCode, message);
+                    }
+                });
+    }
+
+    private void enterTRTCRoomInner(final int roomId, final String userId, final String userSig,
+                                    final int role, final TUICallback callback) {
+        mTRTCVoiceService.enterRoom(mSdkAppId, roomId, userId, userSig, role, new TUICallback() {
+            @Override
+            public void onSuccess() {
+                mTRTCVoiceService.enableAudioEvaluation(true);
+                mTRTCVoiceService.muteRemoteAudio(mBgmUserId, true);
+                mTRTCVoiceService.muteRemoteVideo(mBgmUserId, true);
+
+                if (mKaraokeIMService.isOwner()) {
+                    genBgmUserSigInner(new TUIValueCallback<String>() {
+                        @Override
+                        public void onError(int code, String msg) {
+                            TUICallback.onError(callback, code, msg);
+                        }
+
+                        @Override
+                        public void onSuccess(String bgmUserSig) {
+                            mTRTCMusicService.setDefaultStreamRecvMode(false, false);
+                            mTRTCMusicService.enterRoom(mSdkAppId, roomId, mBgmUserId, bgmUserSig, role, null);
+                            mTRTCVoiceService.startPublishMediaStream(roomId, mMixRobotUserId, mBgmUserId);
+                            TUICallback.onSuccess(callback);
+                        }
+                    });
+                } else {
+                    notifyCallbackEvent(callback, 0, "");
+                }
+            }
+
+            @Override
+            public void onError(int code, String msg) {
+                TRTCLogger.e(TAG, "enter trtc room finish, code:" + code + " msg:" + msg);
+                notifyCallbackEvent(callback, code, msg);
+            }
+        });
+    }
+
     @Override
-    public void exitRoom(final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void destroyRoom(final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "start exit room.");
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: destroyRoom.");
+                mKaraokeIMService.destroyRoom(new TUICallback() {
+                    @Override
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        TRTCLogger.e(TAG, "destroy room finish, code:" + code + " msg:" + msg);
+                        notifyCallbackEvent(callback, code, msg);
+                    }
+                });
+
+                // 恢复设定
+                clearList();
+            }
+        });
+    }
+
+    private void notifyCallbackEvent(TUICallback callback, int code, String message) {
+        runOnDelegateThread(new Runnable() {
+            @Override
+            public void run() {
+                if (code == 0) {
+                    TUICallback.onSuccess(callback);
+                } else {
+                    TUICallback.onError(callback, code, message);
+                }
+            }
+        });
+    }
+
+    private <T> void notifyValueCallbackEvent(TUIValueCallback<T> callback, int code, String message, T value) {
+        runOnDelegateThread(new Runnable() {
+            @Override
+            public void run() {
+                if (code == 0) {
+                    TUIValueCallback.onSuccess(callback, value);
+                } else {
+                    TUIValueCallback.onError(callback, code, message);
+                }
+            }
+        });
+    }
+
+    private void notifyErrorEvent(int code, String message) {
+        if (code == 0) {
+            return;
+        }
+        runOnDelegateThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mDelegate != null) {
+                    mDelegate.onError(code, message);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void exitRoom(final TUICallback callback) {
+        runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: exitRoom.");
                 // 退房的时候需要判断主播是否在座位，如果是麦上主播，需要先清空座位列表
                 if (isOnSeat(mUserId)) {
-                    leaveSeat(new TRTCKaraokeRoomCallback.ActionCallback() {
+                    leaveSeat(new TUICallback() {
                         @Override
-                        public void onCallback(int code, String msg) {
+                        public void onSuccess() {
+                            exitRoomInternal(callback);
+                        }
+
+                        @Override
+                        public void onError(int errorCode, String errorMessage) {
                             exitRoomInternal(callback);
                         }
                     });
@@ -471,43 +546,54 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         });
     }
 
-    private void exitRoomInternal(final TRTCKaraokeRoomCallback.ActionCallback callback) {
-        if (mTRTCBgmService != null) {
-            mTRTCBgmService.destroySubCloud();
-        }
-        if (mTRTCVoiceService != null) {
-            mTRTCVoiceService.exitRoom(new TXCallback() {
+    private void exitRoomInternal(final TUICallback callback) {
+        if (mTRTCMusicService != null) {
+            mTRTCMusicService.exitRoom(new TUICallback() {
                 @Override
-                public void onCallback(final int code, final String msg) {
-                    if (code != 0) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mDelegate != null) {
-                                    mDelegate.onError(code, msg);
-                                }
-                            }
-                        });
-                    }
+                public void onSuccess() {
+
+                }
+
+                @Override
+                public void onError(int code, String msg) {
+                    TRTCLogger.e(TAG, "music instance exit room finish, code:" + code + " msg:" + msg);
+                    notifyErrorEvent(code, msg);
+                }
+            });
+            mTRTCVoiceService.stopPublishMediaStream();
+        }
+
+        if (mTRTCVoiceService != null) {
+            mTRTCVoiceService.enableAudioEvaluation(false);
+            mTRTCVoiceService.exitRoom(new TUICallback() {
+                @Override
+                public void onSuccess() {
+
+                }
+
+                @Override
+                public void onError(final int code, final String msg) {
+                    TRTCLogger.e(TAG, "voice instance exit room finish, code:" + code + " msg:" + msg);
+                    notifyErrorEvent(code, msg);
                 }
             });
         }
 
-        TRTCLogger.i(TAG, "start exit room service.");
-        TXRoomService.getInstance().exitRoom(new TXCallback() {
-            @Override
-            public void onCallback(final int code, final String msg) {
-                TRTCLogger.i(TAG, "exit room finish, code:" + code + " msg:" + msg);
-                runOnDelegateThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (callback != null) {
-                            callback.onCallback(code, msg);
-                        }
-                    }
-                });
-            }
-        });
+        if (!mKaraokeIMService.isOwner()) {
+            TRTCLogger.i(TAG, "start exit room service.");
+            mKaraokeIMService.exitRoom(new TUICallback() {
+                @Override
+                public void onSuccess() {
+                    notifyCallbackEvent(callback, 0, "");
+                }
+
+                @Override
+                public void onError(final int code, final String msg) {
+                    TRTCLogger.e(TAG, "IM exit room finish, code:" + code + " msg:" + msg);
+                    notifyCallbackEvent(callback, code, msg);
+                }
+            });
+        }
         clearList();
     }
 
@@ -517,7 +603,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
             return false;
         }
         for (TRTCKaraokeRoomDef.SeatInfo seatInfo : mSeatInfoList) {
-            if (userId != null && userId.equals(seatInfo.userId)) {
+            if (userId != null && userId.equals(seatInfo.user)) {
                 return true;
             }
         }
@@ -525,77 +611,50 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void getUserInfoList(final List<String> userIdList,
-                                final TRTCKaraokeRoomCallback.UserListCallback callback) {
+    public void getUserInfoList(final List<String> userIdList, final TUIValueCallback<List<UserInfo>> callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                if (userIdList == null) {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: getUserInfoList userIdList:" + userIdList);
+                if (userIdList == null || userIdList.isEmpty()) {
                     getAudienceList(callback);
                     return;
                 }
-                TXRoomService.getInstance().getUserInfo(userIdList, new TXUserListCallback() {
+
+                mKaraokeIMService.getUserInfo(userIdList, new TUIValueCallback<List<UserInfo>>() {
                     @Override
-                    public void onCallback(final int code, final String msg, final List<TXUserInfo> list) {
-                        TRTCLogger.i(TAG,
-                                "get audience list finish, code:" + code + " msg:" + msg + " list:"
-                                        + (list != null ? list.size() : 0));
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    List<TRTCKaraokeRoomDef.UserInfo> userList = new ArrayList<>();
-                                    if (list != null) {
-                                        for (TXUserInfo info : list) {
-                                            TRTCKaraokeRoomDef.UserInfo trtcUserInfo =
-                                                    new TRTCKaraokeRoomDef.UserInfo();
-                                            trtcUserInfo.userId = info.userId;
-                                            trtcUserInfo.userAvatar = info.avatarURL;
-                                            trtcUserInfo.userName = info.userName;
-                                            userList.add(trtcUserInfo);
-                                            TRTCLogger.i(TAG, "info:" + info);
-                                        }
-                                    }
-                                    callback.onCallback(code, msg, userList);
-                                }
-                            }
-                        });
+                    public void onSuccess(List<UserInfo> userList) {
+                        TRTCLogger.i(TAG, "get audience list success, list:"
+                                + (userList != null ? userList.size() : 0));
+                        notifyValueCallbackEvent(callback, 0, "", userList);
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        TRTCLogger.e(TAG, "get audience list failed, code:" + code + " msg:" + msg);
+                        notifyValueCallbackEvent(callback, code, msg, Collections.EMPTY_LIST);
                     }
                 });
             }
         });
     }
 
-    private void getAudienceList(final TRTCKaraokeRoomCallback.UserListCallback callback) {
+    private void getAudienceList(final TUIValueCallback<List<UserInfo>> callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TXRoomService.getInstance().getAudienceList(new TXUserListCallback() {
+                mKaraokeIMService.getAudienceList(new TUIValueCallback<List<UserInfo>>() {
                     @Override
-                    public void onCallback(final int code, final String msg, final List<TXUserInfo> list) {
-                        TRTCLogger.i(TAG,
-                                "get audience list finish, code:" + code + " msg:" + msg + " list:"
-                                        + (list != null ? list.size() : 0));
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    List<TRTCKaraokeRoomDef.UserInfo> userList = new ArrayList<>();
-                                    if (list != null) {
-                                        for (TXUserInfo info : list) {
-                                            TRTCKaraokeRoomDef.UserInfo trtcUserInfo =
-                                                    new TRTCKaraokeRoomDef.UserInfo();
-                                            trtcUserInfo.userId = info.userId;
-                                            trtcUserInfo.userAvatar = info.avatarURL;
-                                            trtcUserInfo.userName = info.userName;
-                                            userList.add(trtcUserInfo);
-                                            TRTCLogger.i(TAG, "info:" + info);
-                                        }
-                                    }
-                                    callback.onCallback(code, msg, userList);
-                                }
-                            }
-                        });
+                    public void onSuccess(List<UserInfo> userList) {
+                        TRTCLogger.i(TAG, "get audience list success, code: userList:"
+                                        + (userList != null ? userList.size() : 0));
+                        notifyValueCallbackEvent(callback, 0, "", userList);
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        TRTCLogger.i(TAG, "get audience list failed, code:" + code + " msg:" + msg);
+                        notifyValueCallbackEvent(callback, code, msg, Collections.EMPTY_LIST);
                     }
                 });
             }
@@ -603,36 +662,29 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void enterSeat(final int seatIndex, final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void enterSeat(final int seatIndex, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "enterSeat " + seatIndex);
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: enterSeat index:" + seatIndex);
                 if (isOnSeat(mUserId)) {
-                    runOnDelegateThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (callback != null) {
-                                callback.onCallback(-1, "you are already in the seat");
-                            }
-                        }
-                    });
+                    notifyCallbackEvent(callback, 0, "you are already in the seat");
                     return;
                 }
                 mEnterSeatCallback = callback;
-                TXRoomService.getInstance().takeSeat(seatIndex, new TXCallback() {
+                mKaraokeIMService.takeSeat(seatIndex, new TUICallback() {
                     @Override
-                    public void onCallback(int code, String msg) {
-                        if (code != 0) {
-                            //出错了，恢复callback
-                            mEnterSeatCallback = null;
-                            mTakeSeatIndex = -1;
-                            if (callback != null) {
-                                callback.onCallback(code, msg);
-                            }
-                        } else {
-                            TRTCLogger.i(TAG, "take seat callback success, and wait attrs changed.");
-                        }
+                    public void onSuccess() {
+                        TRTCLogger.i(TAG, "take seat callback success, and wait attrs changed.");
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        //出错了，恢复callback
+                        mEnterSeatCallback = null;
+                        mTakeSeatIndex = -1;
+                        TUICallback.onError(callback, code, msg);
                     }
                 });
             }
@@ -640,39 +692,28 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void leaveSeat(final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void leaveSeat(final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "leaveSeat " + mTakeSeatIndex);
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: leaveSeat index:" + mTakeSeatIndex);
                 if (mTakeSeatIndex == -1) {
-                    //已经不再座位上了
-                    runOnDelegateThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (callback != null) {
-                                callback.onCallback(-1, "you are not in the seat");
-                            }
-                        }
-                    });
+                    //已经不在座位上了
+                    notifyCallbackEvent(callback, -1, "you are not in the seat");
                     return;
                 }
                 mLeaveSeatCallback = callback;
-                TXRoomService.getInstance().leaveSeat(mTakeSeatIndex, new TXCallback() {
+                mKaraokeIMService.leaveSeat(mTakeSeatIndex, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        if (code != 0) {
-                            //出错了，恢复callback
-                            mLeaveSeatCallback = null;
-                            runOnDelegateThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (callback != null) {
-                                        callback.onCallback(code, msg);
-                                    }
-                                }
-                            });
-                        }
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        //出错了，恢复callback
+                        mLeaveSeatCallback = null;
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -680,40 +721,28 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void pickSeat(final int seatIndex, final String userId,
-                         final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void pickSeat(final int seatIndex, final String userId, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 //判断该用户是否已经在麦上
-                TRTCLogger.i(TAG, "pickSeat " + seatIndex);
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: pickSeat index:" + seatIndex);
                 if (isOnSeat(userId)) {
-                    runOnDelegateThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (callback != null) {
-                                callback.onCallback(-1, "该用户已经是麦上主播了");
-                            }
-                        }
-                    });
+                    notifyCallbackEvent(callback, -1, "the user is already on seat");
                     return;
                 }
                 mPickSeatCallback = callback;
-                TXRoomService.getInstance().pickSeat(seatIndex, userId, new TXCallback() {
+                mKaraokeIMService.pickSeat(seatIndex, userId, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        if (code != 0) {
-                            //出错了，恢复callback
-                            mPickSeatCallback = null;
-                            runOnDelegateThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (callback != null) {
-                                        callback.onCallback(code, msg);
-                                    }
-                                }
-                            });
-                        }
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        //出错了，恢复callback
+                        mPickSeatCallback = null;
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -721,27 +750,23 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void kickSeat(final int index, final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void kickSeat(final int index, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "kickSeat " + index);
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: kickSeat index:" + index);
                 mKickSeatCallback = callback;
-                TXRoomService.getInstance().kickSeat(index, new TXCallback() {
+                mKaraokeIMService.kickSeat(index, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        if (code != 0) {
-                            //出错了，恢复callback
-                            mKickSeatCallback = null;
-                            runOnDelegateThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (callback != null) {
-                                        callback.onCallback(code, msg);
-                                    }
-                                }
-                            });
-                        }
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(int code, String msg) {
+                        //出错了，恢复callback
+                        mKickSeatCallback = null;
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -749,23 +774,20 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void muteSeat(final int seatIndex, final boolean isMute,
-                         final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void muteSeat(final int seatIndex, final boolean isMute, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "muteSeat " + seatIndex + " " + isMute);
-                TXRoomService.getInstance().muteSeat(seatIndex, isMute, new TXCallback() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: muteSeat index: " + seatIndex + " mute: " + isMute);
+                mKaraokeIMService.muteSeat(seatIndex, isMute, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -773,23 +795,20 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void closeSeat(final int seatIndex, final boolean isClose,
-                          final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void closeSeat(final int seatIndex, final boolean isClose, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "closeSeat " + seatIndex + " " + isClose);
-                TXRoomService.getInstance().closeSeat(seatIndex, isClose, new TXCallback() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: closeSeat index: " + seatIndex + " close: " + isClose);
+                mKaraokeIMService.closeSeat(seatIndex, isClose, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -801,6 +820,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: startMicrophone");
                 mTRTCVoiceService.startMicrophone();
             }
         });
@@ -811,27 +831,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: stopMicrophone");
                 mTRTCVoiceService.stopMicrophone();
-            }
-        });
-    }
-
-    @Override
-    public void setAudioQuality(final int quality) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                mTRTCVoiceService.setAudioQuality(quality);
-            }
-        });
-    }
-
-    @Override
-    public void setVoiceEarMonitorEnable(final boolean enable) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                mTRTCVoiceService.enableAudioEarMonitoring(enable);
             }
         });
     }
@@ -845,41 +846,11 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
      */
     @Override
     public void muteLocalAudio(final boolean mute) {
-        TRTCLogger.i(TAG, "mute local audio, mute:" + mute);
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: muteLocalAudio mute: " + mute);
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 mTRTCVoiceService.muteLocalAudio(mute);
-            }
-        });
-    }
-
-    @Override
-    public void setSpeaker(final boolean useSpeaker) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                mTRTCVoiceService.setSpeaker(useSpeaker);
-            }
-        });
-    }
-
-    @Override
-    public void setAudioCaptureVolume(final int volume) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                mTRTCVoiceService.setAudioCaptureVolume(volume);
-            }
-        });
-    }
-
-    @Override
-    public void setAudioPlayoutVolume(final int volume) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                mTRTCVoiceService.setAudioPlayoutVolume(volume);
             }
         });
     }
@@ -895,7 +866,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "mute trtc audio, user id:" + userId);
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: muteRemoteAudio userId: " + userId + " mute: " + mute);
                 mTRTCVoiceService.muteRemoteAudio(userId, mute);
             }
         });
@@ -911,7 +882,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "mute all trtc remote audio success, mute:" + mute);
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: muteAllRemoteAudio");
                 mTRTCVoiceService.muteAllRemoteAudio(mute);
             }
         });
@@ -927,9 +898,9 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public TXAudioEffectManager getBgmMusicAudioEffectManager() {
-        if (mTRTCBgmService != null) {
-            return mTRTCBgmService.getAudioEffectManager();
+    public TXAudioEffectManager getMusicAudioEffectManager() {
+        if (mTRTCMusicService != null) {
+            return mTRTCMusicService.getAudioEffectManager();
         }
         if (mTRTCVoiceService != null) {
             return mTRTCVoiceService.getAudioEffectManager();
@@ -939,22 +910,25 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void sendRoomTextMsg(final String message, final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public KaraokeMusicService getKaraokeMusicService() {
+        return mKaraokeMusicService;
+    }
+
+    @Override
+    public void sendRoomTextMsg(final String message, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "sendRoomTextMsg");
-                TXRoomService.getInstance().sendRoomTextMsg(message, new TXCallback() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: sendRoomTextMsg");
+                mKaraokeIMService.sendRoomTextMsg(message, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -962,23 +936,21 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void sendRoomCustomMsg(final String cmd, final String message,
-                                  final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void sendRoomCustomMsg(final String cmd, final String message, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "sendRoomCustomMsg");
-                TXRoomService.getInstance().sendRoomCustomMsg(cmd, message, new TXCallback() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: sendRoomCustomMsg cmd: " + cmd
+                        + " message: " + message);
+                mKaraokeIMService.sendRoomCustomMsg(cmd, message, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -987,17 +959,37 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public String sendInvitation(final String cmd, final String userId, final String content,
-                                 final TRTCKaraokeRoomCallback.ActionCallback callback) {
-        TRTCLogger.i(TAG, "sendInvitation to " + userId + " cmd:" + cmd + " content:" + content);
-        return TXRoomService.getInstance().sendInvitation(cmd, userId, content, new TXCallback() {
+                                 final TUICallback callback) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: sendInvitation to " + userId + " cmd:" + cmd
+                + " content:" + content);
+        return mKaraokeIMService.sendInvitation(cmd, userId, content, new TUICallback() {
             @Override
-            public void onCallback(final int code, final String msg) {
-                runOnDelegateThread(new Runnable() {
+            public void onSuccess() {
+                notifyCallbackEvent(callback, 0, "");
+            }
+
+            @Override
+            public void onError(final int code, final String msg) {
+                notifyCallbackEvent(callback, code, msg);
+            }
+        });
+    }
+
+    @Override
+    public void acceptInvitation(final String id, final TUICallback callback) {
+        runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: acceptInvitation id: " + id);
+                mKaraokeIMService.acceptInvitation(id, new TUICallback() {
                     @Override
-                    public void run() {
-                        if (callback != null) {
-                            callback.onCallback(code, msg);
-                        }
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -1005,22 +997,20 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void acceptInvitation(final String id, final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void rejectInvitation(final String id, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "acceptInvitation " + id);
-                TXRoomService.getInstance().acceptInvitation(id, new TXCallback() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: rejectInvitation id:" + id);
+                mKaraokeIMService.rejectInvitation(id, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
+                    }
+
+                    @Override
+                    public void onError(final int code, final String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
             }
@@ -1028,110 +1018,48 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void rejectInvitation(final String id, final TRTCKaraokeRoomCallback.ActionCallback callback) {
+    public void cancelInvitation(final String id, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                TRTCLogger.i(TAG, "rejectInvitation " + id);
-                TXRoomService.getInstance().rejectInvitation(id, new TXCallback() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  cancelInvitation id: " + id);
+                mKaraokeIMService.cancelInvitation(id, new TUICallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onSuccess() {
+                        notifyCallbackEvent(callback, 0, "");
                     }
-                });
-            }
-        });
-    }
 
-    @Override
-    public void cancelInvitation(final String id, final TRTCKaraokeRoomCallback.ActionCallback callback) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                TRTCLogger.i(TAG, "cancelInvitation " + id);
-                TXRoomService.getInstance().cancelInvitation(id, new TXCallback() {
                     @Override
-                    public void onCallback(final int code, final String msg) {
-                        runOnDelegateThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (callback != null) {
-                                    callback.onCallback(code, msg);
-                                }
-                            }
-                        });
+                    public void onError(final int code, final String msg) {
+                        notifyCallbackEvent(callback, code, msg);
                     }
                 });
-            }
-        });
-    }
-
-    private void enterTRTCRoomInner(final int roomId, final String userId, final String userSig,
-                                    final int role, final TRTCKaraokeRoomCallback.ActionCallback callback) {
-        // 进入 TRTC 房间
-        TRTCLogger.i(TAG, "enter trtc room.");
-        mTRTCVoiceService.enterRoom(mSdkAppId, roomId, userId, userSig, role, new TXCallback() {
-            @Override
-            public void onCallback(final int code, final String msg) {
-                TRTCLogger.i(TAG, "enter trtc room finish, code:" + code + " msg:" + msg);
-                runOnDelegateThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (callback != null) {
-                            callback.onCallback(code, msg);
-                        }
-                    }
-                });
-                if (code == 0) {
-                    if (TXRoomService.getInstance().isOwner()) {
-                        mTRTCBgmService.setDefaultStreamRecvMode(false, false);
-                        mTRTCBgmService.enterRoom(mSdkAppId, roomId, mBgmUserId, mBgmUserSig, role, null);
-                        //房主占座1号麦位
-                        enterSeat(0, null);
-                        mTRTCVoiceService.muteRemoteAudio(mBgmUserId, true);
-                        mTRTCVoiceService.startTRTCPush(roomId, mMixRobotUserId, false);
-                    }
-                }
             }
         });
     }
 
     @Override
     public void onRoomDestroy(final String roomId) {
-        runOnMainThread(new Runnable() {
+        runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
-                exitRoom(null);
-                runOnDelegateThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (mDelegate != null) {
-                            mDelegate.onRoomDestroy(roomId);
-                        }
-                    }
-                });
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onRoomDestroy roomId: " + roomId);
+                if (mDelegate != null) {
+                    mDelegate.onRoomDestroy(roomId);
+                }
             }
         });
     }
 
     @Override
-    public void onRoomRecvRoomTextMsg(final String roomId, final String message, final TXUserInfo userInfo) {
+    public void onRoomRecvRoomTextMsg(final String roomId, final String message,
+                                      final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onRoomRecvRoomTextMsg roomId: " + roomId);
                 if (mDelegate != null) {
-                    TRTCKaraokeRoomDef.UserInfo throwUser = new TRTCKaraokeRoomDef.UserInfo();
-                    throwUser.userId = userInfo.userId;
-                    throwUser.userName = userInfo.userName;
-                    throwUser.userAvatar = userInfo.avatarURL;
-                    mDelegate.onRecvRoomTextMsg(message, throwUser);
+                    mDelegate.onRecvRoomTextMsg(message, userInfo);
                 }
             }
         });
@@ -1139,40 +1067,25 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void onRoomRecvRoomCustomMsg(final String roomId, final String cmd, final String message,
-                                        final TXUserInfo userInfo) {
+                                        final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onRoomRecvRoomCustomMsg roomId: "
+                        + roomId + " cmd:" + cmd + " message: " + message);
                 if (mDelegate != null) {
-                    TRTCKaraokeRoomDef.UserInfo throwUser = new TRTCKaraokeRoomDef.UserInfo();
-                    throwUser.userId = userInfo.userId;
-                    throwUser.userName = userInfo.userName;
-                    throwUser.userAvatar = userInfo.avatarURL;
-                    mDelegate.onRecvRoomCustomMsg(cmd, message, throwUser);
+                    mDelegate.onRecvRoomCustomMsg(cmd, message, userInfo);
                 }
             }
         });
     }
 
     @Override
-    public void onRoomInfoChange(final TXRoomInfo txRoomInfo) {
+    public void onRoomInfoChange(final TRTCKaraokeRoomDef.RoomInfo roomInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
-                TRTCKaraokeRoomDef.RoomInfo roomInfo = new TRTCKaraokeRoomDef.RoomInfo();
-                roomInfo.roomName = txRoomInfo.roomName;
-                int translateRoomId = 0;
-                try {
-                    translateRoomId = Integer.parseInt(txRoomInfo.roomId);
-                } catch (NumberFormatException e) {
-                    TRTCLogger.e(TAG, e.getMessage());
-                }
-                roomInfo.roomId = translateRoomId;
-                roomInfo.ownerId = txRoomInfo.ownerId;
-                roomInfo.ownerName = txRoomInfo.ownerName;
-                roomInfo.coverUrl = txRoomInfo.cover;
-                roomInfo.memberCount = txRoomInfo.memberCount;
-                roomInfo.needRequest = (txRoomInfo.needRequest == 1);
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onRoomInfoChange " + roomInfo.roomName);
                 if (mDelegate != null) {
                     mDelegate.onRoomInfoChange(roomInfo);
                 }
@@ -1181,18 +1094,11 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void onSeatInfoListChange(final List<TXSeatInfo> txSeatInfoList) {
+    public void onSeatInfoListChange(final List<TRTCKaraokeRoomDef.SeatInfo> seatInfoList) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
-                List<TRTCKaraokeRoomDef.SeatInfo> seatInfoList = new ArrayList<>();
-                for (TXSeatInfo seatInfo : txSeatInfoList) {
-                    TRTCKaraokeRoomDef.SeatInfo info = new TRTCKaraokeRoomDef.SeatInfo();
-                    info.userId = seatInfo.user;
-                    info.mute = seatInfo.mute;
-                    info.status = seatInfo.status;
-                    seatInfoList.add(info);
-                }
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onSeatInfoListChange");
                 mSeatInfoList = seatInfoList;
                 if (mDelegate != null) {
                     mDelegate.onSeatListChange(seatInfoList);
@@ -1202,84 +1108,72 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void onRoomAudienceEnter(final TXUserInfo userInfo) {
+    public void onRoomAudienceEnter(final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onRoomAudienceEnter userInfo: " + userInfo.userId);
                 if (mDelegate != null) {
-                    TRTCKaraokeRoomDef.UserInfo throwUser = new TRTCKaraokeRoomDef.UserInfo();
-                    throwUser.userId = userInfo.userId;
-                    throwUser.userName = userInfo.userName;
-                    throwUser.userAvatar = userInfo.avatarURL;
-                    mDelegate.onAudienceEnter(throwUser);
+                    mDelegate.onAudienceEnter(userInfo);
                 }
             }
         });
     }
 
     @Override
-    public void onRoomAudienceLeave(final TXUserInfo userInfo) {
+    public void onRoomAudienceLeave(final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onRoomAudienceLeave userInfo: " + userInfo.userId);
                 if (mDelegate != null) {
-                    TRTCKaraokeRoomDef.UserInfo throwUser = new TRTCKaraokeRoomDef.UserInfo();
-                    throwUser.userId = userInfo.userId;
-                    throwUser.userName = userInfo.userName;
-                    throwUser.userAvatar = userInfo.avatarURL;
-                    mDelegate.onAudienceExit(throwUser);
+                    mDelegate.onAudienceExit(userInfo);
                 }
             }
         });
     }
 
     @Override
-    public void onSeatTake(final int index, final TXUserInfo userInfo) {
+    public void onSeatTake(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                boolean isOwner = TXRoomService.getInstance().isOwner();
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onSeatTake index: " + index + " userInfo: "
+                        + userInfo.userId);
+                boolean isOwner = mKaraokeIMService.isOwner();
                 if (userInfo.userId.equals(mUserId)) {
                     //是自己上线了, 切换角色
                     mTakeSeatIndex = index;
-                    if (!isOwner) {
-                        mTRTCVoiceService.switchToAnchor();
-                        mIsAuthor = true;
-                        mTRTCVoiceService.muteRemoteAudio(mBgmUserId, true);
-                    }
+                    mTRTCVoiceService.switchToAnchor();
                     boolean mute = mSeatInfoList.get(index).mute;
                     mTRTCVoiceService.muteLocalAudio(mute);
-                    if (!mute) {
+                    if (mDelegate != null && !mute) {
                         mDelegate.onUserMicrophoneMute(userInfo.userId, false);
                     }
                 } else {
                     if (isOwner) {
-                        mTRTCVoiceService.startTRTCPush(mRoomId, mMixRobotUserId, true);
+                        mTRTCVoiceService.updatePublishMediaStream();
                     }
                 }
                 runOnDelegateThread(new Runnable() {
                     @Override
                     public void run() {
                         if (mDelegate != null) {
-                            TRTCKaraokeRoomDef.UserInfo info = new TRTCKaraokeRoomDef.UserInfo();
-                            info.userId = userInfo.userId;
-                            info.userAvatar = userInfo.avatarURL;
-                            info.userName = userInfo.userName;
-                            mDelegate.onAnchorEnterSeat(index, info);
+                            mDelegate.onAnchorEnterSeat(index, userInfo);
                         }
                         if (mPickSeatCallback != null) {
-                            mPickSeatCallback.onCallback(0, "pick seat success");
+                            mPickSeatCallback.onSuccess();
                             mPickSeatCallback = null;
                         }
                     }
                 });
                 if (userInfo.userId.equals(mUserId)) {
-                    //在回调出去
+                    //再回调出去
                     runOnDelegateThread(new Runnable() {
                         @Override
                         public void run() {
                             if (mEnterSeatCallback != null) {
-                                mEnterSeatCallback.onCallback(0, "enter seat success");
+                                mEnterSeatCallback.onSuccess();
                                 mEnterSeatCallback = null;
                             }
                         }
@@ -1294,6 +1188,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onSeatTake index: " + index + " isClose: "
+                        + isClose);
                 if (mTakeSeatIndex == index && isClose) {
                     mTRTCVoiceService.switchToAudience();
                     mTakeSeatIndex = -1;
@@ -1311,10 +1207,12 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void onSeatLeave(final int index, final TXUserInfo userInfo) {
+    public void onSeatLeave(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onSeatLeave index: " + index + " userInfo: "
+                        + userInfo.userId);
                 if (userInfo.userId.equals(mUserId)) {
                     //自己下线了~
                     mTakeSeatIndex = -1;
@@ -1324,14 +1222,10 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
                     @Override
                     public void run() {
                         if (mDelegate != null) {
-                            TRTCKaraokeRoomDef.UserInfo info = new TRTCKaraokeRoomDef.UserInfo();
-                            info.userId = userInfo.userId;
-                            info.userAvatar = userInfo.avatarURL;
-                            info.userName = userInfo.userName;
-                            mDelegate.onAnchorLeaveSeat(index, info);
+                            mDelegate.onAnchorLeaveSeat(index, userInfo);
                         }
                         if (mKickSeatCallback != null) {
-                            mKickSeatCallback.onCallback(0, "kick seat success");
+                            mKickSeatCallback.onSuccess();
                             mKickSeatCallback = null;
                         }
                     }
@@ -1341,7 +1235,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
                         @Override
                         public void run() {
                             if (mLeaveSeatCallback != null) {
-                                mLeaveSeatCallback.onCallback(0, "enter seat success");
+                                mLeaveSeatCallback.onSuccess();
                                 mLeaveSeatCallback = null;
                             }
                         }
@@ -1356,6 +1250,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onSeatTake index: " + index + " mute: "
+                        + mute);
                 if (mDelegate != null) {
                     mDelegate.onSeatMute(index, mute);
                 }
@@ -1368,6 +1264,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onReceiveNewInvitation id: " + id + " inviter: "
+                        + inviter + " cmd: " + cmd);
                 if (mDelegate != null) {
                     mDelegate.onReceiveNewInvitation(id, inviter, cmd, content);
                 }
@@ -1380,6 +1278,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onInviteeAccepted id: " + id + " invitee: "
+                        + invitee);
                 if (mDelegate != null) {
                     mDelegate.onInviteeAccepted(id, invitee);
                 }
@@ -1392,6 +1292,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onInviteeRejected id: " + id + " invitee: "
+                        + invitee);
                 if (mDelegate != null) {
                     mDelegate.onInviteeRejected(id, invitee);
                 }
@@ -1404,6 +1306,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
+                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onInvitationCancelled id: " + id + " inviter: "
+                        + inviter);
                 if (mDelegate != null) {
                     mDelegate.onInvitationCancelled(id, inviter);
                 }
@@ -1417,12 +1321,12 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void onTRTCAnchorExit(String userId) {
-        if (TXRoomService.getInstance().isOwner()) {
+        if (mKaraokeIMService.isOwner()) {
             // 主播是房主
             if (mSeatInfoList != null) {
                 int kickSeatIndex = -1;
                 for (int i = 0; i < mSeatInfoList.size(); i++) {
-                    if (userId.equals(mSeatInfoList.get(i).userId)) {
+                    if (userId.equals(mSeatInfoList.get(i).user)) {
                         kickSeatIndex = i;
                         break;
                     }
@@ -1436,17 +1340,15 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void onTRTCVideoAvailable(final String userId, final boolean available) {
-        Log.d(TAG, "onTRTCVideoAvailable: userId = " + userId + " , available = " + available);
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                if (available) {
-                    startRemoteView(userId, null);
-                } else {
-                    stopRemoteView(userId);
-                }
-            }
-        });
+        if (!userId.equals(mMixRobotUserId)) {
+            return;
+        }
+
+        if (available) {
+            mTRTCVoiceService.startRemoteView(userId, null);
+        } else {
+            mTRTCVoiceService.stopRemoteView(userId);
+        }
     }
 
     @Override
@@ -1499,30 +1401,55 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
     }
 
     @Override
-    public void startPlayMusic(int musicID, String originalUrl) {
-        boolean isOwner = TXRoomService.getInstance().isOwner();
+    public void onStatistics(TRTCStatistics statistics) {
+        runOnDelegateThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mDelegate != null) {
+                    mDelegate.onStatistics(statistics);
+                }
+            }
+        });
+    }
+
+
+    @Override
+    public void startPlayMusic(int musicId, @NonNull String originalUrl, @NonNull String accompanyUrl) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: startPlayMusic musicID: " + musicId + "  originalUrl: "
+                + originalUrl + "  accompanyUrl: " + accompanyUrl);
+        if (TextUtils.isEmpty(originalUrl) && TextUtils.isEmpty(accompanyUrl)) {
+            TRTCLogger.e(TAG, "startPlayMusic contains empty param");
+            return;
+        }
+
+        mCurrentPlayingOriginalMusicID = musicId;
+        boolean isOwner = mKaraokeIMService.isOwner();
         if (isOwner) {
             enableBlackStream(true);
         }
         if (mChorusExtension != null) {
-            mChorusExtension.startChorus(musicID, originalUrl, isOwner);
+            mChorusExtension.startChorus(musicId, originalUrl, accompanyUrl, isOwner);
         }
+
+        if (TextUtils.isEmpty(accompanyUrl)) {
+            switchMusicAccompanimentMode(true);
+        }
+        restoreMusicState();
     }
 
-    public void setMusicVolume(int id, int volume) {
-        if (volume < 0) {
-            volume = 0;
+    private void restoreMusicState() {
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            return;
         }
-        if (volume > 100) {
-            volume = 100;
-        }
-        getBgmMusicAudioEffectManager().setMusicPublishVolume(id, volume);
-        getBgmMusicAudioEffectManager().setMusicPlayoutVolume(id, volume);
+        updateMusicVolumeInner();
+        setMusicPitch(mMusicPitch);
     }
 
     @Override
     public void stopPlayMusic() {
-        boolean isOwner = TXRoomService.getInstance().isOwner();
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: stopPlayMusic musicId：" + mCurrentPlayingOriginalMusicID);
+        mCurrentPlayingOriginalMusicID = 0;
+        boolean isOwner = mKaraokeIMService.isOwner();
         if (isOwner) {
             enableBlackStream(false);
         }
@@ -1533,90 +1460,214 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements ITXRoomServi
 
     @Override
     public void pausePlayMusic() {
-        getBgmMusicAudioEffectManager().pausePlayMusic(TYPE_ORIGIN);
-        getBgmMusicAudioEffectManager().pausePlayMusic(TYPE_ACCOMPANY);
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: pausePlayMusic musicId：" + mCurrentPlayingOriginalMusicID);
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            TRTCLogger.i(TAG, "pausePlayMusic mCurrentPlayingOriginalMusicID=0");
+            return;
+        }
+        getMusicAudioEffectManager().pausePlayMusic(mCurrentPlayingOriginalMusicID);
+        getMusicAudioEffectManager().pausePlayMusic(mCurrentPlayingOriginalMusicID + 1);
     }
 
     @Override
     public void resumePlayMusic() {
-        getBgmMusicAudioEffectManager().resumePlayMusic(TYPE_ORIGIN);
-        getBgmMusicAudioEffectManager().resumePlayMusic(TYPE_ACCOMPANY);
-    }
-
-    @Override
-    public void onChorusProgress(int musicId, long curPtsMS, long durationMS) {
-        if (mDelegate != null) {
-            mDelegate.onMusicProgressUpdate(String.valueOf(musicId), curPtsMS, durationMS);
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: resumePlayMusic musicId：" + mCurrentPlayingOriginalMusicID);
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            TRTCLogger.i(TAG, "resumePlayMusic mCurrentPlayingOriginalMusicID=0");
+            return;
         }
+        getMusicAudioEffectManager().resumePlayMusic(mCurrentPlayingOriginalMusicID);
+        getMusicAudioEffectManager().resumePlayMusic(mCurrentPlayingOriginalMusicID + 1);
     }
 
     @Override
-    public void onMusicCompletePlaying(final int musicID) {
+    public void switchMusicAccompanimentMode(boolean isOriginal) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: switchMusicAccompanimentMode isOriginal：" + isOriginal
+                + " current musicId: " + mCurrentPlayingOriginalMusicID + " original: " + mIsOriginalMusic);
+        if (mCurrentPlayingOriginalMusicID == 0 || mIsOriginalMusic == isOriginal) {
+            return;
+        }
+        mIsOriginalMusic = isOriginal;
+        mChorusExtension.setOriginMusicAccompanimentMode(isOriginal);
+        updateMusicVolumeInner();
+
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
                 if (mDelegate != null) {
-                    mDelegate.onMusicCompletePlaying(String.valueOf(musicID));
+                    mDelegate.onMusicAccompanimentModeChanged(mCurrentPlayingOriginalMusicID, mIsOriginalMusic);
                 }
             }
         });
     }
 
     @Override
-    public void onReceiveAnchorSendChorusMsg(String musicID) {
-        if (!mIsAuthor) {
+    public void setMusicVolume(int musicVolume) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setMusicVolume volume: " + musicVolume);
+        if (musicVolume < 0 || musicVolume > 100) {
+            musicVolume = DEFAULT_MUSIC_VOLUME;
+        }
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            mMusicVolume = musicVolume;
             return;
         }
-        if (mDelegate != null) {
-            mDelegate.onReceiveAnchorSendChorusMsg(musicID);
-        }
-    }
-
-    private void enableBlackStream(boolean enable) {
-        mTRTCVoiceService.enableBlackStream(enable);
+        mMusicVolume = musicVolume;
+        updateMusicVolumeInner();
     }
 
     @Override
-    public void onRecvSEIMsg(final String userId, final byte[] data) {
-        if (mIsAuthor) {
+    public void enableVoiceEarMonitor(boolean enable) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: enableVoiceEarMonitor enable: " + enable);
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.enableVoiceEarMonitor(enable);
+        }
+    }
+
+    @Override
+    public void setVoiceVolume(int voiceVolume) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setVoiceVolume voiceVolume: " + voiceVolume);
+        if (voiceVolume < 0 || voiceVolume > 100) {
+            voiceVolume = DEFAULT_VOICE_VOLUME;
+        }
+
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.setVoiceCaptureVolume(voiceVolume);
+            voiceEffectManager.setVoiceEarMonitorVolume(voiceVolume);
+        }
+    }
+
+    @Override
+    public void setMusicPitch(float musicPitch) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  setMusicPitch musicPitch:" + musicPitch);
+        if (musicPitch < -1.0f || musicPitch > 1.0f) {
+            musicPitch = 0.0f;
+        }
+        if (mCurrentPlayingOriginalMusicID == 0) {
+            mMusicPitch = musicPitch;
             return;
         }
-        if (data == null) {
-            return;
+        TXAudioEffectManager musicEffectManager = getMusicAudioEffectManager();
+        musicEffectManager.setMusicPitch(mCurrentPlayingOriginalMusicID, musicPitch);
+        musicEffectManager.setMusicPitch(mCurrentPlayingOriginalMusicID + 1, musicPitch);
+    }
+
+    @Override
+    public void setVoiceReverbType(int reverbType) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setVoiceReverbType reverbType:" + reverbType);
+        if (reverbType < 0 || reverbType >= VOICE_REVERB_ARR.length) {
+            reverbType = 0;
         }
-        Gson gson = new Gson();
-        String result = new String(data);
-        try {
-            KaraokeSEIJsonData jsonData = gson.fromJson(result, KaraokeSEIJsonData.class);
-            final long progressTime = jsonData.getCurrentTime();
-            final int musicId = jsonData.getMusicId();
-            final long totalTime = jsonData.getTotalTime();
-            runOnDelegateThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mDelegate != null && data != null) {
-                        mDelegate.onMusicProgressUpdate(String.valueOf(musicId), progressTime, totalTime);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            TRTCLogger.e(TAG, "onRecvSEIMsg parse error " + e + " , result = " + result);
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.setVoiceReverbType(VOICE_REVERB_ARR[reverbType]);
+        }
+    }
+
+    @Override
+    public void setVoiceChangerType(int changerType) {
+        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setVoiceChangerType changerType: " + changerType);
+        if (changerType < 0 || changerType >= VOICE_CHANGER_ARR.length) {
+            changerType = 0;
+        }
+        TXAudioEffectManager voiceEffectManager = getVoiceAudioEffectManager();
+        if (voiceEffectManager != null) {
+            voiceEffectManager.setVoiceChangerType(VOICE_CHANGER_ARR[changerType]);
+        }
+    }
+
+    private void updateMusicVolumeInner() {
+        TXAudioEffectManager musicEffectManager = getMusicAudioEffectManager();
+        // 设置原唱音量
+        musicEffectManager.setMusicPlayoutVolume(mCurrentPlayingOriginalMusicID,
+                mIsOriginalMusic ? mMusicVolume : 0);
+        musicEffectManager.setMusicPublishVolume(mCurrentPlayingOriginalMusicID,
+                mIsOriginalMusic ? mMusicVolume : 0);
+
+        // 设置伴奏音量
+        musicEffectManager.setMusicPlayoutVolume(mCurrentPlayingOriginalMusicID + 1,
+                mIsOriginalMusic ? 0 : mMusicVolume);
+        musicEffectManager.setMusicPublishVolume(mCurrentPlayingOriginalMusicID + 1,
+                mIsOriginalMusic ? 0 : mMusicVolume);
+    }
+
+    private void enableBlackStream(boolean enable) {
+        if (mTRTCMusicService != null) {
+            mTRTCMusicService.enableBlackStream(enable);
+        }
+    }
+
+    @Override
+    public void onRecvSEIMsg(String userId, byte[] data) {
+        if (mChorusExtension != null) {
+            mChorusExtension.onReceiveSEIMsg(userId, data);
         }
     }
 
     @Override
     public void onRecvCustomCmdMsg(String userId, int cmdID, int seq, byte[] message) {
         if (mChorusExtension != null) {
-            mChorusExtension.onRecvCustomCmdMsg(userId, cmdID, seq, message);
+            mChorusExtension.onReceiveCustomCmdMsg(userId, cmdID, seq, message);
         }
     }
 
-    public void startRemoteView(final String userId, final TXCloudVideoView view) {
-        mTRTCVoiceService.startRemoteView(userId, view);
+    @Override
+    public void updateNetworkTime() {
+        TXLiveBase.updateNetworkTime();
     }
 
-    public void stopRemoteView(final String userId) {
-        mTRTCVoiceService.stopRemoteView(userId);
-    }
 
+    private KaraokeChorusObserver mKaraokeChorusObserver = new KaraokeChorusObserver() {
+        @Override
+        public void onMusicPlayProgress(int musicId, long curPtsMS, long durationMS) {
+            runOnDelegateThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mDelegate != null) {
+                        mDelegate.onMusicProgressUpdate(String.valueOf(musicId), curPtsMS, durationMS);
+                    }
+                }
+            });
+
+
+        }
+
+        @Override
+        public void onReceiveAnchorSendChorusMsg(String musicID, boolean isOriginal) {
+            if (mTakeSeatIndex == -1) {
+                return;
+            }
+            runOnDelegateThread(new Runnable() {
+                @Override
+                public void run() {
+                    TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onReceiveAnchorSendChorusMsg musicID: " + musicID);
+                    if (mDelegate != null) {
+                        mDelegate.onReceiveAnchorSendChorusMsg(musicID);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onMusicPlayCompleted(int musicID) {
+            runOnDelegateThread(new Runnable() {
+                @Override
+                public void run() {
+                    TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onMusicPlayCompleted musicID: " + musicID);
+                    if (mDelegate != null) {
+                        mDelegate.onMusicPlayCompleted(String.valueOf(musicID));
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onMusicAccompanimentModeChanged(int musicId, boolean isOriginal) {
+            boolean isOwner = mKaraokeIMService.isOwner();
+            if (!isOwner && mTakeSeatIndex != -1 && isOriginal != mIsOriginalMusic) {
+                switchMusicAccompanimentMode(isOriginal);
+            }
+        }
+    };
 }

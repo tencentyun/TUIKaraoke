@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingDefaultResource">
+            <solid android:color="@color/trtckaraoke_text_music_tag_selected" />
+            <corners android:radius="19dp" />
+        </shape>
+    </item>
+
+    <item android:state_selected="false">
+        <shape android:shape="rectangle" android:useLevel="false">
+            <solid android:color="#33FFFFFF" />
+            <corners android:radius="19dp" />
+        </shape>
+    </item>
+
+    <item android:state_pressed="true">
+        <shape xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingDefaultResource">
+            <solid android:color="#FFFFFFFF" />
+            <corners android:radius="19dp" />
+        </shape>
+    </item>
+
+    <item android:state_pressed="false">
+        <shape android:shape="rectangle" android:useLevel="false">
+            <solid android:color="#33FFFFFF" />
+            <corners android:radius="19dp" />
+        </shape>
+    </item>
+</selector>
+

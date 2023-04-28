@@ -13,9 +13,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.blankj.utilcode.util.ToastUtils;
-import com.tencent.liteav.basic.RTCubeUtils;
 import com.tencent.liteav.basic.UserModelManager;
+import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
+import com.tencent.liteav.basic.RTCubeUtils;
 import com.tencent.liteav.tuikaraoke.R;
 
 /**
@@ -89,10 +89,10 @@ public class KaraokeRoomCreateDialog extends BottomSheetDialog {
             return;
         }
         if (roomName.getBytes().length > MAX_LEN) {
-            ToastUtils.showLong(getContext().getText(R.string.trtckaraoke_warning_room_name_too_long));
+            Toast.show(R.string.trtckaraoke_warning_room_name_too_long, Toast.LENGTH_LONG);
             return;
         }
-        KaraokeRoomAnchorActivity.createRoom(getContext(), roomName,
+        KaraokeRoomAnchorActivity.createKaraokeRoom(getContext(), roomName,
                 mUserId, mUserName, mCoverUrl, mAudioQuality, mNeedRequest);
         dismiss();
     }
