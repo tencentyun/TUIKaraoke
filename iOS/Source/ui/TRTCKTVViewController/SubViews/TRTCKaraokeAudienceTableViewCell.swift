@@ -82,7 +82,7 @@ class TRTCKaraokeAudienceTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         model = nil
-        iconView.image = UIImage.init(named: "Karaoke_placeholder_avatar")
+        iconView.image = UIImage(named: "Karaoke_placeholder_avatar")
     }
     
     func activateConstraints() {
@@ -113,8 +113,8 @@ class TRTCKaraokeAudienceTableViewCell: UITableViewCell {
     }
     
     func setCell(model: AudienceInfoModel) {
-        let avatarUrl = URL.init(string: model.userInfo.userAvatar)
-        iconView.kf.setImage(with: avatarUrl, placeholder: UIImage.init(named: "Karaoke_placeholder_avatar"))
+        let avatarUrl = URL(string: model.userInfo.avatarURL)
+        iconView.kf.setImage(with: avatarUrl, placeholder: UIImage(named: "Karaoke_placeholder_avatar"))
         nameLabel.text = model.userInfo.userName
         inviateButton.isSelected = model.type == AudienceInfoModel.TYPE_WAIT_AGREE
         inviateButton.isHidden = model.type == AudienceInfoModel.TYPE_IN_SEAT

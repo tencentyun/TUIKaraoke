@@ -12,6 +12,7 @@ public protocol TRTCKaraokeEnteryControlDelegate: NSObject {
     func ktvCreateRoom(roomId: String, success: @escaping () -> Void, failed: @escaping (Int32, String) -> Void)
     func ktvDestroyRoom(roomId: String, success: @escaping () -> Void, failed: @escaping (Int32, String) -> Void)
     func genUserSign(userId: String, completion:@escaping (String) -> Void)
+    func getMusicService(roomInfo: KaraokeRoomInfo) -> KaraokeMusicService?
 }
 
 /// ViewModel可视为MVC架构中的Controller层
@@ -54,10 +55,10 @@ public class TRTCKaraokeEnteryControl: NSObject {
         Karaoke = nil
     }
     
-    /// 创建语聊房页面
+    /// 创建Karaoke房间页面
     /// - Returns: 创建语聊房VC
-    public func makeCreateKaraokeViewController(musicDataSource: KaraokeMusicService) -> UIViewController {
-        let vc = TRTCCreateKaraokeViewController.init(dependencyContainer: self, musicDataSource: musicDataSource)
+    public func makeCreateKaraokeViewController() -> UIViewController {
+        let vc = TRTCCreateKaraokeViewController(dependencyContainer: self)
         vc.modalPresentationStyle = .fullScreen
         return vc
     }
@@ -67,8 +68,9 @@ public class TRTCKaraokeEnteryControl: NSObject {
     ///   - roomInfo: 要进入或者创建的房间参数
     ///   - role: 角色：观众 主播
     /// - Returns: 返回语聊房控制器
-    public func makeKaraokeViewController(roomInfo: RoomInfo, role: KaraokeViewType, toneQuality:KaraokeToneQuality = .music, musicDataSource: KaraokeMusicService) -> UIViewController {
-        return TRTCKaraokeViewController.init(viewModelFactory: self, roomInfo: roomInfo, role: role, toneQuality: toneQuality, musicDataSource: musicDataSource)
+    public func makeKaraokeViewController(roomInfo: KaraokeRoomInfo,
+                                          role: KaraokeViewType) -> UIViewController {
+        return TRTCKaraokeViewController(viewModelFactory: self, roomInfo: roomInfo, role: role)
     }
 }
 
@@ -85,7 +87,7 @@ extension TRTCKaraokeEnteryControl: TRTCKaraokeViewModelFactory {
     ///   - roomInfo: 语聊房信息
     ///   - roomType: 角色
     /// - Returns: 语聊房页面的ViewModel
-    func makeKaraokeViewModel(roomInfo: RoomInfo, roomType: KaraokeViewType) -> TRTCKaraokeViewModel {
+    func makeKaraokeViewModel(roomInfo: KaraokeRoomInfo, roomType: KaraokeViewType) -> TRTCKaraokeViewModel {
         return TRTCKaraokeViewModel.init(container: self, roomInfo: roomInfo, roomType: roomType)
     }
 }
@@ -101,6 +103,19 @@ extension TRTCKaraokeEnteryControl {
     public func destroyRoom(roomID: String, success: @escaping () -> Void, failed: @escaping (Int32, String) -> Void) {
         if let delegate = self.delegate {
             delegate.ktvDestroyRoom(roomId: roomID, success: success, failed: failed)
+        }
+    }
+    
+    public func getMusicService(roomInfo: KaraokeRoomInfo) -> KaraokeMusicService? {
+        if let delegate = self.delegate {
+            return delegate.getMusicService(roomInfo: roomInfo)
+        }
+        return nil
+    }
+    
+    public func genUserSign(userId: String, completion:@escaping (String) -> Void) {
+        if let delegate = self.delegate {
+            delegate.genUserSign(userId: userId, completion: completion)
         }
     }
 

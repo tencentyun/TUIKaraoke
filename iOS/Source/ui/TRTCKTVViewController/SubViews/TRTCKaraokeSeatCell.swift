@@ -50,7 +50,7 @@ class TRTCKaraokeSeatCell: UICollectionViewCell {
         }
     }
     
-    func setCell(model: SeatInfoModel, userMuteMap: [String:Bool], seatIndex: Int) {
-        seatView.setSeatInfo(model: model, userMuteMap: userMuteMap, seatIndex: seatIndex)
+    func setCell(model: SeatInfoModel, seatIndex: Int) {
+        seatView.setSeatInfo(model: model, seatIndex: seatIndex)
     }
 }

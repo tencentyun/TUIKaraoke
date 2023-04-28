@@ -47,8 +47,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         TRTCKaraokeRoom.shared().login(sdkAppID: Int32(SDKAPPID), userId: userId, userSig: ProfileManager.shared.curUserSig()) { code, message in
             if code == 0 {
-                TRTCKaraokeIMManager.shared.SDKAPPID = Int32(SDKAPPID)
-                TRTCKaraokeIMManager.shared.loadData()
                 let listVC = KaraokeMainViewController.init()
                 let rootVC = UINavigationController.init(rootViewController: listVC)
                 if let keyWindow = SceneDelegate.getCurrentWindow() {

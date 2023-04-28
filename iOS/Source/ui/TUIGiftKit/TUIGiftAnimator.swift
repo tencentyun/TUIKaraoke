@@ -83,7 +83,7 @@ public class TUIGiftAnimator: NSObject {
                 first = giftView as? TUIGiftBulletView
             }
             
-            giftView.snp.makeConstraints { make in
+            giftView.snp.updateConstraints { make in
                 make.bottom.equalTo(canvasView.snp.bottom).offset(-270 - (bulletGiftCount - 1 - i) * 55)
             }
             i += 1

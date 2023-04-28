@@ -2,7 +2,7 @@ Pod::Spec.new do |spec|
   spec.name         = 'TUIKaraoke'
   spec.version      = '1.0.0'
   spec.platform     = :ios
-  spec.ios.deployment_target = '11.0'
+  spec.ios.deployment_target = '13.0'
   spec.license      = { :type => 'MIT', :file => 'LICENSE' }
   spec.homepage     = 'https://cloud.tencent.com/document/product/269/3794'
   spec.documentation_url = 'https://cloud.tencent.com/document/product/269/9147'
@@ -12,7 +12,6 @@ Pod::Spec.new do |spec|
   spec.swift_version = '5.0'
 
   spec.dependency 'TXAppBasic'
-  spec.dependency 'TXIMSDK_Plus_iOS', '>= 5.7.1435'
   spec.dependency 'TUICore'
 #  Swift第三方库
   spec.dependency 'Alamofire'

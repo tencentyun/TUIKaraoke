@@ -12,10 +12,8 @@ import SnapKit
 public class TRTCCreateKaraokeViewController: UIViewController {
     // 依赖管理者
     let dependencyContainer: TRTCKaraokeEnteryControl
-    let musicDataSource: KaraokeMusicService
-    init(dependencyContainer: TRTCKaraokeEnteryControl, musicDataSource: KaraokeMusicService) {
+    init(dependencyContainer: TRTCKaraokeEnteryControl) {
         self.dependencyContainer = dependencyContainer
-        self.musicDataSource = musicDataSource
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -50,16 +48,26 @@ public class TRTCCreateKaraokeViewController: UIViewController {
         let KaraokeModel = dependencyContainer.makeCreateKaraokeViewModel()
         KaraokeModel.screenShot = screenShot
         let rootView = TRTCCreateKaraokeRootView.init(viewModel: KaraokeModel)
-        KaraokeModel.viewResponder = rootView
-        KaraokeModel.musicDataSource = musicDataSource
-        rootView.rootViewController = self
+        KaraokeModel.navigator = self
         view = rootView
-        
     }
     
     /// 取消
     @objc func cancel() {
         navigationController?.popViewController(animated: true)
+    }
+}
+
+extension TRTCCreateKaraokeViewController: TRTCCreateKaraokeNavigator {
+    func push(viewController: UIViewController) {
+        navigationController?.popViewController(animated: false)
+        if let mainNavi = UIApplication.shared.windows.filter({$0.isKeyWindow}).first?.rootViewController as? UINavigationController {
+            mainNavi.pushViewController(viewController, animated: true)
+        }
+    }
+    
+    func popViewController() {
+        navigationController?.popViewController(animated: false)
     }
 }
 

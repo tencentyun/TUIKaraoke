@@ -9,26 +9,23 @@ import UIKit
 import TUICore
 
 protocol TRTCKaraokeViewModelFactory {
-   func makeKaraokeViewModel(roomInfo: RoomInfo, roomType: KaraokeViewType) -> TRTCKaraokeViewModel
+   func makeKaraokeViewModel(roomInfo: KaraokeRoomInfo, roomType: KaraokeViewType) -> TRTCKaraokeViewModel
 }
 
 /// TRTC voice room 聊天室
 public class TRTCKaraokeViewController: UIViewController {
     // MARK: - properties:
     let viewModelFactory: TRTCKaraokeViewModelFactory
-    let roomInfo: RoomInfo
+    let roomInfo: KaraokeRoomInfo
     let role: KaraokeViewType
     var viewModel: TRTCKaraokeViewModel?
-    let toneQuality: KaraokeToneQuality
-    let musicDataSource: KaraokeMusicService
     // MARK: - Methods:
-    init(viewModelFactory: TRTCKaraokeViewModelFactory, roomInfo: RoomInfo, role: KaraokeViewType, toneQuality: KaraokeToneQuality = .music, musicDataSource: KaraokeMusicService) {
+    init(viewModelFactory: TRTCKaraokeViewModelFactory,
+         roomInfo: KaraokeRoomInfo,
+         role: KaraokeViewType) {
         self.viewModelFactory = viewModelFactory
         self.roomInfo = roomInfo
         self.role = role
-        self.toneQuality = toneQuality
-        self.musicDataSource = musicDataSource
-        KaraokeMusicCacheDelegate.musicDataSource = musicDataSource
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -41,7 +38,7 @@ public class TRTCKaraokeViewController: UIViewController {
         super.viewDidLoad()
         guard let model = viewModel else { return }
         if model.isOwner {
-            model.createRoom(toneQuality: toneQuality.rawValue)
+            model.createRoom()
         } else {
             model.enterRoom()
         }
@@ -76,7 +73,6 @@ public class TRTCKaraokeViewController: UIViewController {
         rootView.rootViewController = self
         viewModel.viewResponder = rootView
         viewModel.rootVC = self
-        viewModel.musicDataSource = musicDataSource
         self.viewModel = viewModel
         view = rootView
     }

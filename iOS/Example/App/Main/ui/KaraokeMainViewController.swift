@@ -9,6 +9,7 @@ import UIKit
 import ImSDK_Plus
 import Toast_Swift
 import TUIKaraoke
+import TUICore
 
 class KaraokeMainViewController: UIViewController {
     
@@ -107,15 +108,21 @@ extension KaraokeMainViewController {
 
 extension KaraokeMainViewController: KaraokeMainRootViewDelegate {
     func enterRoom(roomId: String) {
+        dependencyContainer.delegate = self
         V2TIMManager.sharedInstance().getGroupsInfo([roomId]) { [weak self] groupInfos in
             guard let `self` = self else { return }
             guard let groupInfo = groupInfos?.first else { return }
             if groupInfo.resultCode == 0 {
-                guard let introduction = groupInfo.info.introduction else { return }
-                let info = RoomInfo.init(roomID: Int(roomId) ?? 0, ownerId: introduction, memberCount: 0)
-                let vc = self.dependencyContainer.makeKaraokeViewController(roomInfo: info, role:
-                 .audience, toneQuality: .music, musicDataSource: KaraokeMusicImplement())
-                self.navigationController?.pushViewController(vc, animated: false)
+                guard let owner = groupInfo.info.owner else { return }
+                let memberCount = groupInfo.info.memberCount
+                let info = KaraokeRoomInfo(roomID: roomId, ownerId: owner, memberCount: Int(memberCount))
+                self.dependencyContainer.getKaraoke().login(sdkAppID: Int32(SDKAPPID),
+                                                            userId: TUILogin.getUserID(),
+                                                            userSig: TUILogin.getUserSig()) { [weak self] code, message in
+                    guard let self = self else { return }
+                    let vc = self.dependencyContainer.makeKaraokeViewController(roomInfo: info, role: .audience)
+                    self.navigationController?.pushViewController(vc, animated: false)
+                }
             } else {
                 DispatchQueue.main.async {
                     let alertVC = UIAlertController.init(title: .promptText, message: .roomdoesnotexistText, preferredStyle: .alert)
@@ -131,12 +138,17 @@ extension KaraokeMainViewController: KaraokeMainRootViewDelegate {
     
     func createRoom() {
         dependencyContainer.delegate = self
-        let viewController = dependencyContainer.makeCreateKaraokeViewController(musicDataSource: KaraokeMusicImplement())
-        if viewController is TRTCCreateKaraokeViewController {
-            let vc = viewController as! TRTCCreateKaraokeViewController
-            vc.screenShot = view.snapshotView(afterScreenUpdates: false)
+        dependencyContainer.getKaraoke().login(sdkAppID: Int32(SDKAPPID),
+                                               userId: TUILogin.getUserID(),
+                                               userSig: TUILogin.getUserSig()) { [weak self] code, message in
+            guard let self = self else { return }
+            let viewController = self.dependencyContainer.makeCreateKaraokeViewController()
+            if viewController is TRTCCreateKaraokeViewController {
+                let vc = viewController as! TRTCCreateKaraokeViewController
+                vc.screenShot = self.view.snapshotView(afterScreenUpdates: false)
+            }
+            self.navigationController?.pushViewController(viewController, animated: false)
         }
-        navigationController?.pushViewController(viewController, animated: false)
     }
     
     private func alert(roomId: String, handle: @escaping () -> Void) {
@@ -152,6 +164,11 @@ extension KaraokeMainViewController: KaraokeMainRootViewDelegate {
 }
 
 extension KaraokeMainViewController: TRTCKaraokeEnteryControlDelegate {
+    
+    func getMusicService(roomInfo: KaraokeRoomInfo) -> TUIKaraoke.KaraokeMusicService? {
+        return KaraokeMusicServiceImplement(roomInfo: roomInfo)
+    }
+    
     func genUserSign(userId: String, completion: @escaping (String) -> Void) {
         let userSig = GenerateTestUserSig.genTestUserSig(identifier: userId)
         completion(userSig)

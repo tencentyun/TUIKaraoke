@@ -8,58 +8,58 @@
 
 #import "TRTCKaraokeRoomDef.h"
 
-@implementation RoomParam
-
-@end
-
-@implementation SeatInfo
-
-- (instancetype)init
-{
-    self = [super init];
-    if (self) {
-        self.status = 0;
-        self.mute = NO;
-        self.userId = @"";
-    }
-    return self;
-}
-
-@end
-
-@implementation UserInfo
+@implementation KaraokeSeatInfo
 
 - (instancetype)init {
     if (self = [super init]) {
-        self.mute = YES;
+        self.status = 0;
+        self.mute = NO;
+        self.user = @"";
     }
     return self;
 }
 
-- (void)setUserName:(NSString *)userName{
+@end
+
+
+@implementation KaraokeRoomParam
+
+@end
+
+@implementation KaraokeUserInfo
+
+- (instancetype)init {
+    if (self = [super init]) {
+        self.mute = NO;
+    }
+    return self;
+}
+
+- (void)setUserName:(NSString *)userName {
     if (!userName) {
         userName = @"";
     }
     _userName = userName;
 }
 
-- (void)setUserAvatar:(NSString *)userAvatar{
-    if (!userAvatar) {
-        userAvatar = @"";
+- (void)setAvatarURL:(NSString *)avatarURL {
+    if (!avatarURL) {
+        avatarURL = @"";
     }
-    _userAvatar = userAvatar;
+    _avatarURL = avatarURL;
 }
 
 @end
 
-@implementation RoomInfo
+@implementation KaraokeRoomInfo
 
--(instancetype)initWithRoomID:(NSInteger)roomID ownerId:(NSString *)ownerId memberCount:(NSInteger)memberCount {
-    self = [super init];
-    if (self) {
-        self.roomID = roomID;
+// 默认值与业务逻辑统一
+-(instancetype)initWithRoomID:(NSString *)roomId ownerId:(NSString *)ownerId memberCount:(NSInteger)memberCount {
+    if (self = [super init]) {
+        self.roomId = roomId;
         self.ownerId = ownerId;
         self.memberCount = memberCount;
+        self.needRequest = YES;
     }
     return self;
 }

@@ -49,17 +49,23 @@ class TRTCKaraokeTopView: UIView {
     
     public let viewModel: TRTCKaraokeViewModel
     
-    public var memberAudienceDataSource : [AudienceInfoModel] = []
     public func reloadAudienceList() {
-        memberAudienceDataSource = viewModel.getRealMemberAudienceList()
         audienceListCollectionView.reloadData()
     }
     public func reloadRoomAvatar() {
-        roomImageView.kf.setImage(with: URL(string: TRTCKaraokeIMManager.shared.checkBgImage(viewModel.roomInfo.coverUrl)), placeholder: nil, options: [], completionHandler: nil)
+        var roomCover = viewModel.roomInfo.cover
+        if roomCover == "avatar" || roomCover.count == 0 {
+            roomCover = "https://liteav-test-1252463788.cos.ap-guangzhou.myqcloud.com/voice_room/voice_room_cover1.png"
+        }
+        roomImageView.kf.setImage(with: URL(string: roomCover),
+                                  placeholder: nil,
+                                  options: [],
+                                  completionHandler: nil)
     }
-    public func reloadRoomInfo(_ info: RoomInfo) {
+    
+    func reloadRoomInfo(_ info: KaraokeRoomInfo) {
         roomTitleLabel.text = info.roomName
-        roomDescLabel.text = localizeReplaceXX(.roomIdDescText, String(info.roomID))
+        roomDescLabel.text = localizeReplaceXX(.roomIdDescText, info.roomId)
         setNeedsDisplay()
     }
     
@@ -250,55 +256,40 @@ class TRTCKaraokeTopView: UIView {
         audienceListCollectionView.dataSource = self
         audienceListCollectionView.delegate = self
         audienceListCollectionView.register(TRTCKaraokeImageOnlyCell.self, forCellWithReuseIdentifier: "audienceListCell")
-        memberAudienceDataSource = viewModel.getRealMemberAudienceList()
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(dashboardBtnClick))
+        longPress.minimumPressDuration = 1.0
+        roomContainerView.addGestureRecognizer(longPress)
         closeBtn.addTarget(self, action: #selector(closeBtnClick), for: .touchUpInside)
         shareBtn.addTarget(self, action: #selector(shareBtnClick), for: .touchUpInside)
         nextBtn.addTarget(self, action: #selector(nextBtnClick), for: .touchUpInside)
         reportBtn.addTarget(self, action: #selector(reportBtnClick), for: .touchUpInside)
     }
-    
+
+    @objc func dashboardBtnClick(sender:UILongPressGestureRecognizer) {
+        if sender.state == .began {
+            viewModel.viewResponder?.onDashboardButtonPress()
+        }
+    }
+
     @objc func closeBtnClick() {
         if viewModel.isOwner {
             viewModel.viewResponder?.showAlert(info: (.exitText, .sureToExitText), sureAction: { [weak self] in
-                guard let `self` = self else { return }
+                guard let self = self else { return }
                 self.viewModel.exitRoom { // 主播销毁房间
                     
                 }
-            }, cancelAction: {
-                
-            })
-        }
-        else {
+            }, cancelAction: nil)
+        } else {
             if viewModel.userType == .anchor {
                 viewModel.viewResponder?.showAlert(info: (title: .alertToMicoffText, message: ""), sureAction: { [weak self] in
-                    guard let `self` = self else { return }
-                    self.viewModel.leaveSeat()
-                    if TRTCKaraokeFloatingWindowManager.shared().enableFloatingWindow {
-                        guard let rootVC = self.viewModel.rootVC else {
-                            return
-                        }
-                        TRTCKaraokeFloatingWindowManager.shared().hide(vc: rootVC)
-                    }
-                    else {
-                        self.viewModel.exitRoom {
-                            
-                        }
-                    }
-                }, cancelAction: {
-                    
-                })
-            }
-            else {
-                if TRTCKaraokeFloatingWindowManager.shared().enableFloatingWindow {
-                    guard let rootVC = viewModel.rootVC else {
-                        return
-                    }
-                    TRTCKaraokeFloatingWindowManager.shared().hide(vc: rootVC)
-                }
-                else {
-                    viewModel.exitRoom {
+                    guard let self = self else { return }
+                    self.viewModel.exitRoom {
                         
                     }
+                }, cancelAction: nil)
+            } else {
+                viewModel.exitRoom {
+                    
                 }
             }
         }
@@ -307,7 +298,7 @@ class TRTCKaraokeTopView: UIView {
     private var audienceIndex: Int = 0
     @objc func nextBtnClick() {
         audienceIndex += 1
-        if audienceIndex >= memberAudienceDataSource.count {
+        if audienceIndex >= viewModel.getRealMemberAudienceList().count {
             audienceIndex = 0
         }
         if audienceIndex >= 0, audienceIndex < audienceListCollectionView.numberOfItems(inSection: 0) {
@@ -320,7 +311,7 @@ class TRTCKaraokeTopView: UIView {
     @objc func reportBtnClick() {
         let selector = NSSelectorFromString("showReportAlertWithRoomId:ownerId:")
         if responds(to: selector) {
-            perform(selector, with: viewModel.roomInfo.roomID.description, with: viewModel.roomInfo.ownerId)
+            perform(selector, with: viewModel.roomInfo.roomId, with: viewModel.roomInfo.ownerId)
         }
     }
 }
@@ -343,12 +334,12 @@ class TRTCKaraokeAudienceListLayout : UICollectionViewFlowLayout {
 
 extension TRTCKaraokeTopView : UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return memberAudienceDataSource.count
+        return viewModel.getRealMemberAudienceList().count
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "audienceListCell", for: indexPath) as! TRTCKaraokeImageOnlyCell
-        let info = memberAudienceDataSource[indexPath.item]
-        cell.headImageView.kf.setImage(with: URL(string: info.userInfo.userAvatar), placeholder: nil, options: [], completionHandler: nil)
+        let info = viewModel.getRealMemberAudienceList()[indexPath.item]
+        cell.headImageView.kf.setImage(with: URL(string: info.userInfo.avatarURL), placeholder: nil, options: [], completionHandler: nil)
         return cell
     }
 }

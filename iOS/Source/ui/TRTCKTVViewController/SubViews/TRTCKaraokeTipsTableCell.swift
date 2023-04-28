@@ -33,7 +33,7 @@ class TRTCKaraokeTipsWelcomCell: UITableViewCell {
         label.numberOfLines = 0
         let urlStr = TRTCKaraokeTipsWelcomCell.urlText
         let totalStr = localizeReplaceXX(.welcomeText, urlStr)
-        let urlColor = UIColor(hex: "0063FF") ?? UIColor.blue
+        let urlColor = UIColor.tui_color(withHex: "0063FF")
         let totalRange = NSRange(location: 0, length: totalStr.count)
         var urlRange = totalRange
         if let range = totalStr.range(of: urlStr) {
@@ -41,7 +41,7 @@ class TRTCKaraokeTipsWelcomCell: UITableViewCell {
         }
         let attr = NSMutableAttributedString(string: totalStr)
         attr.addAttribute(NSAttributedString.Key.font, value: UIFont(name: "PingFangSC-Regular", size: 14) ?? UIFont.systemFont(ofSize: 14), range: totalRange)
-        attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor(hex: "3CCFA5") ?? UIColor.green, range: totalRange)
+        attr.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.tui_color(withHex: "3CCFA5"), range: totalRange)
         attr.addAttribute(NSAttributedString.Key.font, value: UIFont(name: "PingFangSC-Medium", size: 14) ?? UIFont.systemFont(ofSize: 14), range: urlRange)
         attr.addAttribute(NSAttributedString.Key.foregroundColor, value: urlColor, range: urlRange)
         attr.addAttribute(NSAttributedString.Key.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: urlRange)
@@ -114,21 +114,19 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
     }()
     
     let acceptButton: UIButton = {
-        let button = UIButton.init(type: .custom)
-        button.backgroundColor = UIColor(hex: "29CC85")
-        button.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 14)
+        let button = UIButton(type: .custom)
         button.setTitle(.acceptText, for: .normal)
-        button.setTitleColor(UIColor.white, for: .normal)
+        button.clipsToBounds = true
         button.isHidden = true
-        button.layer.cornerRadius = 15.0
-        button.layer.masksToBounds = true
+        button.titleLabel?.font = UIFont(name: "PingFangSC-Medium", size: 14)
+        button.titleLabel?.textColor = .white
         return button
     }()
     
     lazy var manageSongBtn: UIButton = {
         let btn = UIButton(type: .custom)
         btn.setTitle(.manageSongText, for: .normal)
-        btn.setTitleColor(UIColor(hex: "F95F91"), for: .normal)
+        btn.setTitleColor(UIColor.tui_color(withHex: "F95F91"), for: .normal)
         btn.titleLabel?.font = UIFont(name: "PingFangSC-Regular", size: 14)
         btn.titleLabel?.adjustsFontSizeToFitWidth = true
         btn.adjustsImageWhenHighlighted = false
@@ -136,9 +134,20 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
         return btn
     }()
     
+    lazy var acceptButtonLayer: CAGradientLayer = {
+        let acceptButtonLayer = acceptButton.gradient(colors: [UIColor.tui_color(withHex:"FF88DD").cgColor,
+                                                               UIColor.tui_color(withHex:"7D00BD").cgColor,])
+        acceptButtonLayer.startPoint = CGPoint(x: 0, y: 0.5)
+        acceptButtonLayer.endPoint = CGPoint(x: 1, y: 0.5)
+        return acceptButtonLayer
+    }()
+    
     override func draw(_ rect: CGRect) {
         super.draw(rect)
-        containerView.layer.cornerRadius = containerView.frame.height*0.5
+        containerView.layer.cornerRadius = containerView.frame.height * 0.5
+        acceptButton.layer.cornerRadius = acceptButton.frame.height * 0.5
+        acceptButtonLayer.colors = [UIColor.tui_color(withHex:"FF88DD").cgColor,
+                                    UIColor.tui_color(withHex:"7D00BD").cgColor,]
     }
     
     override func didMoveToWindow() {
@@ -154,8 +163,8 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
     func constructViewHierarchy() {
         /// 此方法内只做add子视图操作
         contentView.addSubview(containerView)
+        contentView.addSubview(acceptButton)
         containerView.addSubview(contentLabel)
-        containerView.addSubview(acceptButton)
         containerView.addSubview(manageSongBtn)
     }
     
@@ -174,9 +183,9 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
         }
         acceptButton.snp.makeConstraints { (make) in
             make.right.equalToSuperview().offset(-10)
-            make.top.equalToSuperview().offset(2)
-            make.bottom.equalToSuperview().offset(-2)
-            make.width.equalTo(60)
+            make.top.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-10)
+            make.width.equalTo(75)
         }
         manageSongBtn.snp.makeConstraints { (make) in
             make.right.equalToSuperview().offset(-10)
@@ -273,13 +282,13 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
     
     private lazy var nameColors : [UIColor] = {
         var color : [UIColor] = []
-        color.append(UIColor(hex: "3074FD") ?? .white)
-        color.append(UIColor(hex: "3CCFA5") ?? .white)
-        color.append(UIColor(hex: "FF8607") ?? .white)
-        color.append(UIColor(hex: "F7AF97") ?? .white)
-        color.append(UIColor(hex: "FF8BB7") ?? .white)
-        color.append(UIColor(hex: "FC6091") ?? .white)
-        color.append(UIColor(hex: "FCAF41") ?? .white)
+        color.append(UIColor.tui_color(withHex: "3074FD"))
+        color.append(UIColor.tui_color(withHex: "3CCFA5"))
+        color.append(UIColor.tui_color(withHex: "FF8607"))
+        color.append(UIColor.tui_color(withHex: "F7AF97"))
+        color.append(UIColor.tui_color(withHex: "FF8BB7"))
+        color.append(UIColor.tui_color(withHex: "FC6091"))
+        color.append(UIColor.tui_color(withHex: "FCAF41"))
         return color
     }()
     
@@ -318,7 +327,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
             manageSongBtn.isHidden = true
             contentLabel.snp.remakeConstraints { (make) in
                 make.left.equalToSuperview().offset(16)
-                make.right.equalToSuperview().offset(-80)
+                make.right.equalToSuperview().offset(-16)
                 make.width.lessThanOrEqualTo(UIScreen.main.bounds.width * 2.0 / 3.0)
                 make.top.equalToSuperview().offset(4)
                 make.bottom.equalToSuperview().offset(-4)
@@ -330,7 +339,7 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    static let acceptText = karaokeLocalize("Demo.TRTC.Karaoke.agree")
     static let welcomeText = karaokeLocalize("Demo.TRTC.Karaoke.welcome")
     static let manageSongText = karaokeLocalize("Demo.TRTC.Karaoke.manageselectedsongs")
 }

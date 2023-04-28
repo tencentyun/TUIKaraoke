@@ -25,7 +25,7 @@ class TUIGiftPanelView: UIView {
     }()
     lazy var contentView: UIView = {
         let view = UIView(frame: .zero)
-        view.backgroundColor = UIColor.init(hex:"180B32")
+        view.backgroundColor = UIColor.tui_color(withHex:"180B32")
         return view
     }()
     
