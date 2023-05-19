@@ -466,7 +466,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         mMusicSelectedList.clear();
         //避免ios端和Android数据不一致导致的数据异常
         //根据musicId对齐两端的信息
-        if (list.size() > 0) {
+        if (list != null && list.size() > 0) {
             for (KaraokeMusicInfo temp : list) {
                 if (temp != null) {
                     KaraokeMusicInfo tempEntity = findEntityFromLibrary(temp.musicId);

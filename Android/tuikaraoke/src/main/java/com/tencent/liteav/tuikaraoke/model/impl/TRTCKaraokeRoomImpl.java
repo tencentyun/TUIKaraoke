@@ -526,75 +526,76 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
             @Override
             public void run() {
                 TRTCLogger.i(TAG, "TRTCKaraokeRoom api: exitRoom.");
-                // 退房的时候需要判断主播是否在座位，如果是麦上主播，需要先清空座位列表
-                if (isOnSeat(mUserId)) {
-                    leaveSeat(new TUICallback() {
+                if (mTRTCMusicService != null) {
+                    mTRTCMusicService.exitRoom(new TUICallback() {
                         @Override
                         public void onSuccess() {
-                            exitRoomInternal(callback);
+
                         }
 
                         @Override
-                        public void onError(int errorCode, String errorMessage) {
-                            exitRoomInternal(callback);
+                        public void onError(int code, String msg) {
+                            TRTCLogger.e(TAG, "music instance exit room finish, code:" + code + " msg:" + msg);
+                            notifyErrorEvent(code, msg);
                         }
                     });
-                } else {
-                    exitRoomInternal(callback);
+                    mTRTCVoiceService.stopPublishMediaStream();
                 }
+
+                if (mTRTCVoiceService != null) {
+                    mTRTCVoiceService.enableAudioEvaluation(false);
+                    mTRTCVoiceService.exitRoom(new TUICallback() {
+                        @Override
+                        public void onSuccess() {
+
+                        }
+
+                        @Override
+                        public void onError(final int code, final String msg) {
+                            TRTCLogger.e(TAG, "voice instance exit room finish, code:" + code + " msg:" + msg);
+                            notifyErrorEvent(code, msg);
+                        }
+                    });
+                }
+
+                if (mKaraokeIMService.isOwner()) {
+                    notifyCallbackEvent(callback, 0, "");
+                } else {
+                    if (isOnSeat(mUserId)) {
+                        leaveSeat(new TUICallback() {
+                            @Override
+                            public void onSuccess() {
+                                exitIMRoomInternal(callback);
+                            }
+
+                            @Override
+                            public void onError(int errorCode, String errorMessage) {
+                                exitIMRoomInternal(callback);
+                            }
+                        });
+                    } else {
+                        exitIMRoomInternal(callback);
+                    }
+                }
+                clearList();
             }
         });
     }
 
-    private void exitRoomInternal(final TUICallback callback) {
-        if (mTRTCMusicService != null) {
-            mTRTCMusicService.exitRoom(new TUICallback() {
-                @Override
-                public void onSuccess() {
+    private void exitIMRoomInternal(TUICallback callback) {
+        TRTCLogger.i(TAG, "start exit im room service.");
+        mKaraokeIMService.exitRoom(new TUICallback() {
+            @Override
+            public void onSuccess() {
+                notifyCallbackEvent(callback, 0, "");
+            }
 
-                }
-
-                @Override
-                public void onError(int code, String msg) {
-                    TRTCLogger.e(TAG, "music instance exit room finish, code:" + code + " msg:" + msg);
-                    notifyErrorEvent(code, msg);
-                }
-            });
-            mTRTCVoiceService.stopPublishMediaStream();
-        }
-
-        if (mTRTCVoiceService != null) {
-            mTRTCVoiceService.enableAudioEvaluation(false);
-            mTRTCVoiceService.exitRoom(new TUICallback() {
-                @Override
-                public void onSuccess() {
-
-                }
-
-                @Override
-                public void onError(final int code, final String msg) {
-                    TRTCLogger.e(TAG, "voice instance exit room finish, code:" + code + " msg:" + msg);
-                    notifyErrorEvent(code, msg);
-                }
-            });
-        }
-
-        if (!mKaraokeIMService.isOwner()) {
-            TRTCLogger.i(TAG, "start exit room service.");
-            mKaraokeIMService.exitRoom(new TUICallback() {
-                @Override
-                public void onSuccess() {
-                    notifyCallbackEvent(callback, 0, "");
-                }
-
-                @Override
-                public void onError(final int code, final String msg) {
-                    TRTCLogger.e(TAG, "IM exit room finish, code:" + code + " msg:" + msg);
-                    notifyCallbackEvent(callback, code, msg);
-                }
-            });
-        }
-        clearList();
+            @Override
+            public void onError(final int code, final String msg) {
+                TRTCLogger.e(TAG, "IM exit room finish, code:" + code + " msg:" + msg);
+                notifyCallbackEvent(callback, code, msg);
+            }
+        });
     }
 
     private boolean isOnSeat(String userId) {
