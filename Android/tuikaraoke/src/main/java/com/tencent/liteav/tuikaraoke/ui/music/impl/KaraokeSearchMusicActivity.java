@@ -59,7 +59,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
     private KaraokeMusicService            mMusicServiceImpl;
     private KaraokeMusicSearchAdapter      mSearchAdapter;
     private List<KaraokeMusicInfo>         mSearchList;
-    private String                         mScrollToke;
+    private String                         mScrollToken;
     private boolean                        mHasMore; //还有数据
 
     private static final int MUSIC_NUM_INTERNAL = 10; //每次获取10个数据
@@ -164,7 +164,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mScrollToke = null;
+                mScrollToken = "";
                 mHasMore = true;
                 if (mSearchList != null) {
                     mSearchList.clear();
@@ -174,7 +174,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                     mSearchAdapter.notifyDataSetChanged();
                     setFooterViewState(STATE_NONE);
                 } else {
-                    searchMusic(mScrollToke, inputWord, false);
+                    searchMusic(mScrollToken, inputWord, false);
                 }
             }
         });
@@ -224,7 +224,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                             && lastCompletelyVisibleItemPos == mSearchAdapter.getItemCount() - 1) {
                         //加载更多
                         if (mHasMore) {
-                            searchMusic(mScrollToke, mEditSearchMusic.getText().toString(), true);
+                            searchMusic(mScrollToken, mEditSearchMusic.getText().toString(), true);
                         } else {
                             //没有更多数据可加载了
                         }
@@ -266,7 +266,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                 if (errorCode != 0 || musicInfo == null) {
                     Log.d(TAG, "downloadMusic failed errorCode = " + errorCode + " , errorMessage = " + errorMessage);
                     info.isSelected = false;
-                    String tip = getString(R.string.trtckaraoke_toast_music_download_failed, musicInfo.musicName);
+                    String tip = getString(R.string.trtckaraoke_toast_music_download_failed, info.musicName);
                     Toast.show(tip, Toast.LENGTH_SHORT);
                     holder.updateChooseButton(info.isSelected);
                     mMusicServiceImpl.deleteMusicFromPlaylist(info, null);
@@ -302,7 +302,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                         if (TextUtils.isEmpty(pageInfo.scrollToken) && pageInfo.musicInfoList.isEmpty()) {
                             mHasMore = false;
                         } else {
-                            mScrollToke = pageInfo.scrollToken;
+                            mScrollToken = pageInfo.scrollToken;
                         }
                         if (!append) {
                             mSearchList.clear();
@@ -313,7 +313,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                             model.singers = info.singers;
                             model.musicName = info.musicName;
                             model.userId = info.userId;
-                            model.isSelected = false;
+                            model.coverUrl = info.coverUrl;
 
                             //从已点列表中查找当前歌曲是否已点
                             KaraokeMusicInfo selectModel = mRoomInfoController.getUserSelectMap().get(model.musicId);

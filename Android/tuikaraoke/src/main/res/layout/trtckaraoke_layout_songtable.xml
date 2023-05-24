@@ -41,6 +41,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
+                    android:gravity="left"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:maxWidth="120dp"
                     android:textColor="@color/trtckaraoke_white"
                     android:textSize="12sp" />
                 <ImageView

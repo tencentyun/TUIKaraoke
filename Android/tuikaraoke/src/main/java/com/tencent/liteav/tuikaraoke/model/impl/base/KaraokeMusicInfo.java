@@ -21,8 +21,8 @@ public class KaraokeMusicInfo {
     public Boolean      isSelected;  //歌曲是否已点,点歌的时候将该值置为true ,切歌或删除时置为false
 
     public boolean isPreloaded() {
-        //歌曲是否已经下载完毕。有的歌曲无伴奏，所以不管 accompanyUrl
-        return !TextUtils.isEmpty(originUrl) && !TextUtils.isEmpty(lrcUrl);
+        //歌曲是否已经下载完毕。有的歌曲无伴奏（accompanyUrl）或者歌词（lrcUrl）
+        return !TextUtils.isEmpty(originUrl);
     }
 
     @Override

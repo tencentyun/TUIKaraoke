@@ -218,7 +218,7 @@ public class KaraokeDashboardDialog extends Dialog {
         }
 
         private void initHorizontalStyle() {
-            LinearLayout.LayoutParams params = new LayoutParams(0, LayoutParams.WRAP_CONTENT);
+            LayoutParams params = new LayoutParams(0, LayoutParams.WRAP_CONTENT);
             params.weight = 1;
             addView(mTitleView, params);
 

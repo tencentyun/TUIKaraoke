@@ -19,7 +19,10 @@ public interface Constants {
     String KARAOKE_DELETE_MUSIC_EVENT = "DeleteMusicEvent";
     String KARAOKE_UPDATE_LYRICS_PATH_EVENT = "UpdateLyricsPathEvent";
 
+    String KARAOKE_UPDATE_SELECTED_MUSIC_COUNT_EVENT = "UpdateSelectedMusicCountEvent";
+
     /*************** 以下是TUICore通知事件传递参数map用到的Key ***************/
     String KARAOKE_MUSIC_INFO_KEY = "MusicInfoKey";
     String KARAOKE_LYRICS_PATH_KEY = "LyricsPathKey";
+    String KARAOKE_SELECTED_MUSIC_COUNT_KEY = "SelectedMusicCount";
 }

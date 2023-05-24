@@ -1,6 +1,6 @@
 package com.tencent.liteav.tuikaraoke.ui.widget.msg;
 
-public class MsgEntity {
+public class MessageEntity {
     public static final int TYPE_NORMAL       = 0;
     public static final int TYPE_WAIT_AGREE   = 1;
     public static final int TYPE_AGREED       = 2;

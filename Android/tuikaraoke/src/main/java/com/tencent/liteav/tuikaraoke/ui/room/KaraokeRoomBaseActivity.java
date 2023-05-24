@@ -39,12 +39,12 @@ import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
 import com.tencent.liteav.tuikaraoke.model.KaraokeMusicServiceObserver;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
+import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef.UserInfo;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomObserver;
 import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.ui.audio.impl.KaraokeAudioViewModel;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
-import com.tencent.liteav.tuikaraoke.ui.base.MemberEntity;
 import com.tencent.liteav.tuikaraoke.ui.gift.GiftAdapter;
 import com.tencent.liteav.tuikaraoke.ui.gift.GiftPanelDelegate;
 import com.tencent.liteav.tuikaraoke.ui.gift.IGiftPanelView;
@@ -60,11 +60,12 @@ import com.tencent.liteav.tuikaraoke.ui.music.impl.KaraokeMusicView;
 import com.tencent.liteav.tuikaraoke.ui.utils.Constants;
 import com.tencent.liteav.tuikaraoke.ui.utils.PermissionHelper;
 import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
+import com.tencent.liteav.tuikaraoke.ui.utils.Utils;
 import com.tencent.liteav.tuikaraoke.ui.widget.ConfirmDialogFragment;
 import com.tencent.liteav.tuikaraoke.ui.widget.InputTextMsgDialog;
 import com.tencent.liteav.tuikaraoke.ui.widget.msg.AudienceEntity;
-import com.tencent.liteav.tuikaraoke.ui.widget.msg.MsgEntity;
-import com.tencent.liteav.tuikaraoke.ui.widget.msg.MsgListAdapter;
+import com.tencent.liteav.tuikaraoke.ui.widget.msg.MessageEntity;
+import com.tencent.liteav.tuikaraoke.ui.widget.msg.MessageListAdapter;
 import com.tencent.qcloud.tuicore.TUICore;
 import com.tencent.qcloud.tuicore.interfaces.ITUINotification;
 import com.tencent.qcloud.tuicore.interfaces.TUICallback;
@@ -85,7 +86,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class KaraokeRoomBaseActivity extends AppCompatActivity implements KaraokeRoomSeatAdapter.OnItemClickListener,
         TRTCKaraokeRoomObserver,
         InputTextMsgDialog.OnTextSendListener,
-        MsgListAdapter.OnItemClickListener {
+        MessageListAdapter.OnItemClickListener {
     protected static final String TAG = "KaraokeRoomBaseActivity";
 
     protected static final int    MAX_SEAT_SIZE        = 8;
@@ -140,11 +141,10 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     protected String                     mUserAvatar;
     protected CircleImageView            mImgRoom;
     protected boolean                    mNeedRequest;
-    protected List<MsgEntity>            mMsgEntityList;
-    protected LinkedList<AudienceEntity> mAudienceEntityList;
-    protected MsgListAdapter             mMsgListAdapter;
+    protected List<MessageEntity>        mMsgEntityList;
+    protected MessageListAdapter         mMessageListAdapter;
     protected ConfirmDialogFragment      mConfirmDialogFragment;
-    protected Map<String, MemberEntity>  mMemberEntityMap;
+    protected Map<String, UserInfo>      mMemberInfoMap;
     protected ConfirmDialogFragment      mUpdateNetworkSyncFailDialog;
 
     private Context mContext;
@@ -167,6 +167,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
             + ".KaraokeMusicServiceImpl";
     public    RoomInfoController  mRoomInfoController;
     protected boolean             mUpdateNetworkSuccessed;
+
+    private boolean               mHasCheckedHeadset;
 
     private ITUINotification mUpdateLyricsPathNotification = new ITUINotification() {
         @Override
@@ -198,6 +200,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
+        mHasCheckedHeadset = false;
         UserModelManager.getInstance().getUserModel().userType = UserModel.UserType.KARAOKE;
         // 应用运行时，保持不锁屏、全屏化
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -207,8 +210,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         initView();
         initData();
         initListener();
-        MsgEntity msgEntity = new MsgEntity();
-        msgEntity.type = MsgEntity.TYPE_WELCOME;
+        MessageEntity msgEntity = new MessageEntity();
+        msgEntity.type = MessageEntity.TYPE_WELCOME;
         msgEntity.content = getString(R.string.trtckaraoke_welcome_visit);
         msgEntity.linkUrl = getString(R.string.trtckaraoke_welcome_visit_link);
         showImMsg(msgEntity);
@@ -285,7 +288,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         mInputTextMsgDialog = new InputTextMsgDialog(this, R.style.TRTCKTVRoomInputDialog);
         mInputTextMsgDialog.setOnTextSendListener(this);
         mMsgEntityList = new ArrayList<>();
-        mMemberEntityMap = new HashMap<>();
+        mMemberInfoMap = new HashMap<>();
 
         mBtnExitRoom.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -293,9 +296,9 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
                 checkingBeforeExitRoom();
             }
         });
-        mMsgListAdapter = new MsgListAdapter(this, mMsgEntityList, this);
+        mMessageListAdapter = new MessageListAdapter(this, mMsgEntityList, this);
         mRvImMsg.setLayoutManager(new LinearLayoutManager(this));
-        mRvImMsg.setAdapter(mMsgListAdapter);
+        mRvImMsg.setAdapter(mMessageListAdapter);
         mSeatUserMuteMap = new HashMap<>();
         mKaraokeRoomSeatEntityList = new ArrayList<>();
         for (int i = 0; i < MAX_SEAT_SIZE; i++) {
@@ -311,8 +314,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         mRvSeat.setAdapter(mKaraokeRoomSeatAdapter);
 
         //听众表
-        mAudienceEntityList = new LinkedList<>();
-        mAudienceListAdapter = new AudienceListAdapter(this, mAudienceEntityList);
+        mAudienceListAdapter = new AudienceListAdapter(this, new LinkedList<>());
         LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.HORIZONTAL);
         mRvAudience.setLayoutManager(lm);
@@ -552,7 +554,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     /**
      * 处理礼物弹幕消息
      */
-    private void handleGiftMessage(TRTCKaraokeRoomDef.UserInfo userInfo, String data) {
+    private void handleGiftMessage(UserInfo userInfo, String data) {
         if (mGiftInfoDataHandler != null) {
             Gson gson = new Gson();
             GiftSendJson jsonData = gson.fromJson(data, GiftSendJson.class);
@@ -594,7 +596,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
                 });
     }
 
-    private void handleSelectMusicMessage(TRTCKaraokeRoomDef.UserInfo userInfo, String data) {
+    private void handleSelectMusicMessage(UserInfo userInfo, String data) {
         if (TextUtils.isEmpty(data)) {
             return;
         }
@@ -616,11 +618,10 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
             mBtnMic.setVisibility(View.VISIBLE);
             mBtnMic.setActivated(true);
             mBtnMic.setSelected(true);
-            mKTVMusicView.updateView(true);
         } else {
             mBtnMic.setVisibility(View.GONE);
-            mKTVMusicView.updateView(false);
         }
+        mKTVMusicView.updateView();
     }
 
     /**
@@ -708,12 +709,12 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         }
 
         //消息回显
-        MsgEntity entity = new MsgEntity();
+        MessageEntity entity = new MessageEntity();
         entity.userName = getString(R.string.trtckaraoke_me);
         entity.content = msg;
         entity.isChat = true;
         entity.userId = mSelfUserId;
-        entity.type = MsgEntity.TYPE_NORMAL;
+        entity.type = MessageEntity.TYPE_NORMAL;
         showImMsg(entity);
 
         mTRTCKaraokeRoom.sendRoomTextMsg(msg, new TUICallback() {
@@ -805,21 +806,21 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
             }
         }
 
-        mTRTCKaraokeRoom.getUserInfoList(userIds, new TUIValueCallback<List<TRTCKaraokeRoomDef.UserInfo>>() {
+        mTRTCKaraokeRoom.getUserInfoList(userIds, new TUIValueCallback<List<UserInfo>>() {
             @Override
             public void onError(int errorCode, String errorMessage) {
                 TRTCLogger.e(TAG, "getUserInfoList, code: " + errorCode + " message: " + errorMessage);
             }
 
             @Override
-            public void onSuccess(List<TRTCKaraokeRoomDef.UserInfo> list) {
-                Map<String, TRTCKaraokeRoomDef.UserInfo> map = new HashMap<>();
-                for (TRTCKaraokeRoomDef.UserInfo userInfo : list) {
+            public void onSuccess(List<UserInfo> list) {
+                Map<String, UserInfo> map = new HashMap<>();
+                for (UserInfo userInfo : list) {
                     map.put(userInfo.userId, userInfo);
                 }
                 for (int i = 0; i < seatInfoList.size(); i++) {
                     TRTCKaraokeRoomDef.SeatInfo newSeatInfo = seatInfoList.get(i);
-                    TRTCKaraokeRoomDef.UserInfo userInfo = map.get(newSeatInfo.user);
+                    UserInfo userInfo = map.get(newSeatInfo.user);
                     if (userInfo == null) {
                         continue;
                     }
@@ -833,20 +834,42 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
                     }
                 }
                 mKaraokeRoomSeatAdapter.notifyDataSetChanged();
-                if (!isInitSeat) {
-                    getAudienceList();
+                if (userIds.isEmpty() && !isInitSeat) {
+                    //首次回调onSeatListChange时无人上麦，userIds必然是空，此时list就是观众表
                     isInitSeat = true;
+                    updateAudienceList(list);
                 }
             }
         });
         mRoomInfoController.setRoomSeatEntityList(mKaraokeRoomSeatEntityList);
     }
 
+    private void updateAudienceList(List<UserInfo> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        for (UserInfo userInfo : list) {
+            Log.d(TAG, "updateAudienceList userInfo:" + userInfo);
+            if (!mSeatUserMuteMap.containsKey(userInfo.userId)) {
+                AudienceEntity audienceEntity = new AudienceEntity();
+                audienceEntity.userAvatar = userInfo.avatarURL;
+                audienceEntity.userId = userInfo.userId;
+                mAudienceListAdapter.addMember(audienceEntity);
+            }
+            if (userInfo.userId.equals(mSelfUserId)) {
+                continue;
+            }
+            if (!mMemberInfoMap.containsKey(userInfo.userId)) {
+                mMemberInfoMap.put(userInfo.userId, userInfo);
+            }
+        }
+    }
+
     @Override
-    public void onAnchorEnterSeat(int index, TRTCKaraokeRoomDef.UserInfo user) {
+    public void onAnchorEnterSeat(int index, UserInfo user) {
         Log.d(TAG, "onAnchorEnterSeat userInfo:" + user);
-        MsgEntity msgEntity = new MsgEntity();
-        msgEntity.type = MsgEntity.TYPE_NORMAL;
+        MessageEntity msgEntity = new MessageEntity();
+        msgEntity.type = MessageEntity.TYPE_NORMAL;
         msgEntity.userName = user.userName;
         msgEntity.content = getString(R.string.trtckaraoke_tv_online_no_name, index + 1);
         showImMsg(msgEntity);
@@ -859,10 +882,10 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     }
 
     @Override
-    public void onAnchorLeaveSeat(int index, TRTCKaraokeRoomDef.UserInfo user) {
+    public void onAnchorLeaveSeat(int index, UserInfo user) {
         Log.d(TAG, "onAnchorLeaveSeat userInfo:" + user);
-        MsgEntity msgEntity = new MsgEntity();
-        msgEntity.type = MsgEntity.TYPE_NORMAL;
+        MessageEntity msgEntity = new MessageEntity();
+        msgEntity.type = MessageEntity.TYPE_NORMAL;
         msgEntity.userName = user.userName;
         msgEntity.content = getString(R.string.trtckaraoke_tv_offline_no_name, index + 1);
         showImMsg(msgEntity);
@@ -886,8 +909,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
     @Override
     public void onSeatMute(int index, boolean isMute) {
-        MsgEntity msgEntity = new MsgEntity();
-        msgEntity.type = MsgEntity.TYPE_NORMAL;
+        MessageEntity msgEntity = new MessageEntity();
+        msgEntity.type = MessageEntity.TYPE_NORMAL;
         if (isMute) {
             msgEntity.content = getString(R.string.trtckaraoke_tv_the_position_has_muted, index + 1);
         } else {
@@ -911,8 +934,8 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
 
     @Override
     public void onSeatClose(int index, boolean isClose) {
-        MsgEntity msgEntity = new MsgEntity();
-        msgEntity.type = MsgEntity.TYPE_NORMAL;
+        MessageEntity msgEntity = new MessageEntity();
+        msgEntity.type = MessageEntity.TYPE_NORMAL;
         msgEntity.content = isClose ? getString(R.string.trtckaraoke_tv_the_owner_ban_this_position, index + 1) :
                 getString(R.string.trtckaraoke_tv_the_owner_not_ban_this_position, index + 1);
         showImMsg(msgEntity);
@@ -1015,10 +1038,10 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     }
 
     @Override
-    public void onAudienceEnter(TRTCKaraokeRoomDef.UserInfo userInfo) {
+    public void onAudienceEnter(UserInfo userInfo) {
         Log.d(TAG, "onAudienceEnter userInfo:" + userInfo);
-        MsgEntity msgEntity = new MsgEntity();
-        msgEntity.type = MsgEntity.TYPE_NORMAL;
+        MessageEntity msgEntity = new MessageEntity();
+        msgEntity.type = MessageEntity.TYPE_NORMAL;
         msgEntity.content = getString(R.string.trtckaraoke_tv_enter_room, "");
         msgEntity.userName = userInfo.userName;
         showImMsg(msgEntity);
@@ -1032,10 +1055,10 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     }
 
     @Override
-    public void onAudienceExit(TRTCKaraokeRoomDef.UserInfo userInfo) {
+    public void onAudienceExit(UserInfo userInfo) {
         Log.d(TAG, "onAudienceExit userInfo:" + userInfo);
-        MsgEntity msgEntity = new MsgEntity();
-        msgEntity.type = MsgEntity.TYPE_NORMAL;
+        MessageEntity msgEntity = new MessageEntity();
+        msgEntity.type = MessageEntity.TYPE_NORMAL;
         msgEntity.userName = userInfo.userName;
         msgEntity.content = getString(R.string.trtckaraoke_tv_exit_room, "");
         showImMsg(msgEntity);
@@ -1067,18 +1090,18 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
     }
 
     @Override
-    public void onRecvRoomTextMsg(String message, TRTCKaraokeRoomDef.UserInfo userInfo) {
-        MsgEntity msgEntity = new MsgEntity();
+    public void onRecvRoomTextMsg(String message, UserInfo userInfo) {
+        MessageEntity msgEntity = new MessageEntity();
         msgEntity.userId = userInfo.userId;
         msgEntity.userName = userInfo.userName;
         msgEntity.content = message;
-        msgEntity.type = MsgEntity.TYPE_NORMAL;
+        msgEntity.type = MessageEntity.TYPE_NORMAL;
         msgEntity.isChat = true;
         showImMsg(msgEntity);
     }
 
     @Override
-    public void onRecvRoomCustomMsg(String cmd, String message, TRTCKaraokeRoomDef.UserInfo userInfo) {
+    public void onRecvRoomCustomMsg(String cmd, String message, UserInfo userInfo) {
         switch (cmd) {
             case Constants.IMCMD_GIFT:
                 handleGiftMessage(userInfo, message);
@@ -1135,6 +1158,10 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         //收到歌曲进度的回调后,更新歌词显示进度
         mLrcView.updateLyricsPlayProgress(progress);
         mKTVMusicView.updateMusicPlayingProgress(progress, total);
+        if (!mHasCheckedHeadset && !Utils.checkHasHeadset(mContext)) {
+            mHasCheckedHeadset = true;
+            Toast.show(R.string.trtckaraoke_audio_headset_check_tip, Toast.LENGTH_LONG);
+        }
     }
 
     @Override
@@ -1218,41 +1245,6 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         mUpdateNetworkSyncFailDialog.show(this.getFragmentManager(), "confirm_try_network_time");
     }
 
-    protected void getAudienceList() {
-        mTRTCKaraokeRoom.getUserInfoList(null, new TUIValueCallback<List<TRTCKaraokeRoomDef.UserInfo>>() {
-            @Override
-            public void onError(int errorCode, String errorMessage) {
-                String info = "get user info list failed[" + errorCode + "]:" + errorMessage;
-                TRTCLogger.e(TAG, info);
-            }
-
-            @Override
-            public void onSuccess(List<TRTCKaraokeRoomDef.UserInfo> list) {
-                Log.d(TAG, "getAudienceList list size:" + list.size());
-                for (TRTCKaraokeRoomDef.UserInfo userInfo : list) {
-                    Log.d(TAG, "getAudienceList userInfo:" + userInfo);
-                    if (!mSeatUserMuteMap.containsKey(userInfo.userId)) {
-                        AudienceEntity audienceEntity = new AudienceEntity();
-                        audienceEntity.userAvatar = userInfo.avatarURL;
-                        audienceEntity.userId = userInfo.userId;
-                        mAudienceListAdapter.addMember(audienceEntity);
-                    }
-                    if (userInfo.userId.equals(mSelfUserId)) {
-                        continue;
-                    }
-                    MemberEntity memberEntity = new MemberEntity();
-                    memberEntity.userId = userInfo.userId;
-                    memberEntity.avatarURL = userInfo.avatarURL;
-                    memberEntity.userName = userInfo.userName;
-                    memberEntity.type = MemberEntity.TYPE_IDEL;
-                    if (!mMemberEntityMap.containsKey(memberEntity.userId)) {
-                        mMemberEntityMap.put(memberEntity.userId, memberEntity);
-                    }
-                }
-            }
-        });
-    }
-
     protected int changeSeatIndexToModelIndex(int srcSeatIndex) {
         return srcSeatIndex;
     }
@@ -1262,9 +1254,9 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
             Log.d(TAG, "updateMessageList: the entity is not ready");
             return;
         }
-        MsgEntity msgEntity = new MsgEntity();
+        MessageEntity msgEntity = new MessageEntity();
         msgEntity.invitedId = Constants.CMD_ORDER_SONG;
-        msgEntity.type = MsgEntity.TYPE_ORDERED_SONG;
+        msgEntity.type = MessageEntity.TYPE_ORDERED_SONG;
 
         int seatIndex = 0;
         String userName = "";
@@ -1289,7 +1281,7 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
         showImMsg(msgEntity);
     }
 
-    protected void showImMsg(final MsgEntity entity) {
+    protected void showImMsg(final MessageEntity entity) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -1308,20 +1300,20 @@ public class KaraokeRoomBaseActivity extends AppCompatActivity implements Karaok
                 }
 
                 //判断当前消息类型是申请上麦消息
-                if (entity != null && entity.type == MsgEntity.TYPE_WAIT_AGREE) {
+                if (entity != null && entity.type == MessageEntity.TYPE_WAIT_AGREE) {
                     //判断当前消息是同一个用户发出
                     if (mLastMsgUserId != null && mLastMsgUserId.equals(entity.userId)) {
-                        for (MsgEntity temp : mMsgEntityList) {
+                        for (MessageEntity temp : mMsgEntityList) {
                             if (temp != null && mLastMsgUserId.equals(temp.userId)) {
-                                temp.type = MsgEntity.TYPE_AGREED;
+                                temp.type = MessageEntity.TYPE_AGREED;
                             }
                         }
                     }
                 }
                 mLastMsgUserId = entity.userId;
                 mMsgEntityList.add(entity);
-                mMsgListAdapter.notifyDataSetChanged();
-                mRvImMsg.smoothScrollToPosition(mMsgListAdapter.getItemCount());
+                mMessageListAdapter.notifyDataSetChanged();
+                mRvImMsg.smoothScrollToPosition(mMessageListAdapter.getItemCount());
             }
         });
     }

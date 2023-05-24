@@ -19,7 +19,6 @@ import android.widget.TextView;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-import com.tencent.liteav.tuikaraoke.ui.utils.Utils;
 import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
@@ -109,8 +108,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         TUICore.unRegisterEvent(KARAOKE_MUSIC_EVENT, KARAOKE_STOP_MUSIC_EVENT, mStopMusicNotification);
     }
 
-    public void updateView(boolean isShow) {
-        mSwitchMusicAccompanimentMode.setVisibility(isShow ? VISIBLE : GONE);
+    public void updateView() {
         updateSongTableView(mSelectedList.size());
     }
 
@@ -165,7 +163,6 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
             mBtnStartChorus.setVisibility(GONE);
             mLayoutInfo.setVisibility(View.GONE);
             mBtnEmptyChoose.setVisibility(View.VISIBLE);
-            mSwitchMusicAccompanimentMode.setVisibility(GONE);
             mTextMusicComing.setVisibility(GONE);
             //空界面清空歌词
             setLrcPath(null);
@@ -173,14 +170,6 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         } else if (size > 0) {
             mLayoutInfo.setVisibility(View.VISIBLE);
             mBtnEmptyChoose.setVisibility(View.GONE);
-            if (mRoomInfoController.isRoomOwner()) {
-                if (mIsStartChorus) {
-                    mSwitchMusicAccompanimentMode.setVisibility(VISIBLE);
-                }
-            } else if (mRoomInfoController.isAnchor()) {
-                mSwitchMusicAccompanimentMode.setVisibility(VISIBLE);
-            }
-
             if (mRoomInfoController.isRoomOwner() && !mIsStartChorus) {
                 mBtnStartChorus.setVisibility(VISIBLE);
             }
@@ -235,6 +224,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
                 mBtnStartChorus.setVisibility(GONE);
                 mSwitchMusicAccompanimentMode.setVisibility(VISIBLE);
                 //开始倒计时
+                setLrcPath(mCurrentMusicInfo.lrcUrl);
                 startPlay(mCurrentMusicInfo);
                 mIsStartChorus = true;
             }
@@ -252,14 +242,7 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
     }
 
     private void startPlay(final KaraokeMusicInfo model) {
-        if (!Utils.checkHasHeadset(mContext)) {
-            Toast.show(R.string.trtckaraoke_audio_headset_check_tip, Toast.LENGTH_LONG);
-        }
         mKaraokeAudioViewModel.startPlayMusic(model);
-        mKaraokeAudioViewModel.setCurrentStatus(KaraokeAudioViewModel.MUSIC_PLAYING);
-        if (model != null && !TextUtils.isEmpty(model.lrcUrl)) {
-            setLrcPath(model.lrcUrl);
-        }
     }
 
     //打开点歌/已点面板
@@ -309,27 +292,25 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
             TRTCLogger.i(TAG, "this music is playing");
             return;
         }
+        mCurrentMusicInfo = musicInfo;
         mBtnStartChorus.setEnabled(true);
+        if (mRoomInfoController.isRoomOwner() && !mIsStartChorus) {
+            TRTCLogger.i(TAG, "the room owner has not started chorus, so will not set the lyrics temporarily");
+        } else {
+            setLrcPath(musicInfo.lrcUrl);
+        }
         if ((mRoomInfoController.isAnchor())) {
-            mCurrentMusicInfo = musicInfo;
             if (mIsStartChorus) {
                 startPlay(musicInfo);
-            }
-        } else {
-            if (musicInfo.lrcUrl == null) {
-                TRTCLogger.e(TAG, "playMusic, lrcUrl is null!");
-            } else {
-                setLrcPath(musicInfo.lrcUrl);
             }
         }
     }
 
     private void stopPlay(KaraokeMusicInfo model) {
         TRTCLogger.i(TAG, "stopPlay: model = " + model);
+        mCurrentMusicInfo = null;
         if ((mRoomInfoController.isAnchor())) {
-            mCurrentMusicInfo = null;
             mKaraokeAudioViewModel.stopPlayMusic(model);
-            mKaraokeAudioViewModel.setCurrentStatus(KaraokeAudioViewModel.MUSIC_STOP);
         }
         setLrcPath(null);
     }
@@ -338,21 +319,36 @@ public class KaraokeMusicView extends CoordinatorLayout implements KaraokeMusicS
         Map<String, Object> params = new HashMap<>();
         params.put(KARAOKE_LYRICS_PATH_KEY, url);
         TUICore.notifyEvent(KARAOKE_MUSIC_EVENT, KARAOKE_UPDATE_LYRICS_PATH_EVENT, params);
-        mTextMusicPlayingProgress.setVisibility(url == null ? GONE : VISIBLE);
-        mTextMusicComing.setVisibility(url == null ? GONE : VISIBLE);
-        if (url == null) {
+        boolean isEmptyLyric = TextUtils.isEmpty(url);
+        mSwitchMusicAccompanimentMode.setVisibility(GONE);
+        mTextMusicPlayingProgress.setVisibility(isEmptyLyric ? GONE : VISIBLE);
+        mTextMusicComing.setText(R.string.trtckaraoke_music_coming);
+        mTextMusicComing.setVisibility(isEmptyLyric ? GONE : VISIBLE);
+        if (isEmptyLyric) {
             //结束时清空显示，避免播放下一首时闪现上次歌曲的数据
             mTextMusicPlayingProgress.setText("");
+            if (mCurrentMusicInfo != null) {
+                mTextMusicComing.setText(R.string.trtckaraoke_lyric_empty_hint);
+                mTextMusicComing.setVisibility(VISIBLE);
+            }
         }
     }
 
     public void updateMusicPlayingProgress(long progress, long total) {
-        if (mTextMusicComing.getVisibility() == VISIBLE) {
+        boolean isEmptyUrl = mCurrentMusicInfo != null && TextUtils.isEmpty(mCurrentMusicInfo.lrcUrl);
+        if (mTextMusicComing.getVisibility() == VISIBLE && !isEmptyUrl) {
             mTextMusicComing.setVisibility(GONE);
+        }
+        int newVisibility = mRoomInfoController.isAnchor() ? VISIBLE : GONE;
+        if (mSwitchMusicAccompanimentMode.getVisibility() != newVisibility) {
+            mSwitchMusicAccompanimentMode.setVisibility(newVisibility);
         }
         String info = String.format("%02d:%02d/%02d:%02d",
                 progress / 1000 / 60, progress / 1000 % 60,
                 total / 1000 / 60, total / 1000 % 60);
         mTextMusicPlayingProgress.setText(info);
+        if (mTextMusicPlayingProgress.getVisibility() != VISIBLE) {
+            mTextMusicPlayingProgress.setVisibility(VISIBLE);
+        }
     }
 }

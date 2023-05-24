@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KTVMusicInfoSet {
-    @SerializedName("ktvMusicInfoSet")
+    @SerializedName(value = "ktvMusicInfoSet", alternate = {"musicInfo"})
     public List<KTVMusicInfo> musicInfoList = new ArrayList<>();
     @SerializedName("scrollToken")
     public String             scrollToken   = "";
@@ -24,8 +24,8 @@ public class KTVMusicInfoSet {
         public AlbumInfo    albumInfo  = new AlbumInfo();
         @SerializedName("SingerSet")
         public List<String> singerList = new ArrayList<>();
-        @SerializedName("albumInfoCoverUrl")
-        public String       coverUrl;    //歌曲封面("copyright"歌曲的字段)
+        @SerializedName("AlbumInfoCoverUrl")
+        public String       albumInfoCoverUrl;    //歌曲封面("copyright"歌曲的字段)
     }
 
 

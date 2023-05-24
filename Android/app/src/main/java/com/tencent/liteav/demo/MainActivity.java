@@ -189,8 +189,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             roomId = 10000;
         }
-        KaraokeRoomAudienceActivity.enterKaraokeRoom(
-                this, roomId, roomOwnerId, userId, TRTCCloudDef.TRTC_AUDIO_QUALITY_DEFAULT);
+        KaraokeRoomAudienceActivity.enterKaraokeRoom(this, roomId, roomOwnerId, userId);
     }
 
     private boolean isRoomExist(V2TIMGroupInfoResult result) {

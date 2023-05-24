@@ -39,18 +39,11 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     private        String                mOwnerId;
     private        boolean               mIsSeatInitSuccess;
     private        ConfirmDialogFragment mAlertDialog;
-    private static AudienceRoomEntity    mCollectEntity;
     private        boolean               mIsTakingSeat; //正在进行上麦
 
     private        int                   mLocalNetworkQuality;
 
-    public static void enterKaraokeRoom(final Context context, int roomId, String ownerId,
-                                        String userId, int audioQuality) {
-        mCollectEntity = new AudienceRoomEntity();
-        mCollectEntity.roomId = roomId;
-        mCollectEntity.userId = userId;
-        mCollectEntity.audioQuality = audioQuality;
-
+    public static void enterKaraokeRoom(final Context context, int roomId, String ownerId, String userId) {
         Intent starter = new Intent(context, KaraokeRoomAudienceActivity.class);
         starter.putExtra(KTVROOM_ROOM_ID, roomId);
         starter.putExtra(KTVROOM_OWNER_ID, ownerId);
@@ -211,7 +204,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                         // 发送请求之前再次判断一下这个座位有没有人
                         KaraokeRoomSeatEntity seatEntity = mKaraokeRoomSeatEntityList.get(itemPos);
                         if (seatEntity.isUsed) {
-                            Toast.show(R.string.trtckaraoke_toast_position_is_already_occupied, Toast.LENGTH_SHORT);
+                            Toast.show(seatEntity.userName, Toast.LENGTH_SHORT);
                             return;
                         }
                         if (seatEntity.isClose) {
@@ -241,7 +234,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
             if (entity.userId.equals(mSelfUserId)) {
                 leaveSeat();
             } else {
-                Toast.show(R.string.trtckaraoke_toast_position_is_already_occupied, Toast.LENGTH_SHORT);
+                Toast.show(entity.userName, Toast.LENGTH_SHORT);
             }
         }
     }

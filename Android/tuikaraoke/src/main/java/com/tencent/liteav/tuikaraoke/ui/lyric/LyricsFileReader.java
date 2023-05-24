@@ -85,7 +85,7 @@ public class LyricsFileReader {
         lineInfo.wordList = wordInfoList;
         lineInfo.content = content.toString();
 
-        if (index != words.length) {
+        if (index != (words.length - 1)) {
             TRTCLogger.e(TAG, "lyric line parsing error, times length not equal to words，line：" + lineString);
         }
     }

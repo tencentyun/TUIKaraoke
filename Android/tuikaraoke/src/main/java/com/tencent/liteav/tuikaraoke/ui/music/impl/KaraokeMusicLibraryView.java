@@ -199,7 +199,7 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout {
                             + errorCode + ",errorMessage = " + errorMessage);
                     info.isSelected = false;
                     String tip = getResources().getString(R.string.trtckaraoke_toast_music_download_failed,
-                            musicInfo.musicName);
+                            info.musicName);
                     Toast.show(tip, Toast.LENGTH_SHORT);
                     holder.updateChooseButton(info.isSelected);
                     mKaraokeMusicService.deleteMusicFromPlaylist(info, null);

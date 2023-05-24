@@ -10,13 +10,12 @@ import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.model.impl.server.TRTCKaraokeRoomManager;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
-import com.tencent.liteav.tuikaraoke.ui.base.MemberEntity;
 import com.tencent.liteav.tuikaraoke.ui.utils.Constants;
 import com.tencent.liteav.tuikaraoke.ui.utils.PermissionHelper;
 import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
 import com.tencent.liteav.tuikaraoke.ui.widget.CommonBottomDialog;
 import com.tencent.liteav.tuikaraoke.ui.widget.ConfirmDialogFragment;
-import com.tencent.liteav.tuikaraoke.ui.widget.msg.MsgEntity;
+import com.tencent.liteav.tuikaraoke.ui.widget.msg.MessageEntity;
 import com.tencent.qcloud.tuicore.TUILogin;
 import com.tencent.qcloud.tuicore.interfaces.TUICallback;
 import com.tencent.qcloud.tuicore.interfaces.TUILoginListener;
@@ -331,45 +330,22 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
         if (userInfo.userId.equals(mSelfUserId)) {
             return;
         }
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.userId = userInfo.userId;
-        memberEntity.avatarURL = userInfo.avatarURL;
-        memberEntity.userName = userInfo.userName;
-        memberEntity.type = MemberEntity.TYPE_IDEL;
-        if (!mMemberEntityMap.containsKey(memberEntity.userId)) {
-            mMemberEntityMap.put(memberEntity.userId, memberEntity);
+        if (!mMemberInfoMap.containsKey(userInfo.userId)) {
+            mMemberInfoMap.put(userInfo.userId, userInfo);
         }
     }
 
     @Override
     public void onAudienceExit(TRTCKaraokeRoomDef.UserInfo userInfo) {
         super.onAudienceExit(userInfo);
-        mMemberEntityMap.remove(userInfo.userId);
-    }
-
-    @Override
-    public void onAnchorEnterSeat(int index, TRTCKaraokeRoomDef.UserInfo user) {
-        super.onAnchorEnterSeat(index, user);
-        MemberEntity entity = mMemberEntityMap.get(user.userId);
-        if (entity != null) {
-            entity.type = MemberEntity.TYPE_IN_SEAT;
-        }
-    }
-
-    @Override
-    public void onAnchorLeaveSeat(int index, TRTCKaraokeRoomDef.UserInfo user) {
-        super.onAnchorLeaveSeat(index, user);
-        MemberEntity entity = mMemberEntityMap.get(user.userId);
-        if (entity != null) {
-            entity.type = MemberEntity.TYPE_IDEL;
-        }
+        mMemberInfoMap.remove(userInfo.userId);
     }
 
     @Override
     public void onAgreeClick(int position) {
         super.onAgreeClick(position);
         if (mMsgEntityList != null) {
-            final MsgEntity entity = mMsgEntityList.get(position);
+            final MessageEntity entity = mMsgEntityList.get(position);
             String inviteId = entity.invitedId;
             if (inviteId == null) {
                 Toast.show(getString(R.string.trtckaraoke_request_expired), Toast.LENGTH_LONG);
@@ -378,8 +354,8 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
             mTRTCKaraokeRoom.acceptInvitation(inviteId, new TUICallback() {
                 @Override
                 public void onSuccess() {
-                    entity.type = MsgEntity.TYPE_AGREED;
-                    mMsgListAdapter.notifyDataSetChanged();
+                    entity.type = MessageEntity.TYPE_AGREED;
+                    mMessageListAdapter.notifyDataSetChanged();
                 }
 
                 @Override
@@ -400,17 +376,14 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
 
     private void recvTakeSeat(String inviteId, String inviter, String content) {
         //收到了观众的申请上麦消息，显示到通知栏
-        MemberEntity memberEntity = mMemberEntityMap.get(inviter);
-        MsgEntity msgEntity = new MsgEntity();
+        TRTCKaraokeRoomDef.UserInfo userInfo = mMemberInfoMap.get(inviter);
+        MessageEntity msgEntity = new MessageEntity();
         msgEntity.userId = inviter;
         msgEntity.invitedId = inviteId;
-        msgEntity.userName = (memberEntity != null ? memberEntity.userName : inviter);
-        msgEntity.type = MsgEntity.TYPE_WAIT_AGREE;
+        msgEntity.userName = (userInfo != null ? userInfo.userName : inviter);
+        msgEntity.type = MessageEntity.TYPE_WAIT_AGREE;
         int seatIndex = Integer.parseInt(content);
         msgEntity.content = getString(R.string.trtckaraoke_msg_apply_for_chat, seatIndex + 1);
-        if (memberEntity != null) {
-            memberEntity.type = MemberEntity.TYPE_WAIT_AGREE;
-        }
         mTakeSeatInvitationMap.put(inviter, inviteId);
         showImMsg(msgEntity);
     }
@@ -419,7 +392,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
     public void onOrderedManagerClick(int position) {
         super.onOrderedManagerClick(position);
         if (mMsgEntityList != null) {
-            final MsgEntity entity = mMsgEntityList.get(position);
+            final MessageEntity entity = mMsgEntityList.get(position);
             String inviteId = entity.invitedId;
             if (inviteId == null) {
                 Toast.show(getString(R.string.trtckaraoke_request_expired), Toast.LENGTH_LONG);

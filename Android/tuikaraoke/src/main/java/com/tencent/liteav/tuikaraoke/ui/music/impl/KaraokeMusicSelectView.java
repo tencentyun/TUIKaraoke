@@ -3,7 +3,9 @@ package com.tencent.liteav.tuikaraoke.ui.music.impl;
 import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_DELETE_MUSIC_EVENT;
 import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_MUSIC_EVENT;
 import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_MUSIC_INFO_KEY;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_SELECTED_MUSIC_COUNT_KEY;
 import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_STOP_MUSIC_EVENT;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_UPDATE_SELECTED_MUSIC_COUNT_EVENT;
 
 import android.content.Context;
 
@@ -155,5 +157,8 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
         mSelectedList.clear();
         mSelectedList.addAll(musicInfoList);
         mSelectedAdapter.notifyDataSetChanged();
+        Map<String, Object> params = new HashMap<>();
+        params.put(KARAOKE_SELECTED_MUSIC_COUNT_KEY, mSelectedList.size());
+        TUICore.notifyEvent(KARAOKE_MUSIC_EVENT, KARAOKE_UPDATE_SELECTED_MUSIC_COUNT_EVENT, params);
     }
 }

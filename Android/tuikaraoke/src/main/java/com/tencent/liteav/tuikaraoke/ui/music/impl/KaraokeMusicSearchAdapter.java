@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.tencent.liteav.basic.ImageLoader;
 import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
@@ -25,12 +26,6 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
     protected OnPickItemClickListener onPickItemClickListener;
     private   RoomInfoController      mRoomInfoController;
 
-    //点歌列表歌曲封面
-    private static final int[] MUSIC_ICON_ARRAY = {
-            R.drawable.trtckaraoke_changetype_child_normal,
-            R.drawable.trtckaraoke_changetype_dashu_normal,
-            R.drawable.trtckaraoke_changetype_luoli_normal
-    };
     private static final int   NORMAL_TYPE      = 0;    //列表布局
     private static final int   FOOT_TYPE        = 1111; //底部布局
     private              int   mFootStatus      = KaraokeSearchMusicActivity.STATE_NONE; //底部布局状态
@@ -143,8 +138,7 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
                 mProgressBarChoose.setEnabled(false);
                 mProgressBarChoose.setProgress(100);
             }
-            int index = getAdapterPosition() % 3;
-            mImageCover.setImageResource(MUSIC_ICON_ARRAY[index]);
+            ImageLoader.loadImage(mContext, mImageCover, model.coverUrl, R.drawable.trtckaraoke_music_default);
         }
 
         public void updateChooseButton(boolean isSelect) {

@@ -208,32 +208,6 @@ public class KaraokeChorusExtension implements TXAudioEffectManager.TXMusicPlayO
         }
     }
 
-    private void preloadMusic(int startTimeMS) {
-        TRTCLogger.i(TAG, "preloadMusic currentNtp:" + getNtpTime());
-        String body = "";
-        try {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("api", "preloadMusic");
-            JSONObject paramJsonObject = new JSONObject();
-            paramJsonObject.put("musicId", mMusicID);
-            paramJsonObject.put("path", mOriginalUrl);
-            paramJsonObject.put("startTimeMS", startTimeMS);
-            jsonObject.put("params", paramJsonObject);
-            body = jsonObject.toString();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        TRTCCloud trtcCloud;
-        if (mTRTCBgmService != null) {
-            //如果有bgm实例，说明是主唱，选择背景音乐实例TRTCCloud加载歌曲
-            trtcCloud = mTRTCBgmService.getTRTCCloud();
-        } else {
-            //如果没有bgm实例，说明是副唱，选择主实例TRTCCloud加载歌曲
-            trtcCloud = mTRTCVoiceService.getTRTCCloud();
-        }
-        trtcCloud.callExperimentalAPI(body);
-    }
-
     private boolean isNtpReady() {
         return TXLiveBase.getNetworkTimestamp() > 0;
     }
@@ -278,14 +252,6 @@ public class KaraokeChorusExtension implements TXAudioEffectManager.TXMusicPlayO
                     // 若达到预期播放时间时，合唱已被停止，则跳过此次播放
                     return;
                 }
-                // 如果是观众上麦，此时音乐可能已经开始播放了，此时不能再从头开始播放
-                if (mChorusStartType == ChorusStartType.Remote) {
-                    long curNtpTime = getNtpTime();
-                    long position = curNtpTime - mRevStartPlayMusicTs;
-                    audioMusicParam.startTimeMS = position > 0 ? position : 0;
-                    accompanyParam.startTimeMS = position > 0 ? position : 0;
-                }
-
                 TRTCLogger.i(TAG, "startPlayMusic. startTs:" + mRevStartPlayMusicTs
                         + " start time: " + mDateFormatter.format(new Date(mRevStartPlayMusicTs))
                         + " current time: " + mDateFormatter.format(new Date(getNtpTime())));
@@ -297,10 +263,16 @@ public class KaraokeChorusExtension implements TXAudioEffectManager.TXMusicPlayO
         };
 
         if (delayMs > 0) {
-            preloadMusic(0);
+            audioMusicParam.startTimeMS = 0;
+            accompanyParam.startTimeMS = audioMusicParam.startTimeMS;
+            getAudioEffectManager().preloadMusic(audioMusicParam);
+            getAudioEffectManager().preloadMusic(accompanyParam);
             mWorkHandler.postDelayed(runnable, delayMs);
         } else {
-            preloadMusic(Math.abs(delayMs) + MUSIC_PRELOAD_DELAY);
+            audioMusicParam.startTimeMS = Math.abs(delayMs) + MUSIC_PRELOAD_DELAY;
+            accompanyParam.startTimeMS = audioMusicParam.startTimeMS;
+            getAudioEffectManager().preloadMusic(audioMusicParam);
+            getAudioEffectManager().preloadMusic(accompanyParam);
             mWorkHandler.postDelayed(runnable, MUSIC_PRELOAD_DELAY);
         }
         return true;
@@ -310,18 +282,18 @@ public class KaraokeChorusExtension implements TXAudioEffectManager.TXMusicPlayO
         TRTCLogger.i(TAG, "startTimer. startTs:" + startTs + " start time: "
                 + mDateFormatter.format(new Date(startTs)));
         if (mTimer == null) {
+            mStartPlayMusicTs = startTs;
             mTimer = new Timer();
             mTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
+                    checkMusicProgress();
                     //若本地开始播放，则发送合唱信令
                     if (reason == ChorusStartType.Local) {
                         sendStartMusicMsg(startTs);
                     }
-                    checkMusicProgress();
                 }
             }, 0, MESSAGE_SEND_INTERVAL);
-            mStartPlayMusicTs = startTs;
         }
     }
 
@@ -389,8 +361,7 @@ public class KaraokeChorusExtension implements TXAudioEffectManager.TXMusicPlayO
         long curOriginPositionMs = getAudioEffectManager().getMusicCurrentPosInMS(mMusicID);
         long curAccompanyPositionMs = getAudioEffectManager().getMusicCurrentPosInMS(mMusicID + 1);
 
-        if (expectedPositionMs >= 0 && Math.abs(curOriginPositionMs - expectedPositionMs) > 60
-                && Math.abs(curOriginPositionMs - curAccompanyPositionMs) > 10) {
+        if (expectedPositionMs >= 0 && Math.abs(curOriginPositionMs - expectedPositionMs) > 60) {
             TRTCLogger.i(TAG,
                     "checkMusicProgress curOriginPositionMs=" + curOriginPositionMs + " curAccompanyPositionMs="
                             + curAccompanyPositionMs + " expectedPosition=" + expectedPositionMs);
