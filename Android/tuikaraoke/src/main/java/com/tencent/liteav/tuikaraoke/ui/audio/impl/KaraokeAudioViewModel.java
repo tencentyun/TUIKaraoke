@@ -53,24 +53,8 @@ public class KaraokeAudioViewModel {
         if (getCurrentStatus() == MUSIC_STOP) {
             return;
         }
-        mTRTCKaraokeRoom.stopPlayMusic();
         setCurrentStatus(MUSIC_STOP);
-    }
-
-    public void pauseMusic() {
-        if (getCurrentStatus() == MUSIC_PAUSING) {
-            return;
-        }
-        mTRTCKaraokeRoom.pausePlayMusic();
-        setCurrentStatus(MUSIC_PAUSING);
-    }
-
-    public void resumeMusic() {
-        if (getCurrentStatus() == MUSIC_RESUMING) {
-            return;
-        }
-        mTRTCKaraokeRoom.resumePlayMusic();
-        setCurrentStatus(MUSIC_RESUMING);
+        mTRTCKaraokeRoom.stopPlayMusic();
     }
 
     public void setCurrentStatus(int status) {

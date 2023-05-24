@@ -49,7 +49,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     private final Context                 mContext;
     private       TRTCKaraokeRoomObserver mDelegate;
 
-    private Handler mMainHandler;    // 所有调用都切到主线程使用，保证内部多线程安全问题
+    private Handler mMainHandler;         // 所有调用都切到主线程使用，保证内部多线程安全问题
     private Handler mDelegateHandler;     // 外部可指定的回调线程
     private int     mSdkAppId;
     private String  mUserId;
@@ -63,18 +63,14 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     private int     mMusicVolume                   = DEFAULT_MUSIC_VOLUME;
     private float   mMusicPitch                    = 0.0f;
 
-    // 已抛出的观众列表
-    private Set<String>                            mAudienceList;
     private List<TRTCKaraokeRoomDef.SeatInfo>      mSeatInfoList;
     private TUICallback mEnterSeatCallback;
     private TUICallback mLeaveSeatCallback;
-    private TUICallback mPickSeatCallback;
     private TUICallback mKickSeatCallback;
 
     private KaraokeTRTCService     mTRTCVoiceService; //人声实例
     private KaraokeTRTCService     mTRTCMusicService; //音乐实例
     private KaraokeIMService       mKaraokeIMService;
-    private KaraokeMusicService    mKaraokeMusicService;
     private KaraokeChorusExtension mChorusExtension;
 
     private static final TXAudioEffectManager.TXVoiceChangerType[] VOICE_CHANGER_ARR = {
@@ -139,7 +135,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         mMainHandler = new Handler(Looper.getMainLooper());
         mDelegateHandler = new Handler(Looper.getMainLooper());
         mSeatInfoList = new ArrayList<>();
-        mAudienceList = new HashSet<>();
         mTakeSeatIndex = -1;
         mKaraokeIMService = new KaraokeIMService(context);
         mKaraokeIMService.setDelegate(this);
@@ -154,7 +149,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
 
     private void clearList() {
         mSeatInfoList.clear();
-        mAudienceList.clear();
         if (mChorusExtension != null && mChorusExtension.isChorusOn()) {
             mChorusExtension.stopChorus();
             mChorusExtension.setObserver(null);
@@ -203,12 +197,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     public void setDelegate(TRTCKaraokeRoomObserver delegate) {
         TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setDelegate @" + delegate);
         mDelegate = delegate;
-    }
-
-    @Override
-    public void setDelegateHandler(Handler handler) {
-        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: setDelegateHandler @" + handler);
-        mDelegateHandler = handler;
     }
 
     @Override
@@ -722,35 +710,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void pickSeat(final int seatIndex, final String userId, final TUICallback callback) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                //判断该用户是否已经在麦上
-                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: pickSeat index:" + seatIndex);
-                if (isOnSeat(userId)) {
-                    notifyCallbackEvent(callback, -1, "the user is already on seat");
-                    return;
-                }
-                mPickSeatCallback = callback;
-                mKaraokeIMService.pickSeat(seatIndex, userId, new TUICallback() {
-                    @Override
-                    public void onSuccess() {
-                        notifyCallbackEvent(callback, 0, "");
-                    }
-
-                    @Override
-                    public void onError(final int code, final String msg) {
-                        //出错了，恢复callback
-                        mPickSeatCallback = null;
-                        notifyCallbackEvent(callback, code, msg);
-                    }
-                });
-            }
-        });
-    }
-
-    @Override
     public void kickSeat(final int index, final TUICallback callback) {
         runOnMainThread(new Runnable() {
             @Override
@@ -816,28 +775,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         });
     }
 
-    @Override
-    public void startMicrophone() {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: startMicrophone");
-                mTRTCVoiceService.startMicrophone();
-            }
-        });
-    }
-
-    @Override
-    public void stopMicrophone() {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: stopMicrophone");
-                mTRTCVoiceService.stopMicrophone();
-            }
-        });
-    }
-
     /**
      * 静音本地
      * <p>
@@ -856,41 +793,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         });
     }
 
-    /**
-     * 静音音频
-     *
-     * @param userId
-     * @param mute
-     */
-    @Override
-    public void muteRemoteAudio(final String userId, final boolean mute) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: muteRemoteAudio userId: " + userId + " mute: " + mute);
-                mTRTCVoiceService.muteRemoteAudio(userId, mute);
-            }
-        });
-    }
-
-    /**
-     * 静音所有音频
-     *
-     * @param mute
-     */
-    @Override
-    public void muteAllRemoteAudio(final boolean mute) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: muteAllRemoteAudio");
-                mTRTCVoiceService.muteAllRemoteAudio(mute);
-            }
-        });
-    }
-
-    @Override
-    public TXAudioEffectManager getVoiceAudioEffectManager() {
+    private TXAudioEffectManager getVoiceAudioEffectManager() {
         if (mTRTCVoiceService != null) {
             return mTRTCVoiceService.getAudioEffectManager();
         }
@@ -898,8 +801,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         return null;
     }
 
-    @Override
-    public TXAudioEffectManager getMusicAudioEffectManager() {
+    private TXAudioEffectManager getMusicAudioEffectManager() {
         if (mTRTCMusicService != null) {
             return mTRTCMusicService.getAudioEffectManager();
         }
@@ -910,10 +812,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         return null;
     }
 
-    @Override
-    public KaraokeMusicService getKaraokeMusicService() {
-        return mKaraokeMusicService;
-    }
 
     @Override
     public void sendRoomTextMsg(final String message, final TUICallback callback) {
@@ -998,48 +896,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void rejectInvitation(final String id, final TUICallback callback) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                TRTCLogger.i(TAG, "TRTCKaraokeRoom api: rejectInvitation id:" + id);
-                mKaraokeIMService.rejectInvitation(id, new TUICallback() {
-                    @Override
-                    public void onSuccess() {
-                        notifyCallbackEvent(callback, 0, "");
-                    }
-
-                    @Override
-                    public void onError(final int code, final String msg) {
-                        notifyCallbackEvent(callback, code, msg);
-                    }
-                });
-            }
-        });
-    }
-
-    @Override
-    public void cancelInvitation(final String id, final TUICallback callback) {
-        runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  cancelInvitation id: " + id);
-                mKaraokeIMService.cancelInvitation(id, new TUICallback() {
-                    @Override
-                    public void onSuccess() {
-                        notifyCallbackEvent(callback, 0, "");
-                    }
-
-                    @Override
-                    public void onError(final int code, final String msg) {
-                        notifyCallbackEvent(callback, code, msg);
-                    }
-                });
-            }
-        });
-    }
-
-    @Override
     public void onRoomDestroy(final String roomId) {
         runOnDelegateThread(new Runnable() {
             @Override
@@ -1054,7 +910,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
 
     @Override
     public void onRoomRecvRoomTextMsg(final String roomId, final String message,
-                                      final TRTCKaraokeRoomDef.UserInfo userInfo) {
+                                      final UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -1068,7 +924,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
 
     @Override
     public void onRoomRecvRoomCustomMsg(final String roomId, final String cmd, final String message,
-                                        final TRTCKaraokeRoomDef.UserInfo userInfo) {
+                                        final UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -1109,7 +965,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onRoomAudienceEnter(final TRTCKaraokeRoomDef.UserInfo userInfo) {
+    public void onRoomAudienceEnter(final UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -1122,7 +978,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onRoomAudienceLeave(final TRTCKaraokeRoomDef.UserInfo userInfo) {
+    public void onRoomAudienceLeave(final UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -1135,7 +991,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onSeatTake(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
+    public void onSeatTake(final int index, final UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1161,10 +1017,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
                     public void run() {
                         if (mDelegate != null) {
                             mDelegate.onAnchorEnterSeat(index, userInfo);
-                        }
-                        if (mPickSeatCallback != null) {
-                            mPickSeatCallback.onSuccess();
-                            mPickSeatCallback = null;
                         }
                     }
                 });
@@ -1208,7 +1060,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onSeatLeave(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
+    public void onSeatLeave(final int index, final UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1460,28 +1312,6 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void pausePlayMusic() {
-        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: pausePlayMusic musicId：" + mCurrentPlayingOriginalMusicID);
-        if (mCurrentPlayingOriginalMusicID == 0) {
-            TRTCLogger.i(TAG, "pausePlayMusic mCurrentPlayingOriginalMusicID=0");
-            return;
-        }
-        getMusicAudioEffectManager().pausePlayMusic(mCurrentPlayingOriginalMusicID);
-        getMusicAudioEffectManager().pausePlayMusic(mCurrentPlayingOriginalMusicID + 1);
-    }
-
-    @Override
-    public void resumePlayMusic() {
-        TRTCLogger.i(TAG, "TRTCKaraokeRoom api: resumePlayMusic musicId：" + mCurrentPlayingOriginalMusicID);
-        if (mCurrentPlayingOriginalMusicID == 0) {
-            TRTCLogger.i(TAG, "resumePlayMusic mCurrentPlayingOriginalMusicID=0");
-            return;
-        }
-        getMusicAudioEffectManager().resumePlayMusic(mCurrentPlayingOriginalMusicID);
-        getMusicAudioEffectManager().resumePlayMusic(mCurrentPlayingOriginalMusicID + 1);
-    }
-
-    @Override
     public void switchMusicAccompanimentMode(boolean isOriginal) {
         TRTCLogger.i(TAG, "TRTCKaraokeRoom api: switchMusicAccompanimentMode isOriginal：" + isOriginal
                 + " current musicId: " + mCurrentPlayingOriginalMusicID + " original: " + mIsOriginalMusic);
@@ -1584,13 +1414,13 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         musicEffectManager.setMusicPlayoutVolume(mCurrentPlayingOriginalMusicID,
                 mIsOriginalMusic ? mMusicVolume : 0);
         musicEffectManager.setMusicPublishVolume(mCurrentPlayingOriginalMusicID,
-                mIsOriginalMusic ? mMusicVolume : 0);
+                mIsOriginalMusic ? (int) (mMusicVolume * 0.9) : 0);
 
         // 设置伴奏音量
         musicEffectManager.setMusicPlayoutVolume(mCurrentPlayingOriginalMusicID + 1,
                 mIsOriginalMusic ? 0 : mMusicVolume);
         musicEffectManager.setMusicPublishVolume(mCurrentPlayingOriginalMusicID + 1,
-                mIsOriginalMusic ? 0 : mMusicVolume);
+                mIsOriginalMusic ? 0 : (int) (mMusicVolume * 0.9));
     }
 
     private void enableBlackStream(boolean enable) {

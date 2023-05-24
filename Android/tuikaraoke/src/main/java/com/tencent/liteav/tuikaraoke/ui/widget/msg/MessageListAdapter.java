@@ -3,9 +3,6 @@ package com.tencent.liteav.tuikaraoke.ui.widget.msg;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -15,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.tuikaraoke.R;
@@ -31,17 +30,17 @@ import java.util.List;
  * 欢迎消息：      TYPE_WELCOME       会出现在界面中，同时有跳转的链接url
  * 点歌消息：      TYPE_ORDERED_SONG  消息中会有管理点歌的按钮，房主可以进行事件处理
  */
-public class MsgListAdapter extends
-        RecyclerView.Adapter<MsgListAdapter.ViewHolder> {
+public class MessageListAdapter extends
+        RecyclerView.Adapter<MessageListAdapter.ViewHolder> {
 
-    private static final String TAG = MsgListAdapter.class.getSimpleName();
+    private static final String TAG = MessageListAdapter.class.getSimpleName();
 
     private Context             mContext;
-    private List<MsgEntity>     mList;
+    private List<MessageEntity>     mList;
     private OnItemClickListener mOnItemClickListener;
 
-    public MsgListAdapter(Context context, List<MsgEntity> list,
-                          OnItemClickListener onItemClickListener) {
+    public MessageListAdapter(Context context, List<MessageEntity> list,
+                              OnItemClickListener onItemClickListener) {
         this.mContext = context;
         this.mList = list;
         this.mOnItemClickListener = onItemClickListener;
@@ -58,7 +57,7 @@ public class MsgListAdapter extends
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        MsgEntity item = mList.get(position);
+        MessageEntity item = mList.get(position);
         holder.bind(item, mOnItemClickListener);
     }
 
@@ -88,11 +87,11 @@ public class MsgListAdapter extends
             mBtnMsg = (TextView) itemView.findViewById(R.id.btn_msg_func);
         }
 
-        public void bind(final MsgEntity model,
+        public void bind(final MessageEntity model,
                          final OnItemClickListener listener) {
             String userName = !TextUtils.isEmpty(model.userName) ? model.userName : model.userId;
             //消息类型为进房欢迎类型，此类型的消息为定制消息，用户进房展示的欢迎语，消息中会有相应的跳转链接
-            if (model.type == MsgEntity.TYPE_WELCOME) {
+            if (model.type == MessageEntity.TYPE_WELCOME) {
                 String result = model.content + model.linkUrl;
                 SpannableStringBuilder builder = new SpannableStringBuilder(result);
                 ForegroundColorSpan welcomeTitleSpan = new ForegroundColorSpan(mContext
@@ -107,7 +106,7 @@ public class MsgListAdapter extends
                 mTvMsgContent.setText(builder);
                 mTvMsgContent.setBackground(null);
                 //消息发送者颜色定制，消息发送者的username会根据设置的颜色显示
-            } else if (model.type == MsgEntity.TYPE_ORDERED_SONG) {
+            } else if (model.type == MessageEntity.TYPE_ORDERED_SONG) {
                 String split = " ";
                 String result = model.content + split + model.userName + model.linkUrl;
                 SpannableStringBuilder builder = new SpannableStringBuilder(result);
@@ -136,9 +135,9 @@ public class MsgListAdapter extends
                 @Override
                 public void onClick(View v) {
                     if (listener != null) {
-                        if (model.type == MsgEntity.TYPE_WAIT_AGREE) {
+                        if (model.type == MessageEntity.TYPE_WAIT_AGREE) {
                             listener.onAgreeClick(getLayoutPosition());
-                        } else if (model.type == MsgEntity.TYPE_ORDERED_SONG) {
+                        } else if (model.type == MessageEntity.TYPE_ORDERED_SONG) {
                             listener.onOrderedManagerClick(getLayoutPosition());
                         }
                     }
@@ -147,22 +146,22 @@ public class MsgListAdapter extends
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (model.type == MsgEntity.TYPE_WELCOME) {
+                    if (model.type == MessageEntity.TYPE_WELCOME) {
                         startLinkActivity(model.linkUrl);
                     }
                 }
             });
         }
 
-        private void updateMsgButton(MsgEntity model) {
-            if (model.type == MsgEntity.TYPE_AGREED) {
+        private void updateMsgButton(MessageEntity model) {
+            if (model.type == MessageEntity.TYPE_AGREED) {
                 mBtnMsg.setVisibility(View.GONE);
                 mBtnMsg.setEnabled(false);
-            } else if (model.type == MsgEntity.TYPE_WAIT_AGREE) {
+            } else if (model.type == MessageEntity.TYPE_WAIT_AGREE) {
                 mBtnMsg.setVisibility(View.VISIBLE);
                 mBtnMsg.setEnabled(true);
                 mBtnMsg.setText(R.string.trtckaraoke_agree);
-            } else if (model.type == MsgEntity.TYPE_ORDERED_SONG) {
+            } else if (model.type == MessageEntity.TYPE_ORDERED_SONG) {
                 mBtnMsg.setVisibility(View.VISIBLE);
                 mBtnMsg.setEnabled(true);
                 mBtnMsg.setText(R.string.trtckaraoke_manager_ordered_song);

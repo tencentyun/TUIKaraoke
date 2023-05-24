@@ -46,16 +46,8 @@ public abstract class TRTCKaraokeRoom {
      *
      * @param delegate 回调接口
      * @note TRTCKaraokeRoom 中的事件，默认是在 Main Thread 中回调给您；
-     * 如果您需要指定事件回调所在的线程，可使用 {@link TRTCKaraokeRoom#setDelegateHandler(Handler)}
      */
     public abstract void setDelegate(TRTCKaraokeRoomObserver delegate);
-
-    /**
-     * 设置事件回调所在的线程
-     *
-     * @param handler 线程，TRTCKaraokeRoom 中的各种状态通知，会派发到您指定的 handler 线程。
-     */
-    public abstract void setDelegateHandler(Handler handler);
 
     /**
      * 登录
@@ -164,17 +156,6 @@ public abstract class TRTCKaraokeRoom {
     public abstract void leaveSeat(TUICallback callback);
 
     /**
-     * 抱人上麦(主播调用)
-     * <p>
-     * 主播抱人上麦，房间内所有成员会收到`onSeatListChange`和`onAnchorEnterSeat`的事件通知。
-     *
-     * @param seatIndex 需要抱麦的麦位序号
-     * @param userId    用户id
-     * @param callback  操作回调
-     */
-    public abstract void pickSeat(int seatIndex, String userId, TUICallback callback);
-
-    /**
      * 踢人下麦(主播调用)
      * <p>
      * 主播踢人下麦，房间内所有成员会收到`onSeatListChange`和`onAnchorLeaveSeat`的事件通知。
@@ -212,61 +193,12 @@ public abstract class TRTCKaraokeRoom {
     //                 本地音频操作接口
     //
     //////////////////////////////////////////////////////////
-
-    /**
-     * 开启麦克风采集
-     */
-    public abstract void startMicrophone();
-
-    /**
-     * 停止麦克风采集
-     */
-    public abstract void stopMicrophone();
-
     /**
      * 开启本地静音
      *
      * @param mute 是否静音
      */
     public abstract void muteLocalAudio(boolean mute);
-
-    //////////////////////////////////////////////////////////
-    //
-    //                 远端用户接口
-    //
-    //////////////////////////////////////////////////////////
-
-    /**
-     * 静音某一个用户的声音
-     *
-     * @param userId 用户id
-     * @param mute   true:静音 false：解除静音
-     */
-    public abstract void muteRemoteAudio(String userId, boolean mute);
-
-    /**
-     * 静音所有用户的声音
-     *
-     * @param mute true:静音 false：解除静音
-     */
-    public abstract void muteAllRemoteAudio(boolean mute);
-
-    /**
-     * 人声音效控制相关
-     */
-    public abstract TXAudioEffectManager getVoiceAudioEffectManager();
-
-    /**
-     * 背景音乐音效控制相关
-     */
-    public abstract TXAudioEffectManager getMusicAudioEffectManager();
-
-
-    /**
-     * 点歌、切歌等音乐控制相关
-     *
-     */
-    public abstract KaraokeMusicService getKaraokeMusicService();
 
     //////////////////////////////////////////////////////////
     //
@@ -317,23 +249,6 @@ public abstract class TRTCKaraokeRoom {
     public abstract void acceptInvitation(String id, TUICallback callback);
 
     /**
-     * 拒绝邀请
-     *
-     * @param id       邀请ID
-     * @param callback 接受操作的回调
-     */
-    public abstract void rejectInvitation(String id, TUICallback callback);
-
-    /**
-     * 取消邀请
-     *
-     * @param id       邀请ID
-     * @param callback 接受操作的回调
-     */
-    public abstract void cancelInvitation(String id, TUICallback callback);
-
-
-    /**
      * 开始播放音乐
      *
      * @param musicID      音乐的表演ID
@@ -346,16 +261,6 @@ public abstract class TRTCKaraokeRoom {
      * 停止播放音乐
      */
     public abstract void stopPlayMusic();
-
-    /**
-     * 暂停播放音乐
-     */
-    public abstract void pausePlayMusic();
-
-    /**
-     * 恢复播放音乐
-     */
-    public abstract void resumePlayMusic();
 
     /**
      * 切换伴奏或原唱

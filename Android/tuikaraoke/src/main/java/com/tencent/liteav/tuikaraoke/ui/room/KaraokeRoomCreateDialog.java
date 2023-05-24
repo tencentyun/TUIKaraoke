@@ -13,9 +13,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.tuikaraoke.ui.utils.Toast;
 import com.tencent.liteav.basic.RTCubeUtils;
+import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.tuikaraoke.R;
 
 /**

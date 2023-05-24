@@ -11,15 +11,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.tencent.liteav.basic.ImageLoader;
+import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
 import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import com.tencent.liteav.tuikaraoke.ui.widget.RoundCornerImageView;
-import com.tencent.qcloud.tuicore.TUILogin;
-
-
+import com.tencent.liteav.basic.ImageLoader;
 
 import java.util.List;
 
@@ -105,7 +103,8 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
                     mTvUserName.setText(seatEntity.userName);
                     mTvSeatName.setText(context.getString(R.string.trtckaraoke_tv_seat_id,
                             String.valueOf(seatEntity.index + 1)));
-                    ImageLoader.loadImage(mContext, mImageCover, model.coverUrl, R.drawable.trtckaraoke_ic_cover);
+                    ImageLoader.loadImage(context, mImageCover, model.coverUrl,
+                            R.drawable.trtckaraoke_changetype_luoli_hover);
                 }
             }
 
@@ -131,7 +130,7 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
                 if (getAdapterPosition() == 0) {
                     mTvSongID.setVisibility(View.GONE);
                     mImgIcon.setVisibility(View.VISIBLE);
-                    ImageLoader.loadImage(mContext, mImgIcon, R.drawable.trtckaraoke_bg_music);
+                    ImageLoader.loadGifImage(mContext, mImgIcon, R.drawable.trtckaraoke_bg_music);
                 } else {
                     mImgIcon.setVisibility(View.GONE);
                     mTvSongID.setVisibility(View.VISIBLE);
@@ -139,8 +138,8 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
                 }
 
                 //判断是当前用户,可以删除自己的歌
-                String myselfUserID = TUILogin.getLoginUser();
-                if (model.userId != null && model.userId.equals(myselfUserID)) {
+                String mSelfUserID = UserModelManager.getInstance().getUserModel().userId;
+                if (model.userId != null && model.userId.equals(mSelfUserID)) {
                     mBtnDelete.setVisibility(View.VISIBLE);
                 } else {
                     mBtnDelete.setVisibility(View.GONE);
@@ -152,7 +151,7 @@ public class KaraokeMusicSelectedAdapter extends RecyclerView.Adapter<KaraokeMus
                     mBtnSetTop.setVisibility(View.GONE);
                     mTvSongID.setVisibility(View.GONE);
                     mImgIcon.setVisibility(View.VISIBLE);
-                    ImageLoader.loadImage(mContext, mImgIcon, R.drawable.trtckaraoke_bg_music);
+                    ImageLoader.loadGifImage(mContext, mImgIcon, R.drawable.trtckaraoke_bg_music);
                 } else if (getAdapterPosition() == 1) {
                     mBtnNext.setVisibility(View.GONE);
                     mBtnSetTop.setVisibility(View.VISIBLE);

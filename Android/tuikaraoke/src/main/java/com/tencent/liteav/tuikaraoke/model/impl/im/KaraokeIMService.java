@@ -273,28 +273,6 @@ public class KaraokeIMService extends V2TIMSDKListener {
         });
     }
 
-    private void initGroupAttributes(final TUICallback callback) {
-        // 创建房间需要初始化座位
-        HashMap<String, String> roomMap = IMProtocol.getInitRoomMap(mRoomInfo, mSeatInfoList);
-        V2TIMManager.getGroupManager().initGroupAttributes(mRoomId, roomMap, new V2TIMCallback() {
-            @Override
-            public void onError(int code, String s) {
-                TRTCLogger.i(TAG, "init room info and seat failed. code:" + code + " message: " + s);
-                if (code == BaseConstants.ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
-                    onSuccess();
-                } else {
-                    TUICallback.onError(callback, code, s);
-                }
-            }
-
-            @Override
-            public void onSuccess() {
-                TRTCLogger.i(TAG, "init room info and seat success.");
-                TUICallback.onSuccess(callback);
-            }
-        });
-    }
-
     public void destroyRoom(final TUICallback callback) {
         if (!isOwner()) {
             TRTCLogger.e(TAG, "only owner could destroy room");
@@ -530,52 +508,57 @@ public class KaraokeIMService extends V2TIMSDKListener {
                         if (attrMap == null || attrMap.isEmpty()) {
                             if (TextUtils.equals(mSelfUserId, mOwnerUserId)) {
                                 // 房主写入群属性
-                                initGroupAttributes(new TUICallback() {
-
+                                HashMap<String, String> roomMap = IMProtocol.getInitRoomMap(mRoomInfo, mSeatInfoList);
+                                V2TIMManager.getGroupManager().initGroupAttributes(mRoomId, roomMap,
+                                        new V2TIMCallback() {
                                     @Override
-                                    public void onSuccess() {
-                                        // 群属性写入成功后，再读一次
-                                        getGroupAttrs(callback);
+                                    public void onError(int code, String s) {
+                                        TRTCLogger.i(TAG, "init room group attrs failed. code:" + code + " msg:" + s);
+                                        if (code == BaseConstants.ERR_SVR_GROUP_ATTRIBUTE_WRITE_CONFLICT) {
+                                            // 群属性写入冲突后，再读取一次即可
+                                            getGroupAttrs(callback);
+                                        } else {
+                                            TUICallback.onError(callback, code, s);
+                                        }
                                     }
 
                                     @Override
-                                    public void onError(int errorCode, String errorMessage) {
-                                        TRTCLogger.e(TAG, "init group attrs error, enter room fail."
-                                                + " code:" + errorCode + " msg:" + errorMessage);
-                                        TUICallback.onError(callback, errorCode, errorMessage);
+                                    public void onSuccess() {
+                                        // 群属性写入成功后，IM会回调onGroupAttributeChanged
+                                        TRTCLogger.i(TAG, "init room group attrs success.");
+                                        TUICallback.onSuccess(callback);
                                     }
                                 });
                             } else {
                                 // 观众直接报错
-                                TUICallback.onError(callback, -1, "group room info is empty, enter room fail.");
+                                TUICallback.onError(callback, -1, "group attrs is empty, enter room fail.");
                             }
-                            return;
+                        } else {
+                            onSeatAttrMapChanged(attrMap);
+                            TUICallback.onSuccess(callback);
                         }
-
-                        TRTCLogger.i(TAG, "getGroupAttrs attrMap:" + attrMap);
-                        mIsEnterRoom = true;
-                        TRTCKaraokeRoomDef.RoomInfo roomInfo = IMProtocol.getRoomInfoFromAttr(attrMap);
-                        if (roomInfo == null) {
-                            TRTCLogger.e(TAG, "group room info is empty");
-                            TUICallback.onError(callback, -1, "group room info is empty");
-                            return;
-                        }
-                        mRoomInfo = roomInfo;
-                        mRoomInfo.roomId = mRoomId;
-                        mOwnerUserId = mRoomInfo.ownerId;
-                        if (mRoomInfo.seatSize == null) {
-                            mRoomInfo.seatSize = 0;
-                        }
-                        if (mDelegate != null) {
-                            mDelegate.onRoomInfoChange(mRoomInfo);
-                        }
-                        onSeatAttrMapChanged(attrMap, mRoomInfo.seatSize);
-                        TUICallback.onSuccess(callback);
                     }
                 });
     }
 
-    private void onSeatAttrMapChanged(Map<String, String> attrMap, int seatSize) {
+    private void onSeatAttrMapChanged(Map<String, String> attrMap) {
+        TRTCLogger.i(TAG, "onSeatAttrMapChanged attrMap:" + attrMap);
+        mIsEnterRoom = true;
+        TRTCKaraokeRoomDef.RoomInfo roomInfo = IMProtocol.getRoomInfoFromAttr(attrMap);
+        if (roomInfo == null) {
+            TRTCLogger.e(TAG, "group room info is empty");
+            return;
+        }
+        mRoomInfo = roomInfo;
+        mRoomInfo.roomId = mRoomId;
+        mOwnerUserId = mRoomInfo.ownerId;
+        if (mRoomInfo.seatSize == null) {
+            mRoomInfo.seatSize = 0;
+        }
+        if (mDelegate != null) {
+            mDelegate.onRoomInfoChange(mRoomInfo);
+        }
+        int seatSize = mRoomInfo.seatSize;
         List<TRTCKaraokeRoomDef.SeatInfo> txSeatInfoList = IMProtocol.getSeatListFromAttr(attrMap, seatSize);
         if (mSeatInfoList == null) {
             //观众进房时mSeatInfoList为null，这里初始化一下。
@@ -662,10 +645,10 @@ public class KaraokeIMService extends V2TIMSDKListener {
 
             @Override
             public void onSuccess(List<V2TIMUserFullInfo> v2TIMUserFullInfos) {
-                List<TRTCKaraokeRoomDef.UserInfo> list = new ArrayList<>();
+                List<UserInfo> list = new ArrayList<>();
                 if (v2TIMUserFullInfos != null && v2TIMUserFullInfos.size() != 0) {
                     for (int i = 0; i < v2TIMUserFullInfos.size(); i++) {
-                        TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
+                        UserInfo userInfo = new UserInfo();
                         userInfo.userName = v2TIMUserFullInfos.get(i).getNickName();
                         userInfo.userId = v2TIMUserFullInfos.get(i).getUserID();
                         userInfo.avatarURL = v2TIMUserFullInfos.get(i).getFaceUrl();
@@ -927,7 +910,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
             if (!groupID.equals(mRoomId)) {
                 return;
             }
-            TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
+            UserInfo userInfo = new UserInfo();
             userInfo.userId = sender.getUserID();
             userInfo.avatarURL = sender.getFaceUrl();
             userInfo.userName = sender.getNickName();
@@ -958,7 +941,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
                             // ignore
                             break;
                         case IMProtocol.Define.CODE_ROOM_CUSTOM_MSG:
-                            TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
+                            UserInfo userInfo = new UserInfo();
                             userInfo.userId = sender.getUserID();
                             userInfo.avatarURL = sender.getFaceUrl();
                             userInfo.userName = sender.getNickName();
@@ -993,7 +976,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
             }
             if (mDelegate != null && memberList != null) {
                 for (V2TIMGroupMemberInfo member : memberList) {
-                    TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
+                    UserInfo userInfo = new UserInfo();
                     userInfo.userId = member.getUserID();
                     userInfo.userName = member.getNickName();
                     userInfo.avatarURL = member.getFaceUrl();
@@ -1008,7 +991,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
                 return;
             }
             if (mDelegate != null) {
-                TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
+                UserInfo userInfo = new UserInfo();
                 userInfo.userId = member.getUserID();
                 userInfo.userName = member.getNickName();
                 userInfo.avatarURL = member.getFaceUrl();
@@ -1030,15 +1013,11 @@ public class KaraokeIMService extends V2TIMSDKListener {
 
         @Override
         public void onGroupAttributeChanged(String groupID, Map<String, String> groupAttributeMap) {
-            TRTCLogger.i(TAG, "onGroupAttributeChanged :" + groupAttributeMap);
             if (!groupID.equals(mRoomId)) {
+                TRTCLogger.e(TAG, "groupID is " + groupID + ", but mRoomId is " + mRoomId);
                 return;
             }
-            if (mRoomInfo == null) {
-                TRTCLogger.e(TAG, "group attr changed, but room info is empty!");
-                return;
-            }
-            onSeatAttrMapChanged(groupAttributeMap, mRoomInfo.seatSize);
+            onSeatAttrMapChanged(groupAttributeMap);
         }
     }
 

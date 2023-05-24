@@ -1,11 +1,14 @@
 package com.tencent.liteav.tuikaraoke.ui.music.impl;
 
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_MUSIC_EVENT;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_SELECTED_MUSIC_COUNT_KEY;
+import static com.tencent.liteav.tuikaraoke.ui.utils.Constants.KARAOKE_UPDATE_SELECTED_MUSIC_COUNT_EVENT;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Bundle;
 
 import com.google.android.material.tabs.TabLayout;
 
@@ -22,10 +25,13 @@ import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.impl.base.TRTCLogger;
 import com.tencent.liteav.tuikaraoke.ui.music.CustomViewPager;
 import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
+import com.tencent.qcloud.tuicore.TUICore;
+import com.tencent.qcloud.tuicore.interfaces.ITUINotification;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class KaraokeMusicDialog extends Dialog {
 
@@ -37,6 +43,17 @@ public class KaraokeMusicDialog extends Dialog {
     private        KaraokeMusicLibraryView mKTVLibraryView;
     private        KaraokeMusicSelectView  mKTVSelectView;
 
+    private ITUINotification mUpdateSelectedMusicCount = new ITUINotification() {
+        @Override
+        public void onNotifyEvent(String key, String subKey, Map<String, Object> param) {
+            if (param == null || !param.containsKey(KARAOKE_SELECTED_MUSIC_COUNT_KEY)) {
+                return;
+            }
+            int count = (int) param.get(KARAOKE_SELECTED_MUSIC_COUNT_KEY);
+            updateSelectedTagText(count);
+        }
+    };
+
     public KaraokeMusicDialog(Context context, RoomInfoController roomInfoController) {
         super(context, R.style.TRTCKTVRoomDialogTheme);
         mContext = context;
@@ -45,6 +62,21 @@ public class KaraokeMusicDialog extends Dialog {
         initView(mContext);
         initData(mContext);
         setHeightAndBackground();
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        updateSelectedTagText(mRoomInfoController.getUserSelectMap().size());
+        TUICore.registerEvent(KARAOKE_MUSIC_EVENT, KARAOKE_UPDATE_SELECTED_MUSIC_COUNT_EVENT,
+                mUpdateSelectedMusicCount);
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        TUICore.unRegisterEvent(KARAOKE_MUSIC_EVENT, KARAOKE_UPDATE_SELECTED_MUSIC_COUNT_EVENT,
+                mUpdateSelectedMusicCount);
     }
 
     private void initView(Context context) {
@@ -105,5 +137,11 @@ public class KaraokeMusicDialog extends Dialog {
 
     public void setCurrentItem(int index) {
         mContentVp.setCurrentItem(index);
+    }
+
+    private void updateSelectedTagText(int selectedMusicCount) {
+        String text = mContext.getString(R.string.trtckaraoke_btn_choosed_song) + "(" + selectedMusicCount + ")";
+        TabLayout.Tab tab = mTopTl.getTabAt(1);
+        tab.setText(text);
     }
 }
