@@ -60,20 +60,11 @@ public class KaraokeMusicInfo: NSObject {
     }
     
     public func isPreloaded() -> Bool {
-        return originUrl.count > 0 && lyricsUrl.count > 0
+        return originUrl.count > 0
     }
     
-    // 搜索歌曲，json->model
-    public static func jsonSearchMusic(_ json: [String: Any]) -> KaraokeMusicInfo? {
-        guard let musicId = json["musicId"] as? String else { return nil }
-        guard let musicName = json["title"] as? String else { return nil }
-        guard let singers = json["singers"] as? [String] else { return nil }
-        let info = KaraokeMusicInfo(musicId: musicId, musicName: musicName, singers: singers)
-        return info
-    }
-    
-    // 歌曲标签下的歌曲信息， json->model
-    public static func jsonMusicByTag(_ json: [String: Any]) -> KaraokeMusicInfo? {
+    // 歌曲Json转Model
+    public static func convertJsonToMusicInfo(_ json: [String: Any]) -> KaraokeMusicInfo? {
         guard let musicId = json["MusicId"] as? String else { return nil }
         guard let musicName = json["Name"] as? String else { return nil }
         guard let singers = json["SingerSet"] as? [String] else { return nil }
@@ -115,7 +106,7 @@ public class KaraokeMusicInfo: NSObject {
         let finish: MusicFinishCallback = { musicInfo, errorCode, errorMessage in
             finish(musicInfo, errorCode, errorMessage)
             if errorCode == 0 {
-                viewModel.showSelectedMusic(music: musicInfo)
+                viewModel.showSelectedMusic(userId: musicInfo.userId, musicName: musicInfo.musicName)
                 viewModel.sendSelectedMusic(musicInfo: musicInfo)
                 if viewModel.currentMusicModel?.getMusicId() == musicInfo.getMusicId() {
                     viewModel.currentMusicModel = musicInfo
@@ -155,5 +146,7 @@ public class KaraokeMusicTagModel: NSObject {
 }
 
 fileprivate extension String {
-    static let downloadFailedText = karaokeLocalize("Demo.TRTC.Karaoke.xxxDownloadfailed")
+    static var downloadFailedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxxDownloadfailed")
+    }
 }

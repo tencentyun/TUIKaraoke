@@ -363,10 +363,22 @@ extension TRTCKaraokeTopView : UICollectionViewDelegate {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let roomTitleText = karaokeLocalize("Demo.TRTC.Karaoke.roomname")
-    static let roomIdDescText = karaokeLocalize("Demo.TRTC.Karaoke.roomidxx")
-    static let welcomeText = karaokeLocalize("Demo.TRTC.Karaoke.xxenterroom")
-    static let exitText = karaokeLocalize("Demo.TRTC.Karaoke.exit")
-    static let sureToExitText = karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
-    static let alertToMicoffText = karaokeLocalize("退出会下麦哦～")
+    static var roomTitleText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.roomname")
+    }
+    static var roomIdDescText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.roomidxx")
+    }
+    static var welcomeText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxenterroom")
+    }
+    static var exitText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.exit")
+    }
+    static var sureToExitText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
+    }
+    static var alertToMicoffText: String {
+        karaokeLocalize("退出会下麦哦～")
+    }
 }

@@ -330,10 +330,22 @@ fileprivate class TRTCKaraokeFloatingWindow: UIWindow {
 }
 
 fileprivate extension String {
-    static let exitText = karaokeLocalize("Demo.TRTC.Karaoke.exit")
-    static let sureToExitText = karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
-    static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
-    static let refuseText = karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
-    static let mutedText = karaokeLocalize("Demo.TRTC.Karaoke.ismuted")
-    static let unmutedText = karaokeLocalize("Demo.TRTC.Karaoke.isunmuted")
+    static var exitText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.exit")
+    }
+    static var sureToExitText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
+    }
+    static var acceptText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    }
+    static var refuseText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
+    }
+    static var mutedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.ismuted")
+    }
+    static var unmutedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.isunmuted")
+    }
 }

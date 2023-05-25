@@ -279,6 +279,10 @@ extension TRTCKaraokeScrollView: UIGestureRecognizerDelegate {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
-    static let selectedSongText = karaokeLocalize("Demo.TRTC.Karaoke.selectedsong")
+    static var songSelectorText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    }
+    static var selectedSongText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.selectedsong")
+    }
 }

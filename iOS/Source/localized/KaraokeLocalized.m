@@ -6,6 +6,7 @@
 //  Copyright © 2022 Tencent. All rights reserved.
 
 #import "KaraokeLocalized.h"
+#import "TUICore/TUIGlobalization.h"
 
 #pragma mark - Base
 NSBundle *karaokeBundle() {
@@ -14,7 +15,9 @@ NSBundle *karaokeBundle() {
 }
 
 NSString *karaokeLocalizeFromTable(NSString *key, NSString *table) {
-    return [karaokeBundle() localizedStringForKey:key value:@"" table:table];
+    NSString *bundlePath = [karaokeBundle() pathForResource:[TUIGlobalization tk_localizableLanguageKey] ?: @"" ofType:@"lproj"];
+    NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
+    return [bundle localizedStringForKey:key value:@"" table:table];
 }
 
 NSString *karaokeLocalizeFromTableAndCommon(NSString *key, NSString *common, NSString *table) {

@@ -238,20 +238,20 @@ class TRTCMusicPanelView: UIView {
     }
     
     func updateLrcView(lrcString: String?) {
-        if URL(fileURLWithPath: lrcString ?? "") != lyricsView.lrcFileUrl {
+        if lrcString ?? "" != lyricsView.lyricsPathString {
             lyricsView.resetLyricsViewStatus()
             musicTimeLabel.text = "00:00"
             musicTimeLabel.isHidden = true
         }
         if let lrcString = lrcString {
-            if lyricsView.lrcFileUrl == URL(fileURLWithPath: lrcString) {
+            if lyricsView.lyricsPathString == lrcString {
                 debugPrint("same lrcFileUrl")
                 return
             }
             lyricsView.resetLyricsViewStatus()
-            lyricsView.lrcFileUrl = URL(fileURLWithPath: lrcString)
+            lyricsView.lyricsPathString = lrcString
         } else {
-            lyricsView.lrcFileUrl = nil
+            lyricsView.lyricsPathString = nil
             lyricsView.isHidden = true
             lyricsView.resetLyricsViewStatus()
             musicTimeLabel.text = "00:00"
@@ -298,7 +298,7 @@ extension TRTCMusicPanelView: TRTCKaraokeSoundEffectViewResponder {
     }
 
     func updateMusicPanel(musicInfo: KaraokeMusicInfo?) {
-        updateLrcView(lrcString: musicInfo?.lyricsUrl ?? "")
+        updateLrcView(lrcString: musicInfo?.lyricsUrl)
         updateMusicDetail(hidden: musicInfo == nil)
         if let musicInfo = musicInfo {
             musicNameLabel.text = musicInfo.musicName
@@ -387,6 +387,7 @@ extension TRTCMusicPanelView {
         musicNameContainerView.snp.makeConstraints { make in
             make.leading.equalTo(musicIcon.snp.trailing).offset(2)
             make.centerY.equalTo(musicIcon)
+            make.width.lessThanOrEqualTo(bgView.snp.width).multipliedBy(0.38)
         }
         musicNameLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview()
@@ -394,8 +395,9 @@ extension TRTCMusicPanelView {
             make.bottom.equalToSuperview()
         }
         musicNameActionImageView.snp.makeConstraints { make in
-            make.leading.equalTo(musicNameLabel.snp.trailing).offset(2)
+            make.leading.equalTo(musicNameLabel.snp.trailing)
             make.right.equalToSuperview()
+            make.size.equalTo(CGSize(width: 11, height: 11))
             make.centerY.equalTo(musicNameLabel.snp.centerY)
         }
         musicTimeLabel.snp.makeConstraints { make in
@@ -449,7 +451,7 @@ extension TRTCMusicPanelView {
             }
         } else {
             soundEffectBtn.snp.remakeConstraints { (make) in
-                make.trailing.equalTo(musicModeSegmented.snp.leading).offset(-10)
+                make.trailing.equalTo(musicModeSegmented.snp.leading).offset(-5)
                 make.centerY.equalTo(containerView)
                 make.size.equalTo(CGSize(width: 60, height: 32))
             }
@@ -474,13 +476,31 @@ extension TRTCMusicPanelView: TRTCKaraokeMusicModeSegmentedDelegate {
 
 // MARK: - internationalization string
 fileprivate extension String {
-    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
-    static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
-    static let startChorusText = karaokeLocalize("Demo.TRTC.Chorus.StartChorus")
-    static let updateNetworkFailedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
-    static let soundEffectText = karaokeLocalize("Demo.TRTC.Chorus.SoundEffects")
-    static let musicOriginalText = karaokeLocalize("Demo.TRTC.Chorus.musicOriginal")
-    static let musicAccompanimentText = karaokeLocalize("Demo.TRTC.Chorus.musicAccompaniment")
-    static let notInSeatText = karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
-    static let onlyOwnerText = karaokeLocalize("Demo.TRTC.Karaoke.onlyownercanoperation")
+    static var songSelectorText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    }
+    static var seatIndexText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    }
+    static var startChorusText: String {
+        karaokeLocalize("Demo.TRTC.Chorus.StartChorus")
+    }
+    static var updateNetworkFailedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
+    }
+    static var soundEffectText: String {
+        karaokeLocalize("Demo.TRTC.Chorus.SoundEffects")
+    }
+    static var musicOriginalText: String {
+        karaokeLocalize("Demo.TRTC.Chorus.musicOriginal")
+    }
+    static var musicAccompanimentText: String {
+        karaokeLocalize("Demo.TRTC.Chorus.musicAccompaniment")
+    }
+    static var notInSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
+    }
+    static var onlyOwnerText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onlyownercanoperation")
+    }
 }

@@ -108,8 +108,6 @@ static NSString *const kChorusMusicIsOriginMusic = @"is_origin_music";
     [self.chorusLongTermTimer setFireDate:[NSDate distantFuture]];
     [self.chorusLongTermTimer invalidate];
     self.chorusLongTermTimer = nil;
-    [self.voiceCloud stopLocalAudio];
-    [self.bgmCloud stopLocalAudio];
     self.musicParam = nil;
     self.accompanyParam = nil;
     self.isOriginMusic = NO;
@@ -148,10 +146,9 @@ static NSString *const kChorusMusicIsOriginMusic = @"is_origin_music";
     accompanyParam.path = accompanyUrl;
     accompanyParam.publish = reason == ChorusStartReasonLocal;
     self.accompanyParam = accompanyParam;
-    
-    self.musicDuration = [[self audioEffectManager] getMusicDurationInMS:self.musicParam.path];
-    TRTCLog(@"___ chorus: start play: %@", musicId);
     [self.chorusLongTermTimer setFireDate:[NSDate distantPast]];
+    self.musicDuration = [[self audioEffectManager] getMusicDurationInMS:self.musicParam.path];
+    TRTCLog(@"Start Play: %@", musicId);
     [self schedulePlayMusic:chorusStartPlayDelay];
     if (self.chorusReason == ChorusStartReasonLocal) {
         [self sendStartChorusMsg];
@@ -400,7 +397,10 @@ static NSString *const kChorusMusicIsOriginMusic = @"is_origin_music";
     };
     
     if (delayMs > 0) {
-        [self preloadMusic:self.musicParam.path startMs:0];
+        self.musicParam.startTimeMS = 0;
+        self.accompanyParam.startTimeMS = 0;
+        [self preloadMusic:self.musicParam];
+        [self preloadMusic:self.accompanyParam];
         if (!self.delayStartChorusMusicTimer) {
             NSInteger initialTime = [TXLiveBase getNetworkTimestamp];
             self.delayStartChorusMusicTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0,
@@ -429,62 +429,53 @@ static NSString *const kChorusMusicIsOriginMusic = @"is_origin_music";
             dispatch_resume(_delayStartChorusMusicTimer);
         }
     } else {
-        TRTCLog(@"schedulePlayMusic startPlayMusic: current_ntp: %@, musicId: %@",
-                [self logTimeIntervalToTime:[TXLiveBase getNetworkTimestamp]],
-                [NSString stringWithFormat:@"%d",self.musicParam.ID]);
-        [[self audioEffectManager] startPlayMusic:self.musicParam onStart:startBlock onProgress:progressBlock
-         onComplete:completedBlock];
-        [[self audioEffectManager] startPlayMusic:self.accompanyParam onStart:nil onProgress:nil onComplete:nil];
-        if (delayMs < 0) {
-            NSInteger startMS = -delayMs + CHORUS_PRELOAD_MUSIC_DELAY;
-            [self preloadMusic:self.musicParam.path startMs:startMS];
-            if (!self.preloadMusicTimer) {
-                NSInteger initialTime = [TXLiveBase getNetworkTimestamp];
-                self.preloadMusicTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0,
-                 dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0));
-                dispatch_source_set_timer(self.preloadMusicTimer, DISPATCH_TIME_NOW, DISPATCH_TIME_FOREVER, 0);
-                dispatch_source_set_event_handler(self.preloadMusicTimer, ^{
-                    while (true) {
-                        //轮询，直到当前时间为约定时间再执行，之所以不直接用timer在约定时间执行是由于精度问题，可能会相差几百毫秒
-                        CHORUS_STRONGIFY_OR_RETURN(self);
-                        if ([TXLiveBase getNetworkTimestamp] > (initialTime + CHORUS_PRELOAD_MUSIC_DELAY)) {
-                            if(!self->_isChorusOn) {
-                                //若达到预期播放时间时，合唱已被停止，则跳过此次播放
-                                TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension schedulePlayMusic abort, chorus has been stopped, current_ntp:%ld", [TXLiveBase getNetworkTimestamp]]);
-                                break;
-                            }
-                            TRTCLog(@"schedulePlayMusic startPlayMusic: current_ntp: %@, musicId: %@, start_time: %@",
-                                    [self logTimeIntervalToTime:[TXLiveBase getNetworkTimestamp]],
-                                    [NSString stringWithFormat:@"%d",self.musicParam.ID],
-                                    [self logTimeIntervalToTime:startMS]);
-                            [[self audioEffectManager] startPlayMusic:self.musicParam onStart:startBlock
-                             onProgress:progressBlock onComplete:completedBlock];
-                            [[self audioEffectManager] startPlayMusic:self.accompanyParam onStart:nil onProgress:nil onComplete:nil];
-                            TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension calling startPlayMusic, startMs:%ld, current_ntp:%ld", startMS, [TXLiveBase getNetworkTimestamp]]);
+        NSInteger startMS = labs(delayMs) + CHORUS_PRELOAD_MUSIC_DELAY;
+        self.musicParam.startTimeMS = startMS;
+        self.accompanyParam.startTimeMS = startMS;
+        [self preloadMusic:self.musicParam];
+        [self preloadMusic:self.accompanyParam];
+        TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension schedulePlayMusic startMS: %ld, current_ntp:%ld", startMS, [TXLiveBase getNetworkTimestamp]]);
+        if (!self.preloadMusicTimer) {
+            NSInteger initialTime = [TXLiveBase getNetworkTimestamp];
+            self.preloadMusicTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0,
+                                                            dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0));
+            dispatch_source_set_timer(self.preloadMusicTimer, DISPATCH_TIME_NOW, DISPATCH_TIME_FOREVER, 0);
+            dispatch_source_set_event_handler(self.preloadMusicTimer, ^{
+                while (true) {
+                    //轮询，直到当前时间为约定时间再执行，之所以不直接用timer在约定时间执行是由于精度问题，可能会相差几百毫秒
+                    CHORUS_STRONGIFY_OR_RETURN(self);
+                    if ([TXLiveBase getNetworkTimestamp] > (initialTime + CHORUS_PRELOAD_MUSIC_DELAY)) {
+                        if(!self->_isChorusOn) {
+                            //若达到预期播放时间时，合唱已被停止，则跳过此次播放
+                            TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension schedulePlayMusic abort, chorus has been stopped, current_ntp:%ld", [TXLiveBase getNetworkTimestamp]]);
                             break;
                         }
+                        TRTCLog(@"schedulePlayMusic startPlayMusic: current_ntp: %@, musicId: %@, start_time: %@",
+                                [self logTimeIntervalToTime:[TXLiveBase getNetworkTimestamp]],
+                                [NSString stringWithFormat:@"%d",self.musicParam.ID],
+                                [self logTimeIntervalToTime:startMS]);
+                        [[self audioEffectManager] startPlayMusic:self.musicParam onStart:startBlock
+                                                       onProgress:progressBlock onComplete:completedBlock];
+                        [[self audioEffectManager] startPlayMusic:self.accompanyParam onStart:nil onProgress:nil onComplete:nil];
+                        TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension calling startPlayMusic, startMs:%ld, current_ntp:%ld", startMS, [TXLiveBase getNetworkTimestamp]]);
+                        break;
                     }
-                });
-                dispatch_resume(self.preloadMusicTimer);
-            }
+                }
+            });
+            dispatch_resume(self.preloadMusicTimer);
         }
     }
 }
 
 #pragma mark - 歌曲同步方法
-- (void)preloadMusic:(NSString *)path startMs:(NSInteger)startMs {
-    TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension preloadMusic, current_ntp:%ld", [TXLiveBase getNetworkTimestamp]]);
-    NSDictionary *jsonDict = @{
-        @"api": @"preloadMusic",
-        @"params": @{
-                @"musicId": @(self.currentPlayMusicID),
-                @"path": path,
-                @"startTimeMS": @(startMs),
-        }
-    };
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:NULL];
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    [self.bgmCloud callExperimentalAPI:jsonString];
+- (void)preloadMusic:(TXAudioMusicParam *)musicParam {
+    TRTCLog(@"%@",[NSString stringWithFormat:@"ChorusExtension preloadMusic,musicId: %d, publish: %d, current_ntp:%ld", musicParam.ID, musicParam.publish, [TXLiveBase getNetworkTimestamp]]);
+    [[self audioEffectManager] preloadMusic:musicParam
+                                 onProgress:^(NSInteger progress) {
+        
+    } onError:^(NSInteger errorCode) {
+        
+    }];
 }
 
 #pragma mark - 发送合唱信令相关

@@ -85,7 +85,6 @@ static dispatch_once_t gOnceToken;
 - (void)resetGlobalVariablesToDefault {
     [self.seatInfoList removeAllObjects];
     self.isSelfMute = NO;
-    [self stopPlayMusic];
     self.currentPlayingOriginalMusicID = 0;
     self.isOriginalMusic = NO;
     self.musicVolume = 60;
@@ -375,6 +374,7 @@ static dispatch_once_t gOnceToken;
         @strongify(self)
         if (!self) { return; }
         TRTCLog(@"start exit trtc room");
+        [self stopPlayMusic];
         [self.rtcService exitRoom:^(int code, NSString * _Nonnull message) {
             @strongify(self)
             if (!self) { return; }
@@ -417,8 +417,8 @@ static dispatch_once_t gOnceToken;
             [roomIds addObject:[roomId stringValue]];
         }
         [self.imService getRoomInfoList:roomIds
-                                    calback:^(int code, NSString * _Nonnull message,
-                                              NSArray<KaraokeRoomInfo *> * _Nonnull roomInfos) {
+                                calback:^(int code, NSString * _Nonnull message,
+                                          NSArray<KaraokeRoomInfo *> * _Nonnull roomInfos) {
             if (code == 0) {
                 TRTCLog(@"roomInfos: %@", roomInfos);
                 NSMutableArray* trtcRoomInfos = [[NSMutableArray alloc] initWithCapacity:2];
@@ -826,13 +826,13 @@ static dispatch_once_t gOnceToken;
     [[self getMusicAudioEffectManager] setMusicPlayoutVolume:self.currentPlayingOriginalMusicID
                                                       volume:self.isOriginalMusic ? self.musicVolume : 0];
     [[self getMusicAudioEffectManager] setMusicPublishVolume:self.currentPlayingOriginalMusicID
-                                                      volume:self.isOriginalMusic ? self.musicVolume : 0];
+                                                      volume:(self.isOriginalMusic ? self.musicVolume : 0) * 0.9];
     
     // 伴奏
     [[self getMusicAudioEffectManager] setMusicPlayoutVolume:self.currentPlayingOriginalMusicID + 1
                                                       volume:self.isOriginalMusic ? 0 : self.musicVolume];
     [[self getMusicAudioEffectManager] setMusicPublishVolume:self.currentPlayingOriginalMusicID + 1
-                                                      volume:self.isOriginalMusic ? 0 : self.musicVolume];
+                                                      volume:(self.isOriginalMusic ? 0 : self.musicVolume) * 0.9];
 }
 
 - (void)enableVoiceEarMonitor:(BOOL)enable {

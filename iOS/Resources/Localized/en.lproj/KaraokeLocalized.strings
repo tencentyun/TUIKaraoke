@@ -152,6 +152,7 @@
 
 "Demo.TRTC.Chorus.StartChorus" = "Start\nDuet";
 "Demo.TRTC.Chorus.ComingSoon" = "Coming soon...";
+"Demo.TRTC.Chorus.nolyricsyet" = "no lyrics yet";
 "Demo.TRTC.Chorus.NoAccompaniment" = "Current song has no accompaniment";
 "Demo.TRTC.Chorus.musicOriginal" = "Original";
 "Demo.TRTC.Chorus.musicAccompaniment" = "Accompaniment";

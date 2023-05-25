@@ -72,6 +72,8 @@ extension TRTCCreateKaraokeViewController: TRTCCreateKaraokeNavigator {
 }
 
 private extension String {
-    static let controllerTitle = karaokeLocalize("Demo.TRTC.Karaoke.createvoicechatroom")
+    static var controllerTitle: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.createvoicechatroom")
+    }
 }
 

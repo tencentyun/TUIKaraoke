@@ -153,6 +153,7 @@
 
 "Demo.TRTC.Chorus.StartChorus" = "开始合唱";
 "Demo.TRTC.Chorus.ComingSoon" = "即将播放...";
+"Demo.TRTC.Chorus.nolyricsyet" = "暂无歌词";
 "Demo.TRTC.Chorus.NoAccompaniment" = "当前歌曲没有伴奏";
 "Demo.TRTC.Chorus.musicOriginal" = "原唱";
 "Demo.TRTC.Chorus.musicAccompaniment" = "伴奏";

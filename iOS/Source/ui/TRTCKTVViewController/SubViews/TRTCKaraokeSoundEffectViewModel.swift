@@ -333,9 +333,19 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let musicTitle1Text = karaokeLocalize("Demo.TRTC.Karaoke.musicname1")
-    static let musicTitle2Text = karaokeLocalize("Demo.TRTC.Karaoke.musicname2")
-    static let musicTitle3Text = karaokeLocalize("Demo.TRTC.Karaoke.musicname3")
-    static let notInSeatText = karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
-    static let audioRouteChangeTipsText = karaokeLocalize("Demo.TRTC.Karaoke.audioRouteChangeTips")
+    static var musicTitle1Text: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.musicname1")
+    }
+    static var musicTitle2Text: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.musicname2")
+    }
+    static var musicTitle3Text: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.musicname3")
+    }
+    static var notInSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
+    }
+    static var audioRouteChangeTipsText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.audioRouteChangeTips")
+    }
 }

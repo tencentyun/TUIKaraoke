@@ -167,6 +167,10 @@ extension TRTCKaraokeMusicModeSegmented {
  
 // MARK: - internationalization string
 fileprivate extension String {
-    static let noAccompanimentText = karaokeLocalize("Demo.TRTC.Chorus.NoAccompaniment")
-    static let onlyAnchorOperationText = karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
+    static var noAccompanimentText: String {
+        karaokeLocalize("Demo.TRTC.Chorus.NoAccompaniment")
+    }
+    static var onlyAnchorOperationText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
+    }
 }

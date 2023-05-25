@@ -152,9 +152,12 @@ class TRTCKaraokeMsgInputView: UIView {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let saysmtText = karaokeLocalize("Demo.TRTC.Karaoke.saysomething")
-    static let sendText = karaokeLocalize("Demo.TRTC.LiveRoom.send")
-
+    static var saysmtText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.saysomething")
+    }
+    static var sendText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.send")
+    }
 }
 
 

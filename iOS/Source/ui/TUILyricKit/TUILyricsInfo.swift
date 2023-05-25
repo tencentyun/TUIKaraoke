@@ -100,5 +100,7 @@ public class TUILyricParser: NSObject {
 }
 
 fileprivate extension String {
-    static let noLyricText = "Demo.TRTC.Karaoke.nolyricfound"
+    static var noLyricText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.nolyricfound")
+    }
 }

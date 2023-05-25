@@ -222,5 +222,7 @@ class TRTCKaraokeDashboardRemoteAudioCell: UITableViewCell {
 }
 
 fileprivate extension String {
-    static let remoteAudioInfoText = karaokeLocalize("Demo.TRTC.Karaoke.remoteAudioInfo")
+    static var remoteAudioInfoText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.remoteAudioInfo")
+    }
 }

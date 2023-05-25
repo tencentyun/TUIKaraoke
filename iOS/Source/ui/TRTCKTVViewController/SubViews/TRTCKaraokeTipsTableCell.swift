@@ -339,7 +339,13 @@ class TRTCKaraokeTipsTableCell: UITableViewCell {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let acceptText = karaokeLocalize("Demo.TRTC.Karaoke.agree")
-    static let welcomeText = karaokeLocalize("Demo.TRTC.Karaoke.welcome")
-    static let manageSongText = karaokeLocalize("Demo.TRTC.Karaoke.manageselectedsongs")
+    static var acceptText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.agree")
+    }
+    static var welcomeText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.welcome")
+    }
+    static var manageSongText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.manageselectedsongs")
+    }
 }
