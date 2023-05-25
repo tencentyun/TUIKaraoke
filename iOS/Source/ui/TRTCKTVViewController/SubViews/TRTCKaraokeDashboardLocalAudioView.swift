@@ -157,5 +157,7 @@ class TRTCKaraokeDashboardLocalAudioView: UIView {
 }
 
 fileprivate extension String {
-    static let localAudioInfoText = karaokeLocalize("Demo.TRTC.Karaoke.localAudioInfo")
+    static var localAudioInfoText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.localAudioInfo")
+    }
 }

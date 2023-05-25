@@ -251,7 +251,6 @@ extension TRTCKaraokeSearchViewController: UITableViewDataSource {
             model.isSelected = userSelectedSong[model.getMusicId()] ?? false
             scell.model = model
             scell.viewModel = viewModel
-            scell.setSearchUi(indexPath: indexPath)
         }
         return cell
     }
@@ -272,7 +271,13 @@ extension TRTCKaraokeSearchViewController: UITableViewDelegate {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let searchPlaceholderText = karaokeLocalize("Demo.TRTC.Karaoke.searchlike")
-    static let searchBackText = karaokeLocalize("Demo.TRTC.LiveRoom.searchback")
-    static let searchNoResult = karaokeLocalize("Demo.TRTC.LiveRoom.searchnoresult")
+    static var searchPlaceholderText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.searchlike")
+    }
+    static var searchBackText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.searchback")
+    }
+    static var searchNoResult: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.searchnoresult")
+    }
 }

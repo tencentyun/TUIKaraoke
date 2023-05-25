@@ -175,11 +175,11 @@ class TRTCKaraokeRootView: UIView {
         let isAnchor = (viewModel.userType == .anchor)
         let networklevel = viewModel.getCurrentNetworkLevel()
         if networklevel > 2 && isAnchor {
-            makeToast(.anchorNetworkChekcText, duration: ToastManager.shared.duration, position:ToastPosition.center)
+            makeToast(.anchorNetworkCheckText, duration: ToastManager.shared.duration, position:ToastPosition.center)
         }
         if networklevel > 2 && !isAnchor {
             if networklevel == 6 {
-                makeToast(.audienceNetworkChekcText,
+                makeToast(.audienceNetworkCheckText,
                           duration: ToastManager.shared.duration,
                           position:ToastPosition.center)
             } else {
@@ -514,17 +514,39 @@ extension TRTCKaraokeRootView: TUIGiftPanelViewDelegate {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let mutedText = karaokeLocalize("Demo.TRTC.Salon.seatmuted")
-    static let unmutedText = karaokeLocalize("Demo.TRTC.Salon.seatunmuted")
-    static let acceptText = karaokeLocalize("Demo.TRTC.LiveRoom.accept")
-    static let retryText = karaokeLocalize("Demo.TRTC.LiveRoom.retry")
-    static let refuseText = karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
-    static let selectText = karaokeLocalize("Demo.TRTC.Salon.pleaseselect")
-    static let cancelText = karaokeLocalize("Demo.TRTC.LiveRoom.cancel")
-    static let seatmutedText = karaokeLocalize("Demo.TRTC.Karaoke.onseatmuted")
-    static let anchorNetworkChekcText = karaokeLocalize("Demo.TRTC.Karaoke.anchorCheckNetwork")
-    static let audienceNetworkChekcText = karaokeLocalize("Demo.TRTC.Karaoke.audienceCheckNetwork")
-    static let handupCheckNetworkText = karaokeLocalize("Demo.TRTC.Karaoke.handupCheckNetwork")
+    static var mutedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.seatmuted")
+    }
+    static var unmutedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.seatunmuted")
+    }
+    static var acceptText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.accept")
+    }
+    static var retryText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.retry")
+    }
+    static var refuseText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.refuse")
+    }
+    static var selectText: String {
+        karaokeLocalize("Demo.TRTC.Salon.pleaseselect")
+    }
+    static var cancelText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.cancel")
+    }
+    static var seatmutedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onseatmuted")
+    }
+    static var anchorNetworkCheckText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.anchorCheckNetwork")
+    }
+    static var audienceNetworkCheckText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.audienceCheckNetwork")
+    }
+    static var handupCheckNetworkText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.handupCheckNetwork")
+    }
 }
 
 

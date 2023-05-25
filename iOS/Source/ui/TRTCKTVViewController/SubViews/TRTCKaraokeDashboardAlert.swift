@@ -329,6 +329,10 @@ extension UILabel {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let dashBoardText = karaokeLocalize("Demo.TRTC.Karaoke.dashboard")
-    static let networkInfoText = karaokeLocalize("Demo.TRTC.Karaoke.networkInfo")
+    static var dashBoardText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.dashboard")
+    }
+    static var networkInfoText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.networkInfo")
+    }
 }

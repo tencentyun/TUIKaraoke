@@ -424,11 +424,6 @@ class TRTCKaraokeSongSelectorTableViewCell: UITableViewCell {
         songSelectBtn.addTarget(self, action: #selector(songSelectBtnClick), for: .touchUpInside)
     }
 
-    func setSearchUi(indexPath: IndexPath) {
-        let array = ["voiceChange_xionghaizi_nor","voiceChange_loli_nor","voiceChange_dashu_nor"]
-        headerImageView.image = UIImage(named: array[indexPath.row%3], in: karaokeBundle(), compatibleWith: nil)
-    }
-
     @objc func songSelectBtnClick() {
         guard let model = model else { return }
         guard let viewModel = viewModel else { return }
@@ -536,8 +531,16 @@ class TRTCKaraokeSongTagViewCell: UICollectionViewCell {
 
 // MARK: - internationalization string
 fileprivate extension String {
-    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
-    static let selectedSongText = karaokeLocalize("Demo.TRTC.Karaoke.selectedsong")
-    static let permissionDeniedText = karaokeLocalize("Permission denied")
-    static let searchPlaceholderText = karaokeLocalize("Demo.TRTC.Karaoke.searchlike")
+    static var songSelectorText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    }
+    static var selectedSongText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.selectedsong")
+    }
+    static var permissionDeniedText: String {
+        karaokeLocalize("Permission denied")
+    }
+    static var searchPlaceholderText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.searchlike")
+    }
 }

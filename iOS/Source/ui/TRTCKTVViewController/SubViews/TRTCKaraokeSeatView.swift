@@ -223,10 +223,18 @@ class TRTCKaraokeSeatView: UIView {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let handsupText = karaokeLocalize("Demo.TRTC.Karaoke.presshandsup")
-    static let lockedText = karaokeLocalize("Demo.TRTC.Karaoke.islocked")
-    static let inviteHandsupText = karaokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
-    static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    static var handsupText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.presshandsup")
+    }
+    static var lockedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.islocked")
+    }
+    static var inviteHandsupText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
+    }
+    static var seatIndexText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    }
 }
 
 

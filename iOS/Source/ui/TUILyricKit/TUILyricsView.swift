@@ -15,14 +15,17 @@ class TUILyricsView: UIView {
         }
     }
     
-    var lrcFileUrl: URL? {
+    var lyricsPathString: String? {
         didSet {
-            if let url = lrcFileUrl {
-                debugPrint("___ set lrc file = \(url)")
-                lyricsInfo = TUILyricParser.parserLocalLyricFile(fileURL: url)
-            }
-            else {
-                debugPrint("___ clear lrc file")
+            if let lyricsPathString = lyricsPathString {
+                if lyricsPathString == "" {
+                    lyricsInfo = nil
+                    headerView.text = .nolyricsyetText
+                } else {
+                    lyricsInfo = TUILyricParser.parserLocalLyricFile(fileURL: URL(fileURLWithPath: lyricsPathString))
+                    headerView.text = .comingSoonText
+                }
+            } else {
                 lyricsInfo = nil
             }
         }
@@ -30,9 +33,7 @@ class TUILyricsView: UIView {
     
     var currentIndex: NSInteger {
         get {
-            guard let lyricsInfo = lyricsInfo else {
-                return 0
-            }
+            guard let lyricsInfo = lyricsInfo else { return 0 }
             for (i, model) in lyricsInfo.lyricLineInfos.enumerated() {
                 if model.startTime > currentTime {
                     if i > 0 {
@@ -48,9 +49,7 @@ class TUILyricsView: UIView {
     
     var currentTime: TimeInterval = 0 {
         didSet {
-            guard lyricsInfo != nil, lrcFileUrl != nil else {
-                return
-            }
+            guard lyricsInfo != nil, lyricsPathString != nil else { return }
             setTime(currentTime)
         }
     }
@@ -62,19 +61,21 @@ class TUILyricsView: UIView {
     private func setTime(_ time: TimeInterval) {
         guard let lyricsInfo = lyricsInfo else { return }
         if currentIndex != currentIndexPath.row {
-            lyricsTableView.setContentOffset(CGPoint(x: 0, y: CGFloat(currentIndex) * cellHeight + cellHeight), animated: true)
+            debugPrint("currentIndex = \(currentIndex), lyricLineInfoCount = \(lyricsInfo.lyricLineInfos.count)")
+            lyricsTableView.scrollToRow(at: IndexPath(row: currentIndex, section: 0), at: .top, animated: true)
             if let finishCell = lastCell {
                 finishCell.updateCurrentPlayingStatus(status: .prepare, animate: true)
             }
         }
         
         let indexPath = IndexPath(row: currentIndex, section: 0)
-        guard let lyricsCell = lyricsTableView.cellForRow(at:indexPath) as? TUILyricsCell else { return }
+        
         if indexPath.row != currentIndexPath.row {
-            lyricsCell.updateCurrentPlayingStatus(status: .playing, animate: true)
             currentIndexPath = indexPath
         }
-
+        
+        guard let lyricsCell = lyricsTableView.cellForRow(at:indexPath) as? TUILyricsCell else { return }
+        lyricsCell.updateCurrentPlayingStatus(status: .playing, animate: true)
         let currentLineInfo = lyricsInfo.lyricLineInfos[indexPath.row]
         let progress = time - currentLineInfo.startTime
         lyricsCell.updateLyricsProgress(progress: progress)
@@ -91,6 +92,16 @@ class TUILyricsView: UIView {
         tableView.isUserInteractionEnabled = false
         tableView.separatorStyle = .none
         return tableView
+    }()
+    
+    lazy var headerView: UILabel = {
+        let headerView = UILabel(frame: .zero)
+        headerView.text = .comingSoonText
+        headerView.textAlignment = .center
+        headerView.textColor = .white
+        headerView.font = UIFont(name: "PingFangSC-Semibold", size: 18)
+        headerView.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+        return headerView
     }()
     
     init() {
@@ -110,7 +121,10 @@ class TUILyricsView: UIView {
     func resetLyricsViewStatus() {
         lastCell = nil
         currentIndexPath = IndexPath(row: -1, section: 0)
-        lyricsTableView.setContentOffset(CGPoint(x: 0, y: 0), animated: false)
+        lyricsTableView.reloadData()
+        if let lyricsInfo = lyricsInfo, lyricsInfo.lyricLineInfos.count > 0 {
+            lyricsTableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: .bottom, animated: false)
+        }
     }
 }
 
@@ -123,14 +137,17 @@ extension TUILyricsView {
             make.top.bottom.equalToSuperview()
         }
         
-        let headerView = UILabel(frame: .zero)
-        headerView.text = .comingSoonText
-        headerView.textAlignment = .center
-        headerView.textColor = .white
-        headerView.font = UIFont(name: "PingFangSC-Semibold", size: 18)
-        headerView.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
         lyricsTableView.tableHeaderView = headerView
         headerView.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalToSuperview()
+            make.height.equalTo(cellHeight)
+        }
+        
+        let footerView = UILabel(frame: .zero)
+        lyricsTableView.tableFooterView = footerView
+        
+        footerView.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.top.equalToSuperview()
             make.height.equalTo(cellHeight)
@@ -367,5 +384,10 @@ public class TUILyricsLabel: UIView {
 }
 
 fileprivate extension String {
-    static let comingSoonText = karaokeLocalize("Demo.TRTC.Chorus.ComingSoon")
+    static var comingSoonText: String {
+        karaokeLocalize("Demo.TRTC.Chorus.ComingSoon")
+    }
+    static var nolyricsyetText: String {
+        karaokeLocalize("Demo.TRTC.Chorus.nolyricsyet")
+    }
 }

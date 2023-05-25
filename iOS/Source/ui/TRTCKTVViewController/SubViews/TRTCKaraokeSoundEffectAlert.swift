@@ -651,14 +651,34 @@ class TRTCKaraokeSoundEffectCellForCollectionCell: UICollectionViewCell {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let effectTitleText = karaokeLocalize("ASKit.MainMenu.Title")
-    static let voiceChangeText = karaokeLocalize("ASKit.MainMenu.VoiceChangeTitle")
-    static let reverbText = karaokeLocalize("ASKit.MainMenu.Reverberation")
-    static let auditionText = karaokeLocalize("ASKit.MusicSelectMenu.Title")
-    static let bringHeadphoneText = karaokeLocalize("Demo.TRTC.Karaoke.useearphones")
-    static let copyrightText = karaokeLocalize("Demo.TRTC.Karaoke.copyrights")
-    static let selectMusicText = karaokeLocalize("ASKit.MainMenu.SelectMusic")
-    static let musicVolumeText = karaokeLocalize("ASKit.MainMenu.MusicVolum")
-    static let vocalVolumeText = karaokeLocalize("ASKit.MainMenu.PersonVolum")
-    static let vocalRiseFallText = karaokeLocalize("ASKit.MainMenu.PersonPitch")
+    static var effectTitleText: String {
+        karaokeLocalize("ASKit.MainMenu.Title")
+    }
+    static var voiceChangeText: String {
+        karaokeLocalize("ASKit.MainMenu.VoiceChangeTitle")
+    }
+    static var reverbText: String {
+        karaokeLocalize("ASKit.MainMenu.Reverberation")
+    }
+    static var auditionText: String {
+        karaokeLocalize("ASKit.MusicSelectMenu.Title")
+    }
+    static var bringHeadphoneText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.useearphones")
+    }
+    static var copyrightText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.copyrights")
+    }
+    static var selectMusicText: String {
+        karaokeLocalize("ASKit.MainMenu.SelectMusic")
+    }
+    static var musicVolumeText: String {
+        karaokeLocalize("ASKit.MainMenu.MusicVolum")
+    }
+    static var vocalVolumeText: String {
+        karaokeLocalize("ASKit.MainMenu.PersonVolum")
+    }
+    static var vocalRiseFallText: String {
+        karaokeLocalize("ASKit.MainMenu.PersonPitch")
+    }
 }

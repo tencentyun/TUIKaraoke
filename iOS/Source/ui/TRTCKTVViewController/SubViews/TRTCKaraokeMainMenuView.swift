@@ -283,7 +283,13 @@ extension UIButton {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let songSelectorText = karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
-    static let updateNetworkFailedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
-    static let onlyOwnerText = karaokeLocalize("Demo.TRTC.Karaoke.onlyownercanoperation")
+    static var songSelectorText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.selectsong")
+    }
+    static var updateNetworkFailedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
+    }
+    static var onlyOwnerText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onlyownercanoperation")
+    }
 }

@@ -131,10 +131,18 @@ extension TRTCKaraokeViewController {
 }
 
 private extension String {
-    static let exitText = karaokeLocalize("Demo.TRTC.Karaoke.exit")
-    static let sureToExitText = karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
-    static let confirmText = karaokeLocalize("Demo.TRTC.LiveRoom.confirm")
-    static let cancelText = karaokeLocalize("Demo.TRTC.LiveRoom.cancel")
+    static var exitText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.exit")
+    }
+    static var sureToExitText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.isvoicingandsuretoexit")
+    }
+    static var confirmText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.confirm")
+    }
+    static var cancelText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.cancel")
+    }
 }
 
 

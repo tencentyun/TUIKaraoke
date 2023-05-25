@@ -355,19 +355,20 @@ class TRTCKaraokeViewModel: NSObject {
         Karaoke.sendRoomCustomMsg(cmd: gKaraoke_KEY_CMD_SELECTED_MUSIC, message: message)
     }
     
-    func showSelectedMusic(music: KaraokeMusicInfo) {
-        var action: (() -> ())? = nil
-        if isOwner {
-            action = { [weak self] in
-                guard let `self` = self else { return }
+    func showSelectedMusic(userId: String, musicName: String) {
+        let action = { [weak self] in
+            guard let `self` = self else { return }
+            if self.isOwner {
                 self.viewResponder?.onManageSongBtnClick()
+            } else {
+                self.viewResponder?.showToast(message: .onlyOwnerText)
             }
         }
-        let userInfo = getSeatUserByUserId(userId: music.userId)
-        let seatIndex = getSeatIndexByUserId(userId: music.userId)
-        showNotifyMsg(messsage: localizeReplaceThreeCharacter(.xxSeatSelectzzSongText, "\(seatIndex + 1)", "xxx", music.musicName),
+        let userInfo = getSeatUserByUserId(userId: userId)
+        let seatIndex = getSeatIndexByUserId(userId: userId)
+        showNotifyMsg(messsage: localizeReplaceThreeCharacter(.xxSeatSelectzzSongText, "\(seatIndex + 1)", "xxx", musicName),
                       userName: userInfo?.userName ?? "",
-                      type: isOwner ? .manage_song : .normal,
+                      type: .manage_song,
                       action: action)
     }
     
@@ -1113,12 +1114,7 @@ extension TRTCKaraokeViewModel: TRTCKaraokeRoomObserver {
             guard let obj = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: String] else { return }
             guard let musicName = obj[gKaraoke_VALUE_CMD_MUSICNAME] else { return }
             guard let userId = obj[gKaraoke_VALUE_CMD_USERID] else { return }
-            let userInfo = getSeatUserByUserId(userId: userId)
-            let seatIndex = getSeatIndexByUserId(userId: userId)
-            showNotifyMsg(messsage: localizeReplaceThreeCharacter(.xxSeatSelectzzSongText, "\(seatIndex + 1)", "xxx", musicName),
-                          userName: userInfo?.userName ?? "",
-                          type: .normal,
-                          action: nil)
+            showSelectedMusic(userId: userId, musicName: musicName)
         }
     }
     
@@ -1238,71 +1234,206 @@ extension TRTCKaraokeViewModel: KaraokeMusicServiceObserver {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let seatmutedText = karaokeLocalize("Demo.TRTC.Karaoke.onseatmuted")
-    static let micmutedText = karaokeLocalize("Demo.TRTC.Salon.micmuted")
-    static let micunmutedText = karaokeLocalize("Demo.TRTC.Salon.micunmuted")
-    static let mutedText = karaokeLocalize("Demo.TRTC.Karaoke.ismuted")
-    static let unmutedText = karaokeLocalize("Demo.TRTC.Karaoke.isunmuted")
-    static let seatuninitText = karaokeLocalize("Demo.TRTC.Salon.seatlistnotinit")
-    static let enterSuccessText = karaokeLocalize("Demo.TRTC.Salon.enterroomsuccess")
-    static let enterFailedText = karaokeLocalize("Demo.TRTC.Salon.enterroomfailed")
-    static let createRoomFailedText = karaokeLocalize("Demo.TRTC.LiveRoom.createroomfailed")
-    static let meText = karaokeLocalize("Demo.TRTC.LiveRoom.me")
-    static let sendSuccessText = karaokeLocalize("Demo.TRTC.Karaoke.sendsuccess")
-    static let sendFailedText = karaokeLocalize("Demo.TRTC.Karaoke.sendfailedxx")
-    static let cupySeatSuccessText = karaokeLocalize("Demo.TRTC.Salon.hostoccupyseatsuccess")
-    static let cupySeatFailedText = karaokeLocalize("Demo.TRTC.Salon.hostoccupyseatfailed")
-    static let onlyAnchorOperationText = karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
-    static let seatLockedText = karaokeLocalize("Demo.TRTC.Karaoke.seatislockedandcanthandup")
-    static let audienceText = karaokeLocalize("Demo.TRTC.Salon.audience")
-    static let otherAnchorText = karaokeLocalize("Demo.TRTC.Karaoke.otheranchor")
-    static let isInxxSeatText = karaokeLocalize("Demo.TRTC.Karaoke.isinxxseat")
-    static let notInitText = karaokeLocalize("Demo.TRTC.Karaoke.seatisnotinittocanthandsup")
-    static let handsupText = karaokeLocalize("Demo.TRTC.Salon.handsup")
-    static let totaxxText = karaokeLocalize("Demo.TRTC.Karaoke.totaxx")
-    static let unmuteOneText = karaokeLocalize("Demo.TRTC.Karaoke.unmuteone")
-    static let muteOneText = karaokeLocalize("Demo.TRTC.Karaoke.muteone")
-    static let makeAudienceText = karaokeLocalize("Demo.TRTC.Karaoke.makeoneaudience")
-    static let inviteHandsupText = karaokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
-    static let banSeatText = karaokeLocalize("Demo.TRTC.Karaoke.banseat")
-    static let liftbanSeatText = karaokeLocalize("Demo.TRTC.Karaoke.liftbanseat")
-    static let seatBusyText = karaokeLocalize("Demo.TRTC.Karaoke.seatisbusy")
-    static let sendInviteSuccessText = karaokeLocalize("Demo.TRTC.Karaoke.sendinvitesuccess")
-    static let reqExpiredText = karaokeLocalize("Demo.TRTC.Salon.reqisexpired")
-    static let acceptReqFailedText = karaokeLocalize("Demo.TRTC.Salon.acceptreqfailed")
-    static let audienceSuccessText = karaokeLocalize("Demo.TRTC.Salon.audiencesuccess")
-    static let audienceFailedxxText = karaokeLocalize("Demo.TRTC.Salon.audiencefailedxx")
-    static let beingArchonText = karaokeLocalize("Demo.TRTC.Salon.isbeingarchon")
-    static let roomNotReadyText = karaokeLocalize("Demo.TRTC.Salon.roomnotready")
-    static let reqSentText = karaokeLocalize("Demo.TRTC.Karaoke.reqsentandwaitforarchondeal")
-    static let reqSendFailedxxText = karaokeLocalize("Demo.TRTC.Karaoke.reqsendfailedxx")
-    static let handsupSuccessText = karaokeLocalize("Demo.TRTC.Salon.successbecomespaker")
-    static let handsupFailedText = karaokeLocalize("Demo.TRTC.Salon.failedbecomespaker")
+    static var seatmutedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onseatmuted")
+    }
+    static var micmutedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.micmuted")
+    }
+    static var micunmutedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.micunmuted")
+    }
+    static var mutedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.ismuted")
+    }
+    static var unmutedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.isunmuted")
+    }
+    static var seatuninitText: String {
+        karaokeLocalize("Demo.TRTC.Salon.seatlistnotinit")
+    }
+    static var enterSuccessText: String {
+        karaokeLocalize("Demo.TRTC.Salon.enterroomsuccess")
+    }
+    static var enterFailedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.enterroomfailed")
+    }
+    static var createRoomFailedText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.createroomfailed")
+    }
+    static var meText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.me")
+    }
+    static var sendSuccessText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.sendsuccess")
+    }
+    static var sendFailedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.sendfailedxx")
+    }
+    static var cupySeatSuccessText: String {
+        karaokeLocalize("Demo.TRTC.Salon.hostoccupyseatsuccess")
+    }
+    static var cupySeatFailedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.hostoccupyseatfailed")
+    }
+    static var onlyAnchorOperationText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onlyanchorcanoperation")
+    }
+    static var seatLockedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.seatislockedandcanthandup")
+    }
+    static var audienceText: String {
+        karaokeLocalize("Demo.TRTC.Salon.audience")
+    }
+    static var otherAnchorText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.otheranchor")
+    }
+    static var isInxxSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.isinxxseat")
+    }
+    static var notInitText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.seatisnotinittocanthandsup")
+    }
+    static var handsupText: String {
+        karaokeLocalize("Demo.TRTC.Salon.handsup")
+    }
+    static var totaxxText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.totaxx")
+    }
+    static var unmuteOneText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.unmuteone")
+    }
+    static var muteOneText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.muteone")
+    }
+    static var makeAudienceText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.makeoneaudience")
+    }
+    static var inviteHandsupText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.invitehandsup")
+    }
+    static var banSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.banseat")
+    }
+    static var liftbanSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.liftbanseat")
+    }
+    static var seatBusyText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.seatisbusy")
+    }
+    static var sendInviteSuccessText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.sendinvitesuccess")
+    }
+    static var reqExpiredText: String {
+        karaokeLocalize("Demo.TRTC.Salon.reqisexpired")
+    }
+    static var acceptReqFailedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.acceptreqfailed")
+    }
+    static var audienceSuccessText: String {
+        karaokeLocalize("Demo.TRTC.Salon.audiencesuccess")
+    }
+    static var audienceFailedxxText: String {
+        karaokeLocalize("Demo.TRTC.Salon.audiencefailedxx")
+    }
+    static var beingArchonText: String {
+        karaokeLocalize("Demo.TRTC.Salon.isbeingarchon")
+    }
+    static var roomNotReadyText: String {
+        karaokeLocalize("Demo.TRTC.Salon.roomnotready")
+    }
+    static var reqSentText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.reqsentandwaitforarchondeal")
+    }
+    static var reqSendFailedxxText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.reqsendfailedxx")
+    }
+    static var handsupSuccessText: String {
+        karaokeLocalize("Demo.TRTC.Salon.successbecomespaker")
+    }
+    static var handsupFailedText: String {
+        karaokeLocalize("Demo.TRTC.Salon.failedbecomespaker")
+    }
     
-    static let alertText = karaokeLocalize("Demo.TRTC.LiveRoom.prompt")
-    static let invitexxSeatText = karaokeLocalize("Demo.TRTC.Karaoke.anchorinvitexxseat")
-    static let refuseHandsupText = karaokeLocalize("Demo.TRTC.Karaoke.refusehandsupreq")
-    static let applyxxSeatText = karaokeLocalize("Demo.TRTC.Karaoke.applyforxxseat")
-    static let closeRoomText = karaokeLocalize("Demo.TRTC.Salon.archonclosedroom")
-    static let seatlistWrongText = karaokeLocalize("Demo.TRTC.Karaoke.seatlistwentwrong")
-    static let beyySeatText = karaokeLocalize("Demo.TRTC.Karaoke.xxbeyyseat")
-    static let audienceyySeatText = karaokeLocalize("Demo.TRTC.Karaoke.xxaudienceyyseat")
-    static let bemutedxxText = karaokeLocalize("Demo.TRTC.Karaoke.xxisbemuted")
-    static let beunmutedxxText = karaokeLocalize("Demo.TRTC.Karaoke.xxisbeunmuted")
-    static let ownerxxSeatText = karaokeLocalize("Demo.TRTC.Karaoke.ownerxxyyseat")
-    static let banText = karaokeLocalize("Demo.TRTC.Karaoke.ban")
-    static let inRoomText = karaokeLocalize("Demo.TRTC.LiveRoom.xxinroom")
-    static let exitRoomText = karaokeLocalize("Demo.TRTC.Karaoke.xxexitroom")
-    static let hugHandsupSuccessText = karaokeLocalize("Demo.TRTC.Karaoke.hugxxhandsupsuccess")
-    static let refuseBespeakerText = karaokeLocalize("Demo.TRTC.Karaoke.refusebespeaker")
-    static let sureToLeaveSeatText = karaokeLocalize("Demo.TRTC.Karaoke.alertdeleteallmusic")
-    static let takeSeatText = karaokeLocalize("Demo.TRTC.Karaoke.micon")
-    static let lockSeatText = karaokeLocalize("Demo.TRTC.Karaoke.lockseat")
-    static let unlockSeatText = karaokeLocalize("Demo.TRTC.Karaoke.unlockseat")
-    static let xxSeatSelectzzSongText = karaokeLocalize("Demo.TRTC.Karaoke.xxmicyyselectzz")
-    static let updateNetworkSuccessedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkSuccessed")
-    static let updateNetworkFailedText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
-    static let updateNetworkFailedDonotEnterSeatText = karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailedDonotEnterSeat")
-    static let handupCheckNetworkText = karaokeLocalize("Demo.TRTC.Karaoke.handupCheckNetwork")
-    static let audienceCheckNetworkText = karaokeLocalize("Demo.TRTC.Karaoke.audienceCheckNetwork")
+    static var alertText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.prompt")
+    }
+    static var invitexxSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.anchorinvitexxseat")
+    }
+    static var refuseHandsupText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.refusehandsupreq")
+    }
+    static var applyxxSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.applyforxxseat")
+    }
+    static var closeRoomText: String {
+        karaokeLocalize("Demo.TRTC.Salon.archonclosedroom")
+    }
+    static var seatlistWrongText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.seatlistwentwrong")
+    }
+    static var beyySeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxbeyyseat")
+    }
+    static var audienceyySeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxaudienceyyseat")
+    }
+    static var bemutedxxText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxisbemuted")
+    }
+    static var beunmutedxxText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxisbeunmuted")
+    }
+    static var ownerxxSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.ownerxxyyseat")
+    }
+    static var banText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.ban")
+    }
+    static var inRoomText: String {
+        karaokeLocalize("Demo.TRTC.LiveRoom.xxinroom")
+    }
+    static var exitRoomText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxexitroom")
+    }
+    static var hugHandsupSuccessText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.hugxxhandsupsuccess")
+    }
+    static var refuseBespeakerText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.refusebespeaker")
+    }
+    static var sureToLeaveSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.alertdeleteallmusic")
+    }
+    static var takeSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.micon")
+    }
+    static var lockSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.lockseat")
+    }
+    static var unlockSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.unlockseat")
+    }
+    static var xxSeatSelectzzSongText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxmicyyselectzz")
+    }
+    static var updateNetworkSuccessedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkSuccessed")
+    }
+    static var updateNetworkFailedText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailed")
+    }
+    static var updateNetworkFailedDonotEnterSeatText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.updateNetworkFailedDonotEnterSeat")
+    }
+    static var handupCheckNetworkText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.handupCheckNetwork")
+    }
+    static var audienceCheckNetworkText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.audienceCheckNetwork")
+    }
+    static var onlyOwnerText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.onlyownercanoperation")
+    }
 }

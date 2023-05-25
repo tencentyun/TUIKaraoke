@@ -406,7 +406,13 @@ class TRTCKaraokeSelectedSongTableViewCell: UITableViewCell {
 // MARK: - internationalization string
 
 fileprivate extension String {
-    static let deleteText = karaokeLocalize("Demo.TRTC.Karaoke.DeleteMusicFromPlayListxxx")
-    static let seatIndexText = karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
-    static let originSingerText = karaokeLocalize("Demo.TRTC.Karaoke.singerisxx")
+    static var deleteText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.DeleteMusicFromPlayListxxx")
+    }
+    static var seatIndexText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxmic")
+    }
+    static var originSingerText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.singerisxx")
+    }
 }

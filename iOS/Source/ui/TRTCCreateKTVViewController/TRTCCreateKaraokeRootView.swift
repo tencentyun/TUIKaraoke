@@ -278,8 +278,16 @@ extension TRTCCreateKaraokeRootView : TRTCCreateKaraokeViewResponder {
 
 /// MARK: - internationalization string
 fileprivate extension String {
-    static let titleText = karaokeLocalize("Demo.TRTC.Karaoke.roomsubject")
-    static let placeholderTitleText = karaokeLocalize("Demo.TRTC.Karaoke.enterroomsubject")
-    static let createText = karaokeLocalize("Demo.TRTC.Karaoke.join")
-    static let defaultCreateText = karaokeLocalize("Demo.TRTC.Karaoke.xxxsroom")
+    static var titleText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.roomsubject")
+    }
+    static var placeholderTitleText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.enterroomsubject")
+    }
+    static var createText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.join")
+    }
+    static var defaultCreateText: String {
+        karaokeLocalize("Demo.TRTC.Karaoke.xxxsroom")
+    }
 }
