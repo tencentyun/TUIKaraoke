@@ -137,7 +137,7 @@ class TRTCKaraokeViewModel: NSObject {
         dependencyContainer.clearKaraoke()
     }
     
-    public var Karaoke: TRTCKaraokeRoom {
+    var Karaoke: TRTCKaraokeRoom {
         return dependencyContainer.getKaraoke()
     }
     
@@ -208,7 +208,7 @@ class TRTCKaraokeViewModel: NSObject {
         updateNetworkSuccessed = false
     }
     
-    public var voiceEarMonitor: Bool = false {
+    var voiceEarMonitor: Bool = false {
         willSet {
             self.Karaoke.enableVoiceEarMonitor(enable: newValue)
         }
