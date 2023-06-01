@@ -910,7 +910,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
 
     @Override
     public void onRoomRecvRoomTextMsg(final String roomId, final String message,
-                                      final UserInfo userInfo) {
+                                      final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -924,7 +924,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
 
     @Override
     public void onRoomRecvRoomCustomMsg(final String roomId, final String cmd, final String message,
-                                        final UserInfo userInfo) {
+                                        final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -965,7 +965,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onRoomAudienceEnter(final UserInfo userInfo) {
+    public void onRoomAudienceEnter(final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -978,7 +978,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onRoomAudienceLeave(final UserInfo userInfo) {
+    public void onRoomAudienceLeave(final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -991,7 +991,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onSeatTake(final int index, final UserInfo userInfo) {
+    public void onSeatTake(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1060,7 +1060,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onSeatLeave(final int index, final UserInfo userInfo) {
+    public void onSeatLeave(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
