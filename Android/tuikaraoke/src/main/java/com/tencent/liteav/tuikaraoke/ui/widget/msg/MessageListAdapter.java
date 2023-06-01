@@ -3,6 +3,9 @@ package com.tencent.liteav.tuikaraoke.ui.widget.msg;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -12,8 +15,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.tuikaraoke.R;
