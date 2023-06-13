@@ -7,7 +7,7 @@
 //
 
 #import "KaraokeTRTCService.h"
-#import "TRTCCloud.h"
+#import "TXLiteAVSDK_TRTC/TRTCCloud.h"
 #import "KaraokeChorusExtension.h"
 #import "KaraokeLogger.h"
 
