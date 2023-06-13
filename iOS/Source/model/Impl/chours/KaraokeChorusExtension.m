@@ -7,8 +7,8 @@
 //
 
 #import "KaraokeChorusExtension.h"
-#import "TXLiveBase.h"
-#import "TRTCCloud.h"
+#import "TXLiteAVSDK_TRTC/TXLiveBase.h"
+#import "TXLiteAVSDK_TRTC/TRTCCloud.h"
 #import "KaraokeLogger.h"
 
 //通用宏定义

@@ -11,10 +11,10 @@
 #import "KaraokeIMService.h"
 #import "KaraokeIMJsonHandle.h"
 #import "KaraokeCommonDef.h"
-#import "TRTCCloud.h"
+#import "TXLiteAVSDK_TRTC/TRTCCloud.h"
 #import "KaraokeLocalized.h"
 #import "KaraokeLogger.h"
-#import "TXLiveBase.h"
+#import "TXLiteAVSDK_TRTC/TXLiveBase.h"
 
 @interface TRTCKaraokeRoom ()<KaraokeTRTCServiceObserver, KaraokeIMServiceObserver, TXLiveBaseDelegate>
 
