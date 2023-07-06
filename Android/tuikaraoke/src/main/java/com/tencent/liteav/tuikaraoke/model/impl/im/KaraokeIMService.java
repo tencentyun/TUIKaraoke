@@ -645,10 +645,10 @@ public class KaraokeIMService extends V2TIMSDKListener {
 
             @Override
             public void onSuccess(List<V2TIMUserFullInfo> v2TIMUserFullInfos) {
-                List<UserInfo> list = new ArrayList<>();
+                List<TRTCKaraokeRoomDef.UserInfo> list = new ArrayList<>();
                 if (v2TIMUserFullInfos != null && v2TIMUserFullInfos.size() != 0) {
                     for (int i = 0; i < v2TIMUserFullInfos.size(); i++) {
-                        UserInfo userInfo = new UserInfo();
+                        TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
                         userInfo.userName = v2TIMUserFullInfos.get(i).getNickName();
                         userInfo.userId = v2TIMUserFullInfos.get(i).getUserID();
                         userInfo.avatarURL = v2TIMUserFullInfos.get(i).getFaceUrl();
@@ -910,7 +910,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
             if (!groupID.equals(mRoomId)) {
                 return;
             }
-            UserInfo userInfo = new UserInfo();
+            TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
             userInfo.userId = sender.getUserID();
             userInfo.avatarURL = sender.getFaceUrl();
             userInfo.userName = sender.getNickName();
@@ -941,7 +941,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
                             // ignore
                             break;
                         case IMProtocol.Define.CODE_ROOM_CUSTOM_MSG:
-                            UserInfo userInfo = new UserInfo();
+                            TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
                             userInfo.userId = sender.getUserID();
                             userInfo.avatarURL = sender.getFaceUrl();
                             userInfo.userName = sender.getNickName();
@@ -976,7 +976,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
             }
             if (mDelegate != null && memberList != null) {
                 for (V2TIMGroupMemberInfo member : memberList) {
-                    UserInfo userInfo = new UserInfo();
+                    TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
                     userInfo.userId = member.getUserID();
                     userInfo.userName = member.getNickName();
                     userInfo.avatarURL = member.getFaceUrl();
@@ -991,7 +991,7 @@ public class KaraokeIMService extends V2TIMSDKListener {
                 return;
             }
             if (mDelegate != null) {
-                UserInfo userInfo = new UserInfo();
+                TRTCKaraokeRoomDef.UserInfo userInfo = new TRTCKaraokeRoomDef.UserInfo();
                 userInfo.userId = member.getUserID();
                 userInfo.userName = member.getNickName();
                 userInfo.avatarURL = member.getFaceUrl();

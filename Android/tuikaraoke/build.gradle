@@ -23,23 +23,23 @@ android {
             java{
                 // 注意：当包含隐私模块时，即构建腾讯云音视频 APP时，忽略 tuikaraoke module 下面的部分 java 文件
                 if(projects.contains("privacy")) {
-                    exclude 'com/tencent/liteav/tuikaraoke/model/music/*.java'
+                    exclude 'com/tencent/liteav/tuikaraoke/model/impl/music/*.java'
                 }
             }
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
 }
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     api "androidx.multidex:multidex:2.0.0"
     api "androidx.recyclerview:recyclerview:1.2.1"
-    api "androidx.appcompat:appcompat:1.3.1"
+    api "androidx.appcompat:appcompat:1.0.0"
     api "com.google.android.material:material:1.0.0"
     api "androidx.constraintlayout:constraintlayout:1.1.3"
     api "com.squareup.okhttp3:logging-interceptor:3.8.1"
