@@ -14,8 +14,8 @@ import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
-import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.ui.lyric.model.LineInfo;
 import com.tencent.liteav.tuikaraoke.ui.lyric.model.LyricInfo;
 import com.tencent.liteav.tuikaraoke.ui.lyric.model.WordInfo;
@@ -46,13 +46,18 @@ public class LyricView extends View {
     private float   mLineSpace       = 50;
     private int     mCurrentPlayLine = 0;
     private long    mCurrentTimeMillis;
+    private long    mCurrentProgressMock;
     private int     mScale           = 3; //设置长歌词从屏幕 1/mScale 处开始滚动到结束停止，当前默认为长歌词播放到1/3之一就开始滚动。
     private boolean mSliding         = false;
 
-    private          String        mDefaultLyricText = "lyric is empty";
+    private static final String    TEXT_FOR_MEASURE = "Test"; // 用于测量绘制高度的文字
+    private          String        mDefaultLyricText = "";
     private volatile LyricInfo     mLyricInfo;
     private          ValueAnimator mValueAnimator;
     private final    Path          mHighLightPath    = new Path();
+
+    private ValueAnimator mProgressAnimator;
+    private final LinearInterpolator mLinearInterpolator = new LinearInterpolator();
 
     public LyricView(Context context) {
         super(context);
@@ -95,9 +100,9 @@ public class LyricView extends View {
         mHighLightTextPaint.setTextSize(mHighLightTextSizePx);
 
         Rect lineBound = new Rect();
-        mDefaultTextPaint.getTextBounds(mDefaultLyricText, 0, mDefaultLyricText.length(), lineBound);
+        mDefaultTextPaint.getTextBounds(TEXT_FOR_MEASURE, 0, TEXT_FOR_MEASURE.length(), lineBound);
         mDefaultTextHeight = lineBound.height();
-        mHighLightTextPaint.getTextBounds(mDefaultLyricText, 0, mDefaultLyricText.length(), lineBound);
+        mHighLightTextPaint.getTextBounds(TEXT_FOR_MEASURE, 0, TEXT_FOR_MEASURE.length(), lineBound);
         mHighLightTextHeight = lineBound.height();
     }
 
@@ -106,7 +111,6 @@ public class LyricView extends View {
         if (mCurrentPlayLine < 0) {
             return;
         }
-        final int height = getMeasuredHeight();
         final int width = getMeasuredWidth();
         final int paddingTop = getPaddingTop();
 
@@ -114,10 +118,10 @@ public class LyricView extends View {
             // 绘制歌词第一行
             if ((mCurrentPlayLine - 1 < mLyricInfo.lineList.size()) && (mCurrentPlayLine - 1 >= 0
                     || mCurrentPlayLine == mLyricInfo.lineList.size())) {
-                float progress = calculateCurrentKrcProgress(mCurrentTimeMillis,
+                float progress = calculateCurrentKrcProgress(mCurrentProgressMock,
                         mLyricInfo.lineList.get(mCurrentPlayLine - 1));
                 drawKaraokeHighLightLrcRow(canvas, mLyricInfo.lineList.get(mCurrentPlayLine - 1).content, progress,
-                        width, width * 0.5f, mHighLightTextHeight - mHighLightTextPy + paddingTop);
+                        width * 0.5f, mHighLightTextHeight - mHighLightTextPy + paddingTop);
             }
 
             if (mCurrentPlayLine < mLyricInfo.lineList.size()) {
@@ -127,13 +131,13 @@ public class LyricView extends View {
                                 - mDefaultTextPy + paddingTop, mDefaultTextPaint);
             }
         } else {
-            // 绘制提示语
-            canvas.drawText(mDefaultLyricText, width * 0.5f, (height - mDefaultTextHeight) * 0.5f, mDefaultTextPaint);
+            // 绘制提示语（在第二行）
+            canvas.drawText(mDefaultLyricText, width * 0.5f, mHighLightTextHeight + mLineSpace
+                    + mDefaultTextHeight - mDefaultTextPy + paddingTop, mDefaultTextPaint);
         }
     }
 
-    private void drawKaraokeHighLightLrcRow(Canvas canvas, String text, float progress, int width, float rowX,
-                                            float rowY) {
+    private void drawKaraokeHighLightLrcRow(Canvas canvas, String text, float progress, float rowX, float rowY) {
         // 保存临时变量 等会儿需要还原，默认文本画笔字体大小
         final float defaultTextSize = mDefaultTextPaint.getTextSize();
         mDefaultTextPaint.setTextSize(mHighLightTextPaint.getTextSize());
@@ -171,7 +175,7 @@ public class LyricView extends View {
             final int storeCount = canvas.save();
 
             mHighLightPath.reset();
-            mHighLightPath.addRect(leftOffset, rowY - mHighLightTextHeight,
+            mHighLightPath.addRect(leftOffset, rowY - mHighLightTextHeight - getPaddingTop(),
                     leftOffset + highWidth, rowY + mLineSpace, Path.Direction.CW);
             canvas.clipPath(mHighLightPath);
             canvas.drawText(text, rowX, rowY, mHighLightTextPaint);
@@ -363,8 +367,6 @@ public class LyricView extends View {
         if (lyricInfo != null) {
             mLyricInfo = lyricInfo;
             mLineCount = mLyricInfo.lineList.size();
-        } else {
-            mDefaultLyricText = getContext().getString(R.string.trtckaraoke_lyric_empty_hint);
         }
         invalidateView();
     }
@@ -375,9 +377,38 @@ public class LyricView extends View {
      * @param current 时间戳
      */
     public void updateLyricsPlayProgress(long current) {
+        long lastInterval = current - mCurrentTimeMillis;
         mCurrentTimeMillis = current;
+        // 估算下次progress值 = 当前progress + 上次进度间隔
+        long nextProgress = current + lastInterval;
+        startProgressAnimator(nextProgress);
         scrollToCurrentTimeMillis(current);
-        invalidateView();
+    }
+
+    /**
+     * 正常歌词进度更新间隔大约是200ms，在这个200ms间隔内，再加一个动画使进度产生更加小的均匀变化
+     *
+     * @param progress
+     */
+    private void startProgressAnimator(long progress) {
+        final long progressInterval = progress - mCurrentTimeMillis;
+        final long lastProgress = mCurrentTimeMillis;
+        if (progressInterval <= 0) {
+            return;
+        }
+        if (mProgressAnimator != null) {
+            mProgressAnimator.removeAllListeners();
+            mProgressAnimator.cancel();
+        }
+        mProgressAnimator = ValueAnimator.ofFloat(0, 1);
+        mProgressAnimator.setInterpolator(mLinearInterpolator);
+        mProgressAnimator.setDuration(progressInterval);
+        mProgressAnimator.addUpdateListener(animation -> {
+            float fraction = animation.getAnimatedFraction();
+            mCurrentProgressMock = (long) (lastProgress + fraction * progressInterval);
+            invalidateView();
+        });
+        mProgressAnimator.start();
     }
 
     /**
@@ -398,7 +429,7 @@ public class LyricView extends View {
         mDefaultTextSizePx = textSizePx;
         mDefaultTextPaint.setTextSize(textSizePx);
         Rect lineBound = new Rect();
-        mDefaultTextPaint.getTextBounds(mDefaultLyricText, 0, mDefaultLyricText.length(), lineBound);
+        mDefaultTextPaint.getTextBounds(TEXT_FOR_MEASURE, 0, TEXT_FOR_MEASURE.length(), lineBound);
         mDefaultTextHeight = lineBound.height();
         invalidateView();
     }
@@ -411,7 +442,7 @@ public class LyricView extends View {
         mHighLightTextSizePx = textSizePx;
         mHighLightTextPaint.setTextSize(textSizePx);
         Rect lineBound = new Rect();
-        mHighLightTextPaint.getTextBounds(mDefaultLyricText, 0, mDefaultLyricText.length(), lineBound);
+        mHighLightTextPaint.getTextBounds(TEXT_FOR_MEASURE, 0, TEXT_FOR_MEASURE.length(), lineBound);
         mHighLightTextHeight = lineBound.height();
         invalidateView();
     }
