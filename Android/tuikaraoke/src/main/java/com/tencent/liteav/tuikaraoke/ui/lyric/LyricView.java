@@ -14,6 +14,7 @@ import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.ui.lyric.model.LineInfo;
@@ -46,6 +47,7 @@ public class LyricView extends View {
     private float   mLineSpace       = 50;
     private int     mCurrentPlayLine = 0;
     private long    mCurrentTimeMillis;
+    private long    mCurrentProgressMock;
     private int     mScale           = 3; //设置长歌词从屏幕 1/mScale 处开始滚动到结束停止，当前默认为长歌词播放到1/3之一就开始滚动。
     private boolean mSliding         = false;
 
@@ -53,6 +55,9 @@ public class LyricView extends View {
     private volatile LyricInfo     mLyricInfo;
     private          ValueAnimator mValueAnimator;
     private final    Path          mHighLightPath    = new Path();
+
+    private ValueAnimator mProgressAnimator;
+    private final LinearInterpolator mLinearInterpolator = new LinearInterpolator();
 
     public LyricView(Context context) {
         super(context);
@@ -114,7 +119,7 @@ public class LyricView extends View {
             // 绘制歌词第一行
             if ((mCurrentPlayLine - 1 < mLyricInfo.lineList.size()) && (mCurrentPlayLine - 1 >= 0
                     || mCurrentPlayLine == mLyricInfo.lineList.size())) {
-                float progress = calculateCurrentKrcProgress(mCurrentTimeMillis,
+                float progress = calculateCurrentKrcProgress(mCurrentProgressMock,
                         mLyricInfo.lineList.get(mCurrentPlayLine - 1));
                 drawKaraokeHighLightLrcRow(canvas, mLyricInfo.lineList.get(mCurrentPlayLine - 1).content, progress,
                         width, width * 0.5f, mHighLightTextHeight - mHighLightTextPy + paddingTop);
@@ -375,9 +380,38 @@ public class LyricView extends View {
      * @param current 时间戳
      */
     public void updateLyricsPlayProgress(long current) {
+        long lastInterval = current - mCurrentTimeMillis;
         mCurrentTimeMillis = current;
+        // 估算下次progress值 = 当前progress + 上次进度间隔
+        long nextProgress = current + lastInterval;
+        startProgressAnimator(nextProgress);
         scrollToCurrentTimeMillis(current);
-        invalidateView();
+    }
+
+    /**
+     * 正常歌词进度更新间隔大约是200ms，在这个200ms间隔内，再加一个动画使进度产生更加小的均匀变化
+     *
+     * @param progress
+     */
+    private void startProgressAnimator(long progress) {
+        final long progressInterval = progress - mCurrentTimeMillis;
+        final long lastProgress = mCurrentTimeMillis;
+        if (progressInterval <= 0) {
+            return;
+        }
+        if (mProgressAnimator != null) {
+            mProgressAnimator.removeAllListeners();
+            mProgressAnimator.cancel();
+        }
+        mProgressAnimator = ValueAnimator.ofFloat(0, 1);
+        mProgressAnimator.setInterpolator(mLinearInterpolator);
+        mProgressAnimator.setDuration(progressInterval);
+        mProgressAnimator.addUpdateListener(animation -> {
+            float fraction = animation.getAnimatedFraction();
+            mCurrentProgressMock = (long) (lastProgress + fraction * progressInterval);
+            invalidateView();
+        });
+        mProgressAnimator.start();
     }
 
     /**
