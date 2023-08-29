@@ -122,7 +122,7 @@ class TRTCKaraokeDashboardAlert: TRTCKaraokeAlertContentView {
             localStatistics.audioCaptureState = 0
             localAudioInfoView.setAudioInfo(info: localStatistics)
         }
-        if let localVolume = viewModel.userVolumeDic[TUILogin.getUserID()] {
+        if let localVolume = viewModel.userVolumeDic[TUILogin.getUserID() ?? ""] {
             localAudioInfoView.setLocalVolume(volume: localVolume)
         }
         

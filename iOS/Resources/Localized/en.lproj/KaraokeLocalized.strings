@@ -149,6 +149,9 @@
 "Demo.TRTC.Karaoke.searchlike" = "Search for a song or artist name";
 "Demo.TRTC.LiveRoom.searchback" = "Cancel";
 "Demo.TRTC.LiveRoom.searchnoresult" = "No results";
+"Demo.TRTC.Karaoke.singleScorexx" = " xxx points";
+"Demo.TRTC.Karaoke.finalScore" = "points";
+"Demo.TRTC.Karaoke.finalScoreDesc" = "Your final score";
 
 "Demo.TRTC.Chorus.StartChorus" = "Start\nDuet";
 "Demo.TRTC.Chorus.ComingSoon" = "Coming soon...";

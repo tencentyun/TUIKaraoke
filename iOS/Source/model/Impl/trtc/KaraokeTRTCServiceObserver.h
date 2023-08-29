@@ -12,7 +12,7 @@
 @class TRTCQualityInfo;
 @class TRTCVolumeInfo;
 @class TRTCStatistics;
-
+@class TRTCAudioFrame;
 @protocol KaraokeTRTCServiceObserver <NSObject>
 - (void)onTRTCAnchorEnter:(NSString *)userId;
 - (void)onTRTCAnchorExit:(NSString *)userId;
@@ -28,5 +28,6 @@
 - (void)onMusicPlayCompleted:(int32_t)musicID;
 - (void)onStatistics:(TRTCStatistics *)statistics;
 - (void)onMusicAccompanimentModeChanged:(NSString *)musicID isOriginal:(BOOL)isOriginal;
+- (void)onCapturedAudioFrame:(TRTCAudioFrame *)frame;
 @end
 #endif /* KaraokeTRTCServiceObserver_h */

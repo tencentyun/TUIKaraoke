@@ -16,6 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class TRTCVolumeInfo;
 @class TRTCStatistics;
 @class TRTCQualityInfo;
+@class TRTCAudioFrame;
 
 @protocol TRTCKaraokeRoomObserver <NSObject>
 
@@ -198,6 +199,13 @@ NS_SWIFT_NAME(onStatistics(statistics:));
 /// @param arrayList         远端网络质量
 - (void)onNetWorkQuality:(TRTCQualityInfo *)trtcQuality arrayList:(NSArray<TRTCQualityInfo *> *)arrayList
 NS_SWIFT_NAME(onNetWorkQuality(trtcQuality:arrayList:));
+
+/// 采集的音频数据
+/// @param buffer    音频PCM数据
+/// @param length    长度
+/// @param timeStamp 音乐时间戳
+- (void)onCapturedAudioBuffer:(char *)buffer length:(int)length timeStamp:(double)timeStamp
+NS_SWIFT_NAME(onCapturedAudioBuffer(buffer:length:timeStamp:));
 
 @end
 

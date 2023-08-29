@@ -30,6 +30,7 @@ public class KaraokeMusicInfo: NSObject {
     public var accompanyUrl: String?        // 歌曲伴奏URL
     public var originUrl: String = ""       // 歌曲原唱URL
     public var lyricsUrl: String = ""       // 歌曲歌词URL
+    public var midiUrl: String = ""         // 歌曲音高URL
     
     public init(musicId: String,
                 musicName: String,
