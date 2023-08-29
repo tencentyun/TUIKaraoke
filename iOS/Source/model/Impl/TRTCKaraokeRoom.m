@@ -11,10 +11,9 @@
 #import "KaraokeIMService.h"
 #import "KaraokeIMJsonHandle.h"
 #import "KaraokeCommonDef.h"
-#import "TXLiteAVSDK_TRTC/TRTCCloud.h"
+#import "TUIKaraokeKit.h"
 #import "KaraokeLocalized.h"
 #import "KaraokeLogger.h"
-#import "TXLiteAVSDK_TRTC/TXLiveBase.h"
 
 @interface TRTCKaraokeRoom ()<KaraokeTRTCServiceObserver, KaraokeIMServiceObserver, TXLiveBaseDelegate>
 
@@ -43,6 +42,7 @@
 @property (nonatomic, assign) int32_t currentPlayingOriginalMusicID;
 @property (nonatomic, assign) BOOL isOriginalMusic;
 @property (nonatomic, assign) NSInteger musicVolume;
+@property (nonatomic, assign) NSInteger musicTimeStamp;
 
 @end
 
@@ -85,10 +85,11 @@ static dispatch_once_t gOnceToken;
 - (void)resetGlobalVariablesToDefault {
     [self.seatInfoList removeAllObjects];
     self.isSelfMute = NO;
-    self.currentPlayingOriginalMusicID = 0;
+    self.currentPlayingOriginalMusicID = -1;
     self.isOriginalMusic = NO;
     self.musicVolume = 60;
     self.takeSeatIndex = -1;
+    self.musicTimeStamp = -1;
 }
 
 - (void)getAudienceList:(KaraokeUserListCallback _Nullable)callback {
@@ -140,10 +141,11 @@ static dispatch_once_t gOnceToken;
         self.seatInfoList = [[NSMutableArray alloc] initWithCapacity:2];
         self.takeSeatIndex = -1;
         self.isSelfMute = NO;
-        self.currentPlayingOriginalMusicID = 0;
+        self.currentPlayingOriginalMusicID = -1;
         self.isOriginalMusic = NO;
         self.musicVolume = 60;
         self.takeSeatIndex = -1;
+        self.musicTimeStamp = -1;
         [TXLiveBase sharedInstance].delegate = self;
     }
     return self;
@@ -794,7 +796,7 @@ static dispatch_once_t gOnceToken;
 
 #pragma mark - Music & Music Volume Method
 - (void)switchMusicAccompanimentMode:(BOOL)isOriginal {
-    if (self.currentPlayingOriginalMusicID == 0) {
+    if (self.currentPlayingOriginalMusicID == -1) {
         TRTCLog(@"ktv: Music playing status error");
         return;
     }
@@ -811,7 +813,7 @@ static dispatch_once_t gOnceToken;
 
 - (void)updateMusicVolume:(NSInteger)musicVolume {
     TRTCLog(@"updateMusicVolume: musicVolume = %ld", musicVolume);
-    if (self.currentPlayingOriginalMusicID == 0) return;
+    if (self.currentPlayingOriginalMusicID == -1) return;
     if (musicVolume < 0) {
         musicVolume = 0;
     } else if (musicVolume > 100) {
@@ -848,7 +850,7 @@ static dispatch_once_t gOnceToken;
 
 - (void)setMusicPitch:(double)musicPitch {
     TRTCLog(@"setMusicPitch: musicPitch = %f", musicPitch);
-    if (self.currentPlayingOriginalMusicID == 0) return;
+    if (self.currentPlayingOriginalMusicID == -1) return;
     // 原唱
     [[self getMusicAudioEffectManager] setMusicPitch:self.currentPlayingOriginalMusicID pitch: musicPitch];
     // 伴奏
@@ -889,7 +891,8 @@ static dispatch_once_t gOnceToken;
 - (void)stopPlayMusic {
     TRTCLog(@"stopPlayMusic");
     @weakify(self)
-    self.currentPlayingOriginalMusicID = 0;
+    self.currentPlayingOriginalMusicID = -1;
+    self.musicTimeStamp = -1;
     [self runMainQueue:^{
         @strongify(self)
         [self.rtcService stopChorus];
@@ -951,6 +954,7 @@ static dispatch_once_t gOnceToken;
 }
 
 - (void)onMusicProgressUpdate:(int32_t)musicID progress:(NSInteger)progress duration:(NSInteger)durationMS {
+    self.musicTimeStamp = progress;
     @weakify(self)
     [self runOnObserverQueue:^{
         @strongify(self)
@@ -962,11 +966,14 @@ static dispatch_once_t gOnceToken;
 
 - (void)onMusicPlayError:(int32_t)musicID errorCode:(NSInteger)errorCode message:(NSString *)message {
     TRTCLog(@"onMusicPlayError:  errorCode = %ld, message = %@",errorCode, message);
-    self.currentPlayingOriginalMusicID = 0;
+    self.currentPlayingOriginalMusicID = -1;
+    self.musicTimeStamp = -1;
 }
 
 - (void)onMusicPlayCompleted:(int32_t)musicID {
     TRTCLog(@"onMusicPlayCompleted musicID = %d", musicID);
+    self.currentPlayingOriginalMusicID = -1;
+    self.musicTimeStamp = -1;
     @weakify(self)
     [self runOnObserverQueue:^{
         @strongify(self)
@@ -1092,6 +1099,22 @@ static dispatch_once_t gOnceToken;
     if (!self.imService.isOwner && self.currentPlayingOriginalMusicID == musicID.intValue) {
         [self switchMusicAccompanimentMode:isOriginal];
     }
+}
+
+- (void)onCapturedAudioFrame:(TRTCAudioFrame *)frame {
+    @weakify(self)
+    if (self.takeSeatIndex == -1 || self.currentPlayingOriginalMusicID == -1 || self.musicTimeStamp == -1) {
+        NSLog(@"currentPlayingOriginalMusicID = %d, musicTimeStamp = %ld",self.currentPlayingOriginalMusicID, self.musicTimeStamp);
+        return;
+    }
+    [self runOnObserverQueue:^{
+        @strongify(self)
+        if ([self canObserverResponseMethod:@selector(onCapturedAudioBuffer:length:timeStamp:)]) {
+            char* buffer = (char *)[frame.data bytes];
+            int length = (int)[frame.data length];
+            [self.observer onCapturedAudioBuffer:buffer length:length timeStamp:(double)self.musicTimeStamp];
+        }
+    }];
 }
 
 #pragma mark - KaraokeIMServiceObserver

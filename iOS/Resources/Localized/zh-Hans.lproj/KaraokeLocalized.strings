@@ -150,6 +150,9 @@
 "Demo.TRTC.Karaoke.searchlike" = "搜索歌曲或者歌手名称";
 "Demo.TRTC.LiveRoom.searchback" = "取消";
 "Demo.TRTC.LiveRoom.searchnoresult" = "抱歉，没有找到你想唱的歌曲";
+"Demo.TRTC.Karaoke.singleScorexx" = " 单句 xxx分";
+"Demo.TRTC.Karaoke.finalScore" = "分";
+"Demo.TRTC.Karaoke.finalScoreDesc" = "你的总评分";
 
 "Demo.TRTC.Chorus.StartChorus" = "开始合唱";
 "Demo.TRTC.Chorus.ComingSoon" = "即将播放...";

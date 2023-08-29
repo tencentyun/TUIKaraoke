@@ -216,11 +216,16 @@ class TUILyricsLineView: UIView {
                 characterLabel.snp.makeConstraints { make in
                     make.left.equalToSuperview()
                     make.top.bottom.equalToSuperview()
+                    if lineInfo.charStrArray.count == 1 {
+                        make.right.equalToSuperview()
+                    }
                 }
             } else {
                 characterLabel.snp.makeConstraints { make in
-                    make.left.equalTo(lastLabel!.snp.right)
-                    make.top.bottom.equalTo(lastLabel!)
+                    if let lastLabel = lastLabel {
+                        make.left.equalTo(lastLabel.snp.right)
+                        make.top.bottom.equalTo(lastLabel)
+                    }
                     if index == lineInfo.charStrArray.count - 1 {
                         make.right.equalToSuperview()
                     }

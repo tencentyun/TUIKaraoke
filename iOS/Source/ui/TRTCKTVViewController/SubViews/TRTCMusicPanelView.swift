@@ -118,6 +118,15 @@ class TRTCMusicPanelView: UIView {
         view.isHidden = true
         return view
     }()
+    
+    lazy var scorePitchView: MusicPitchView = {
+        let view = MusicPitchView()
+        view.setConfig(config: MusicPitchViewConfig())
+        view.isHidden = true
+        return view
+    }()
+    
+    private var currentMusicTimeStamp: Double = 0.0
 
     let viewModel: TRTCKaraokeViewModel
 
@@ -187,10 +196,13 @@ class TRTCMusicPanelView: UIView {
             if let musicModel = viewModel.currentMusicModel {
                 startChorusBtn.isHidden = true
                 musicModeSegmented.isHidden = false
+                scorePitchView.isHidden = viewModel.userType == .anchor ? false : true
                 lyricsView.isHidden = false
                 updateSongEffectBtnConstraints(isHidden: false)
                 viewModel.effectViewModel.playMusic(musicModel)
+                viewModel.musicService?.prepareMusicScore(musicInfo: musicModel)
                 isStartChorus = true
+                
             }
         }
     }
@@ -198,6 +210,7 @@ class TRTCMusicPanelView: UIView {
     func checkBtnShouldHidden() {
         if viewModel.userType == .audience {
             musicModeSegmented.isHidden = true
+            scorePitchView.isHidden = true
             updateSongEffectBtnConstraints(isHidden: true)
         } else {
             if isStartChorus {
@@ -211,11 +224,13 @@ class TRTCMusicPanelView: UIView {
     func updateStartChorusViewState() {
         if viewModel.userType == .anchor {
             if musicModeSegmented.isHidden {
+                scorePitchView.isHidden = false
                 musicModeSegmented.isHidden = false
                 updateSongEffectBtnConstraints(isHidden: false)
             }
         } else {
             if !musicModeSegmented.isHidden {
+                scorePitchView.isHidden = true
                 musicModeSegmented.isHidden = true
                 updateSongEffectBtnConstraints(isHidden: true)
             }
@@ -252,6 +267,7 @@ class TRTCMusicPanelView: UIView {
             lyricsView.lyricsPathString = lrcString
         } else {
             lyricsView.lyricsPathString = nil
+            scorePitchView.isHidden = true
             lyricsView.isHidden = true
             lyricsView.resetLyricsViewStatus()
             musicTimeLabel.text = "00:00"
@@ -271,12 +287,40 @@ class TRTCMusicPanelView: UIView {
             startChorusBtn.isHidden = hidden
         }
         if startChorusBtn.isHidden {
+            scorePitchView.isHidden = viewModel.userType == .anchor ? hidden : true
             lyricsView.isHidden = hidden
         }
     }
 }
 
 extension TRTCMusicPanelView: TRTCKaraokeSoundEffectViewResponder {
+    
+    func onSwitchMusic() {
+        scorePitchView.clear()
+    }
+    
+    func onMusicScorePrepared(pitchModelList: [MusicPitchModel]) {
+        scorePitchView.setStandardPitchModels(standardPitchModels: pitchModelList)
+    }
+    
+    func onMusicScoreFinished(totalScore: Int32) {
+        scorePitchView.show(songName: viewModel.currentMusicModel?.musicName ?? "", score: totalScore)
+        scorePitchView.clear()
+    }
+    
+    func onMusicRealTimeProgress(progress: Int) {
+        scorePitchView.setCurrentSongProgress(progress: progress)
+    }
+    
+    func onMusicRealTimePitch(pitch: Int) {
+        scorePitchView.setCurrentPitch(pitch: pitch)
+    }
+    
+    func onMusicSingleScore(currentScore: Int32) {
+        if currentScore >= 0 {
+            scorePitchView.setScore(score: Int(currentScore))
+        }
+    }
     
     func onMusicAccompanimentModeChanged(musicId: String, isOrigin: Bool) {
         // 传入model层的musicId 其实对应的是外部的performId
@@ -332,6 +376,7 @@ extension TRTCMusicPanelView: TRTCKaraokeSoundEffectViewResponder {
             musicTimeLabel.isHidden = false
             musicTimeLabel.text = "\(timeStampToString(timeStamp: current))/\(timeStampToString(timeStamp: total))"
             lyricsView.currentTime = current
+            currentMusicTimeStamp = current
         } else {
             if isRequestSelectedMusicList {
                 return
@@ -372,6 +417,7 @@ extension TRTCMusicPanelView {
         addSubview(containerView)
         addSubview(startChorusBtn)
         addSubview(songSelectorBtn)
+        addSubview(scorePitchView)
         addSubview(lyricsView)
     }
 
@@ -425,6 +471,11 @@ extension TRTCMusicPanelView {
         musicModeSegmented.snp.makeConstraints { make in
             make.trailing.equalTo(containerView.snp.leading)
             make.centerY.equalTo(containerView)
+        }
+        scorePitchView.snp.makeConstraints { make in
+            make.trailing.leading.equalToSuperview()
+            make.top.equalTo(musicModeSegmented.snp.bottom).offset(10)
+            make.bottom.equalTo(lyricsView.snp.top).offset(-10)
         }
         lyricsView.snp.makeConstraints { make in
             make.bottom.equalToSuperview().offset(-12)

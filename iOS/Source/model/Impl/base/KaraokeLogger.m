@@ -7,7 +7,7 @@
 //
 
 #import "KaraokeLogger.h"
-#import "TXLiteAVSDK_TRTC/TRTCCloud.h"
+#import "TUIKaraokeKit.h"
 
 @interface TRTCCloud (KaraokeLog)
 
