@@ -115,11 +115,11 @@ public class KaraokeMusicSearchAdapter extends RecyclerView.Adapter<RecyclerView
                 @Override
                 public void onClick(View v) {
                     if (!mRoomInfoController.isRoomOwner()) {
-                        Toast.show(R.string.trtckaraoke_toast_room_owner_can_operate_it, Toast.LENGTH_LONG);
+                        Toast.show(v, R.string.trtckaraoke_toast_room_owner_can_operate_it, Toast.LENGTH_LONG);
                         return;
                     }
                     if (!mRoomInfoController.isAnchor()) {
-                        Toast.show(R.string.trtckaraoke_toast_anchor_can_only_operate_it, Toast.LENGTH_LONG);
+                        Toast.show(v, R.string.trtckaraoke_toast_anchor_can_only_operate_it, Toast.LENGTH_LONG);
                         return;
                     }
                     mProgressBarChoose.setEnabled(false);

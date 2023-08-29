@@ -58,12 +58,12 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
             @Override
             public void onSuccess() {
                 mTRTCKaraokeRoom.updateNetworkTime();
-                Toast.show(R.string.trtckaraoke_toast_enter_the_room_successfully, Toast.LENGTH_SHORT);
+                showToast(R.string.trtckaraoke_toast_enter_the_room_successfully, Toast.LENGTH_SHORT);
             }
 
             @Override
             public void onError(int code, String message) {
-                Toast.show(getString(R.string.trtckaraoke_toast_enter_the_room_failure, code, message),
+                showToast(getString(R.string.trtckaraoke_toast_enter_the_room_failure, code, message),
                         Toast.LENGTH_SHORT);
                 finish();
             }
@@ -120,13 +120,13 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                 mTRTCKaraokeRoom.leaveSeat(new TUICallback() {
                     @Override
                     public void onSuccess() {
-                        Toast.show(R.string.trtckaraoke_toast_offline_successfully, Toast.LENGTH_SHORT);
+                        showToast(R.string.trtckaraoke_toast_offline_successfully, Toast.LENGTH_SHORT);
                         exitRoom();
                     }
 
                     @Override
                     public void onError(int errorCode, String errorMessage) {
-                        Toast.show(getString(R.string.trtckaraoke_toast_offline_failure, errorMessage),
+                        showToast(getString(R.string.trtckaraoke_toast_offline_failure, errorMessage),
                                 Toast.LENGTH_SHORT);
                         exitRoom();
                     }
@@ -162,11 +162,11 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     private boolean doCheckNetworkQuality(int quality) {
         if (quality == 6) {
             // 不可用
-            Toast.show(R.string.trtckaraoke_toast_network_not_available, Toast.LENGTH_SHORT);
+            showToast(R.string.trtckaraoke_toast_network_not_available, Toast.LENGTH_SHORT);
             return false;
         } else if (quality >= 3) {
             // 一般、很差、差
-            Toast.show(R.string.trtckaraoke_toast_not_supported_chorus, Toast.LENGTH_SHORT);
+            showToast(R.string.trtckaraoke_toast_not_supported_chorus, Toast.LENGTH_SHORT);
             return false;
         } else {
             return true;
@@ -181,16 +181,16 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     @Override
     public void onItemClick(final int itemPos) {
         if (!mIsSeatInitSuccess) {
-            Toast.show(R.string.trtckaraoke_toast_list_has_not_been_initialized, Toast.LENGTH_SHORT);
+            showToast(R.string.trtckaraoke_toast_list_has_not_been_initialized, Toast.LENGTH_SHORT);
             return;
         }
         // 判断座位有没有人
         KaraokeRoomSeatEntity entity = mKaraokeRoomSeatEntityList.get(itemPos);
         if (entity.isClose) {
-            Toast.show(R.string.trtckaraoke_toast_position_is_locked_cannot_enter_seat, Toast.LENGTH_SHORT);
+            showToast(R.string.trtckaraoke_toast_position_is_locked_cannot_enter_seat, Toast.LENGTH_SHORT);
         } else if (!entity.isUsed) {
             if (mCurrentRole == TRTCCloudDef.TRTCRoleAnchor) {
-                Toast.show(R.string.trtckaraoke_toast_you_are_already_an_anchor, Toast.LENGTH_SHORT);
+                showToast(R.string.trtckaraoke_toast_you_are_already_an_anchor, Toast.LENGTH_SHORT);
                 return;
             }
             if (!doCheckNetworkQuality(mLocalNetworkQuality)) {
@@ -204,11 +204,11 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                         // 发送请求之前再次判断一下这个座位有没有人
                         KaraokeRoomSeatEntity seatEntity = mKaraokeRoomSeatEntityList.get(itemPos);
                         if (seatEntity.isUsed) {
-                            Toast.show(seatEntity.userName, Toast.LENGTH_SHORT);
+                            showToast(seatEntity.userName, Toast.LENGTH_SHORT);
                             return;
                         }
                         if (seatEntity.isClose) {
-                            Toast.show(getString(R.string.trtckaraoke_seat_closed), Toast.LENGTH_SHORT);
+                            showToast(getString(R.string.trtckaraoke_seat_closed), Toast.LENGTH_SHORT);
                             return;
                         }
                         PermissionHelper.requestPermission(KaraokeRoomAudienceActivity.this,
@@ -234,7 +234,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
             if (entity.userId.equals(mSelfUserId)) {
                 leaveSeat();
             } else {
-                Toast.show(entity.userName, Toast.LENGTH_SHORT);
+                showToast(entity.userName, Toast.LENGTH_SHORT);
             }
         }
     }
@@ -242,11 +242,11 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     //上麦
     public void startTakeSeat(final int itemPos) {
         if (mCurrentRole == TRTCCloudDef.TRTCRoleAnchor) {
-            Toast.show(R.string.trtckaraoke_toast_you_are_already_an_anchor, Toast.LENGTH_SHORT);
+            showToast(R.string.trtckaraoke_toast_you_are_already_an_anchor, Toast.LENGTH_SHORT);
             return;
         }
 
-        if (!mUpdateNetworkSuccessed) {
+        if (!mUpdateNetworkSucceed) {
             showNetworkTimeSyncFailDialog();
             return;
         }
@@ -254,21 +254,21 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
         if (mNeedRequest) {
             //需要申请上麦
             if (mOwnerId == null) {
-                Toast.show(R.string.trtckaraoke_toast_the_room_is_not_ready, Toast.LENGTH_SHORT);
+                showToast(R.string.trtckaraoke_toast_the_room_is_not_ready, Toast.LENGTH_SHORT);
                 return;
             }
             String inviteId = mTRTCKaraokeRoom.sendInvitation(Constants.CMD_REQUEST_TAKE_SEAT, mOwnerId,
                     String.valueOf(changeSeatIndexToModelIndex(itemPos)), new TUICallback() {
                         @Override
                         public void onSuccess() {
-                            Toast.show(
+                            showToast(
                                     R.string.trtckaraoke_toast_application_has_been_sent_please_wait_for_processing,
                                     Toast.LENGTH_SHORT);
                         }
 
                         @Override
                         public void onError(int errorCode, String errorMessage) {
-                            Toast.show(
+                            showToast(
                                     getString(R.string.trtckaraoke_toast_failed_to_send_application, errorMessage),
                                     Toast.LENGTH_SHORT);
                         }
@@ -296,7 +296,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                                 @Override
                                 public void onSuccess() {
                                     //成功上座位，可以展示UI了
-                                    Toast.show(getString(
+                                    showToast(getString(
                                             R.string.trtckaraoke_toast_owner_succeeded_in_occupying_the_seat),
                                             Toast.LENGTH_LONG);
                                 }
@@ -307,7 +307,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
                                     String info = String.format(getString(
                                             R.string.trtckaraoke_toast_owner_failed_to_occupy_the_seat),
                                             code, msg);
-                                    Toast.show(info, Toast.LENGTH_LONG);
+                                    showToast(info, Toast.LENGTH_LONG);
                                 }
                             });
                 }
@@ -395,7 +395,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     @Override
     public void onOrderedManagerClick(int position) {
         super.onOrderedManagerClick(position);
-        Toast.show(R.string.trtckaraoke_toast_room_owner_can_operate_it, Toast.LENGTH_LONG);
+        showToast(R.string.trtckaraoke_toast_room_owner_can_operate_it, Toast.LENGTH_LONG);
     }
 
     private void exitRoom() {
@@ -416,7 +416,7 @@ public class KaraokeRoomAudienceActivity extends KaraokeRoomBaseActivity {
     public void onRoomDestroy(String roomId) {
         super.onRoomDestroy(roomId);
         exitRoom();
-        Toast.show(R.string.trtckaraoke_msg_close_room, Toast.LENGTH_SHORT);
+        showToast(R.string.trtckaraoke_msg_close_room, Toast.LENGTH_SHORT);
     }
 
     private void showReportDialog() {

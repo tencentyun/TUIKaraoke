@@ -349,6 +349,21 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         unInitImListener();
     }
 
+    @Override
+    public void prepareMusicScore(KaraokeMusicInfo musicInfo) {
+
+    }
+
+    @Override
+    public void processMusicScore(byte[] pcm, long timeStamp) {
+
+    }
+
+    @Override
+    public void finishMusicScore() {
+
+    }
+
     public KaraokeMusicInfo findEntityFromLibrary(String musicId) {
         if (musicId == null || mMusicLibraryList == null) {
             return null;

@@ -58,7 +58,7 @@ public class InputTextMsgDialog extends Dialog {
                     mEditMessage.setText("");
                     dismiss();
                 } else {
-                    Toast.show(R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
+                    Toast.show(view, R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
                 }
                 mEditMessage.setText(null);
             }
@@ -74,7 +74,7 @@ public class InputTextMsgDialog extends Dialog {
                             mInputMethodManager.hideSoftInputFromWindow(mEditMessage.getWindowToken(), 0);
                             dismiss();
                         } else {
-                            Toast.show(R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
+                            Toast.show(v, R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
                         }
                         return true;
                     case KeyEvent.KEYCODE_BACK:
@@ -98,7 +98,7 @@ public class InputTextMsgDialog extends Dialog {
                     mEditMessage.setText("");
                     dismiss();
                 } else {
-                    Toast.show(R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
+                    Toast.show(v, R.string.trtckaraoke_warning_not_empty, Toast.LENGTH_LONG);
                 }
                 mEditMessage.setText(null);
             }

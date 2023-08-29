@@ -20,7 +20,6 @@ import android.view.View;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
-import com.tencent.liteav.tuikaraoke.model.KaraokeMusicServiceObserver;
 import com.tencent.liteav.tuikaraoke.ui.room.RoomInfoController;
 import com.tencent.liteav.tuikaraoke.ui.widget.ConfirmDialogFragment;
 import com.tencent.liteav.tuikaraoke.ui.widget.SlideRecyclerView;
@@ -31,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class KaraokeMusicSelectView extends CoordinatorLayout implements KaraokeMusicServiceObserver {
+public class KaraokeMusicSelectView extends CoordinatorLayout {
     private static final String TAG = "KaraokeMusicSelectView";
 
     private final Context mContext;
@@ -50,7 +49,6 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
         mContext = context;
         mRoomInfoController = roomInfoController;
         mKtvMusicImpl = roomInfoController.getMusicServiceImpl();
-        mKtvMusicImpl.addObserver(this);
         mSelectedList = new ArrayList<>();
         for (KaraokeMusicInfo info : mRoomInfoController.getUserSelectMap().values()) {
             mSelectedList.add(info);
@@ -152,8 +150,7 @@ public class KaraokeMusicSelectView extends CoordinatorLayout implements Karaoke
         TUICore.notifyEvent(KARAOKE_MUSIC_EVENT, KARAOKE_DELETE_MUSIC_EVENT, params);
     }
 
-    @Override
-    public void onMusicListChanged(List<KaraokeMusicInfo> musicInfoList) {
+    public void updateMusicListChanged(List<KaraokeMusicInfo> musicInfoList) {
         mSelectedList.clear();
         mSelectedList.addAll(musicInfoList);
         mSelectedAdapter.notifyDataSetChanged();
