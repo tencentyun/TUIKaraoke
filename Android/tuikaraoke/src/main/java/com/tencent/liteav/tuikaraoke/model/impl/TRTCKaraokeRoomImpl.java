@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.tencent.liteav.audio.TXAudioEffectManager;
-import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoomDef.UserInfo;
@@ -58,7 +57,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     private int     mRoomId;
     private String  mBgmUserId;        //双实例bgm流的userId
     private String  mMixRobotUserId;   //混流机器人userId
-    private int     mCurrentPlayingOriginalMusicID = 0;
+    private int     mCurrentPlayingOriginalMusicID = -1;
     private boolean mIsOriginalMusic               = false;
     private int     mMusicVolume                   = DEFAULT_MUSIC_VOLUME;
     private float   mMusicPitch                    = 0.0f;
@@ -72,6 +71,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     private KaraokeTRTCService     mTRTCMusicService; //音乐实例
     private KaraokeIMService       mKaraokeIMService;
     private KaraokeChorusExtension mChorusExtension;
+
+    private long                   mCurrentPlayProgress = -1;
 
     private static final TXAudioEffectManager.TXVoiceChangerType[] VOICE_CHANGER_ARR = {
             TXAudioEffectManager.TXVoiceChangerType.TXLiveVoiceChangerType_0,
@@ -161,7 +162,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     private void resetAudioEffect() {
-        mCurrentPlayingOriginalMusicID = 0;
+        mCurrentPlayingOriginalMusicID = -1;
         mIsOriginalMusic = false;
         mMusicVolume = DEFAULT_MUSIC_VOLUME;
         mMusicPitch = 0.0f;
@@ -910,7 +911,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
 
     @Override
     public void onRoomRecvRoomTextMsg(final String roomId, final String message,
-                                      final UserInfo userInfo) {
+                                      final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -924,7 +925,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
 
     @Override
     public void onRoomRecvRoomCustomMsg(final String roomId, final String cmd, final String message,
-                                        final UserInfo userInfo) {
+                                        final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -965,7 +966,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onRoomAudienceEnter(final UserInfo userInfo) {
+    public void onRoomAudienceEnter(final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -978,7 +979,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onRoomAudienceLeave(final UserInfo userInfo) {
+    public void onRoomAudienceLeave(final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnDelegateThread(new Runnable() {
             @Override
             public void run() {
@@ -991,7 +992,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onSeatTake(final int index, final UserInfo userInfo) {
+    public void onSeatTake(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1060,7 +1061,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
-    public void onSeatLeave(final int index, final UserInfo userInfo) {
+    public void onSeatLeave(final int index, final TRTCKaraokeRoomDef.UserInfo userInfo) {
         runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1274,7 +1275,9 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
             TRTCLogger.e(TAG, "startPlayMusic contains empty param");
             return;
         }
-
+        if (mCurrentPlayingOriginalMusicID == musicId) {
+            return;
+        }
         mCurrentPlayingOriginalMusicID = musicId;
         boolean isOwner = mKaraokeIMService.isOwner();
         if (isOwner) {
@@ -1291,7 +1294,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     private void restoreMusicState() {
-        if (mCurrentPlayingOriginalMusicID == 0) {
+        if (mCurrentPlayingOriginalMusicID == -1) {
             return;
         }
         updateMusicVolumeInner();
@@ -1301,7 +1304,8 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     @Override
     public void stopPlayMusic() {
         TRTCLogger.i(TAG, "TRTCKaraokeRoom api: stopPlayMusic musicId：" + mCurrentPlayingOriginalMusicID);
-        mCurrentPlayingOriginalMusicID = 0;
+        mCurrentPlayingOriginalMusicID = -1;
+        mCurrentPlayProgress = -1;
         boolean isOwner = mKaraokeIMService.isOwner();
         if (isOwner) {
             enableBlackStream(false);
@@ -1315,7 +1319,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     public void switchMusicAccompanimentMode(boolean isOriginal) {
         TRTCLogger.i(TAG, "TRTCKaraokeRoom api: switchMusicAccompanimentMode isOriginal：" + isOriginal
                 + " current musicId: " + mCurrentPlayingOriginalMusicID + " original: " + mIsOriginalMusic);
-        if (mCurrentPlayingOriginalMusicID == 0 || mIsOriginalMusic == isOriginal) {
+        if (mCurrentPlayingOriginalMusicID == -1 || mIsOriginalMusic == isOriginal) {
             return;
         }
         mIsOriginalMusic = isOriginal;
@@ -1338,7 +1342,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         if (musicVolume < 0 || musicVolume > 100) {
             musicVolume = DEFAULT_MUSIC_VOLUME;
         }
-        if (mCurrentPlayingOriginalMusicID == 0) {
+        if (mCurrentPlayingOriginalMusicID == -1) {
             mMusicVolume = musicVolume;
             return;
         }
@@ -1375,7 +1379,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
         if (musicPitch < -1.0f || musicPitch > 1.0f) {
             musicPitch = 0.0f;
         }
-        if (mCurrentPlayingOriginalMusicID == 0) {
+        if (mCurrentPlayingOriginalMusicID == -1) {
             mMusicPitch = musicPitch;
             return;
         }
@@ -1444,10 +1448,21 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
     }
 
     @Override
+    public void onCapturedAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame) {
+        if (!mChorusExtension.isChorusOn() || mTakeSeatIndex == -1) {
+            return;
+        }
+        runOnDelegateThread(() -> {
+            if (mDelegate != null && mCurrentPlayProgress != -1 && mCurrentPlayingOriginalMusicID != -1) {
+                mDelegate.onCapturedAudioFrame(trtcAudioFrame.data, mCurrentPlayProgress);
+            }
+        });
+    }
+
+    @Override
     public void updateNetworkTime() {
         TXLiveBase.updateNetworkTime();
     }
-
 
     private KaraokeChorusObserver mKaraokeChorusObserver = new KaraokeChorusObserver() {
         @Override
@@ -1455,13 +1470,12 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
             runOnDelegateThread(new Runnable() {
                 @Override
                 public void run() {
+                    mCurrentPlayProgress = curPtsMS;
                     if (mDelegate != null) {
                         mDelegate.onMusicProgressUpdate(String.valueOf(musicId), curPtsMS, durationMS);
                     }
                 }
             });
-
-
         }
 
         @Override
@@ -1485,6 +1499,7 @@ public class TRTCKaraokeRoomImpl extends TRTCKaraokeRoom implements KaraokeIMSer
             runOnDelegateThread(new Runnable() {
                 @Override
                 public void run() {
+                    mCurrentPlayProgress = -1;
                     TRTCLogger.i(TAG, "TRTCKaraokeRoom api:  onMusicPlayCompleted musicID: " + musicID);
                     if (mDelegate != null) {
                         mDelegate.onMusicPlayCompleted(String.valueOf(musicID));

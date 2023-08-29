@@ -167,7 +167,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                     @Override
                     public void onError(int errorCode, String errorMessage) {
                         String info = "enter room failed[" + errorCode + "]:" + errorMessage;
-                        Toast.show(info, Toast.LENGTH_LONG);
+                        showToast(info, Toast.LENGTH_LONG);
                         TRTCLogger.e(TAG, info);
                         finish();
                     }
@@ -194,7 +194,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                                 if (errorCode == ERROR_ROOM_ID_EXIT) {
                                     onSuccess();
                                 } else {
-                                    Toast.show(
+                                    showToast(
                                             "create karaoke room failed[" + errorCode + "]:" + message,
                                             Toast.LENGTH_LONG);
                                     finish();
@@ -269,7 +269,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                     } else {
                         if (position == 0) {
                             if (mCurrentRole == TRTCCloudDef.TRTCRoleAnchor) {
-                                Toast.show(R.string.trtckaraoke_toast_you_are_already_an_anchor,
+                                showToast(R.string.trtckaraoke_toast_you_are_already_an_anchor,
                                         Toast.LENGTH_LONG);
                                 return;
                             }
@@ -302,7 +302,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                             @Override
                             public void onSuccess() {
                                 //成功上座位，可以展示UI了
-                                Toast.show(R.string.trtckaraoke_toast_owner_succeeded_in_occupying_the_seat,
+                                showToast(R.string.trtckaraoke_toast_owner_succeeded_in_occupying_the_seat,
                                         Toast.LENGTH_LONG);
                                 mIsTakeSeat = false;
                             }
@@ -311,7 +311,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
                             public void onError(int code, String msg) {
                                 String info = String.format(getString(
                                         R.string.trtckaraoke_toast_owner_failed_to_occupy_the_seat), code, msg);
-                                Toast.show(info, Toast.LENGTH_LONG);
+                                showToast(info, Toast.LENGTH_LONG);
                                 mIsTakeSeat = false;
                             }
                         });
@@ -348,7 +348,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
             final MessageEntity entity = mMsgEntityList.get(position);
             String inviteId = entity.invitedId;
             if (inviteId == null) {
-                Toast.show(getString(R.string.trtckaraoke_request_expired), Toast.LENGTH_LONG);
+                showToast(getString(R.string.trtckaraoke_request_expired), Toast.LENGTH_LONG);
                 return;
             }
             mTRTCKaraokeRoom.acceptInvitation(inviteId, new TUICallback() {
@@ -360,7 +360,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
 
                 @Override
                 public void onError(int errorCode, String errorMessage) {
-                    Toast.show(getString(R.string.trtckaraoke_accept_failed) + errorCode, Toast.LENGTH_LONG);
+                    showToast(getString(R.string.trtckaraoke_accept_failed) + errorCode, Toast.LENGTH_LONG);
                 }
             });
         }
@@ -395,7 +395,7 @@ public class KaraokeRoomAnchorActivity extends KaraokeRoomBaseActivity {
             final MessageEntity entity = mMsgEntityList.get(position);
             String inviteId = entity.invitedId;
             if (inviteId == null) {
-                Toast.show(getString(R.string.trtckaraoke_request_expired), Toast.LENGTH_LONG);
+                showToast(getString(R.string.trtckaraoke_request_expired), Toast.LENGTH_LONG);
                 return;
             }
             //主播点歌后,房主在消息中拉起点歌/已点面板

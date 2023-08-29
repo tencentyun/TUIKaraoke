@@ -20,13 +20,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/TRTCKtvRoomChatTheme" />
         <activity
-            android:name=".ui.floatwindow.FloatActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:launchMode="standard"
-            android:theme="@style/TRTCKtvRoomChatTheme"
-            android:windowSoftInputMode="stateHidden|stateAlwaysHidden" />
-
-        <activity
             android:name=".ui.music.impl.KaraokeSearchMusicActivity"
             android:configChanges="orientation|keyboardHidden"
             android:launchMode="singleTask"

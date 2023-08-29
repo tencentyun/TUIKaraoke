@@ -14,6 +14,7 @@ public class KaraokeMusicInfo {
     public String       coverUrl;      //歌曲封面
     public String       originUrl;     //歌曲原唱Url
     public String       accompanyUrl;  //歌曲伴奏Url
+    public String       midiUrl;       //音高数据Url
     public int          status;
     public String       userId;
     public String       performId;
@@ -35,6 +36,7 @@ public class KaraokeMusicInfo {
                 + ", coverUrl='" + coverUrl + '\''
                 + ", originUrl='" + originUrl + '\''
                 + ", accompanyUrl='" + accompanyUrl + '\''
+                + ", midiUrl='" + midiUrl + '\''
                 + ", status=" + status
                 + ", userId='" + userId + '\''
                 + ", performId='" + performId + '\''

@@ -25,4 +25,6 @@ public interface KaraokeTRTCServiceObserver {
     void onRecvSEIMsg(String userId, byte[] data);
 
     void onRecvCustomCmdMsg(String userId, int cmdID, int seq, byte[] message);
+
+    void onCapturedAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame);
 }
