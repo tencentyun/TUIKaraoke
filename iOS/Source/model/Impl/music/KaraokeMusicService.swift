@@ -81,7 +81,6 @@ public protocol KaraokeMusicService: AnyObject {
      */
     func getMusicsByKeywords(keyWord: String, limit: Int, scrollToken: String, callback: @escaping MusicListCallback)
     
-    
     /**
      * 获取已点歌曲列表
      */
@@ -122,5 +121,27 @@ public protocol KaraokeMusicService: AnyObject {
      * - parameter musicInfo   歌曲model
      */
     func completePlaying(musicInfo: KaraokeMusicInfo, callback: @escaping KaraokeCallback)
+    
+    
+    // MARK: - 打分相关
+    /**
+     * 歌曲打分预加载
+     * - parameter musicInfo 歌曲model
+     */
+    func prepareMusicScore(musicInfo: KaraokeMusicInfo)
+    
+    /**
+     * 歌曲打分处理
+     * - parameter buffer    音频流数据
+     * - parameter length    音频长度
+     * - parameter timeStamp 歌曲时间戳
+     */
+    func processMusicScore(buffer: UnsafeMutablePointer<CChar>, length: Int32, timeStamp: Double)
+    
+    /**
+     * 歌曲打分结束
+     *
+     */
+    func finishMusicScore()
     
 }

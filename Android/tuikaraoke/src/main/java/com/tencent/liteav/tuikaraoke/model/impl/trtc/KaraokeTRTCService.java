@@ -1,6 +1,7 @@
 package com.tencent.liteav.tuikaraoke.model.impl.trtc;
 
 import static com.tencent.liteav.TXLiteAVCode.ERR_TRTC_USER_SIG_CHECK_FAILED;
+import static com.tencent.trtc.TRTCCloudDef.TRTC_AUDIO_FRAME_OPERATION_MODE_READONLY;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -44,6 +45,13 @@ public class KaraokeTRTCService extends TRTCCloudListener {
         mMainCloud = TRTCCloud.sharedInstance(context);
         mTRTCCloud = mMainCloud;
         mAudioType = audioType;
+        mMainCloud.setAudioFrameListener(mAudioFrameListener);
+        TRTCCloudDef.TRTCAudioFrameCallbackFormat format = new TRTCCloudDef.TRTCAudioFrameCallbackFormat();
+        format.mode = TRTC_AUDIO_FRAME_OPERATION_MODE_READONLY;
+        format.channel = 1;
+        format.sampleRate = 48000;
+        format.samplesPerCall = 80 * format.sampleRate / 1000; // 80ms回调一次
+        mMainCloud.setCapturedAudioFrameCallbackFormat(format);
         TRTCLogger.i(TAG, "KaraokeTRTCService instance@" + this + " initialized");
     }
 
@@ -199,6 +207,7 @@ public class KaraokeTRTCService extends TRTCCloudListener {
         mExitRoomCallback = callback;
         enableChorus(false);
         setLowLatencyMode(false);
+        mMainCloud.setAudioFrameListener(null);
         mTRTCCloud.exitRoom();
     }
 
@@ -427,4 +436,37 @@ public class KaraokeTRTCService extends TRTCCloudListener {
         mTRTCCloud.stopRemoteView(userId, TRTCCloudDef.TRTC_VIDEO_STREAM_TYPE_BIG);
     }
 
+    private final TRTCAudioFrameListener mAudioFrameListener = new TRTCAudioFrameListener() {
+        @Override
+        public void onCapturedAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame) {
+            if (mDelegate != null) {
+                mDelegate.onCapturedAudioFrame(trtcAudioFrame);
+            }
+        }
+
+        @Override
+        public void onLocalProcessedAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame) {
+
+        }
+
+        @Override
+        public void onRemoteUserAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame, String s) {
+
+        }
+
+        @Override
+        public void onMixedPlayAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame) {
+
+        }
+
+        @Override
+        public void onMixedAllAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame) {
+
+        }
+
+        @Override
+        public void onVoiceEarMonitorAudioFrame(TRTCCloudDef.TRTCAudioFrame trtcAudioFrame) {
+
+        }
+    };
 }

@@ -25,7 +25,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
-import com.blankj.utilcode.util.ToastUtils;
+
 import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.basic.UserModel;
@@ -35,6 +35,7 @@ import com.tencent.liteav.tuikaraoke.model.impl.server.TRTCKaraokeRoomManager;
 import com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomAudienceActivity;
 import com.tencent.liteav.tuikaraoke.ui.room.KaraokeRoomCreateDialog;
 import com.tencent.qcloud.tuicore.interfaces.TUICallback;
+import com.tencent.qcloud.tuicore.util.ToastUtil;
 import com.tencent.trtc.TRTCCloudDef;
 
 import java.io.File;
@@ -169,13 +170,13 @@ public class MainActivity extends AppCompatActivity {
                 if (isRoomExist(result)) {
                     realEnterRoom(roomIdStr, result.getGroupInfo().getOwner());
                 } else {
-                    ToastUtils.showLong(R.string.room_not_exist);
+                    ToastUtil.toastLongMessage(getString(R.string.room_not_exist));
                 }
             }
 
             @Override
             public void onFailed(int code, String msg) {
-                ToastUtils.showLong(msg);
+                ToastUtil.toastLongMessage(msg);
             }
         });
     }

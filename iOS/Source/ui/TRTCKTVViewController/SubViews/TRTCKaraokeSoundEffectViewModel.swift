@@ -22,9 +22,15 @@ protocol TRTCKaraokeSoundEffectViewResponder: AnyObject {
     func bgmOnPlaying(musicId: Int32, current: Double, total: Double)
     func onSelectedMusicListChanged()
     func onMusicListChanged()
+    func onSwitchMusic()
     func onReceiveStartChorusCmd(musicId: String)
     func onStartChorusBtnClick()
     func onMusicAccompanimentModeChanged(musicId: String, isOrigin: Bool)
+    func onMusicScorePrepared(pitchModelList: [MusicPitchModel])
+    func onMusicScoreFinished(totalScore: Int32)
+    func onMusicRealTimeProgress(progress: Int)
+    func onMusicRealTimePitch(pitch: Int)
+    func onMusicSingleScore(currentScore: Int32)    
 }
 
 class TRTCKaraokeSoundEffectViewModel: NSObject {
@@ -83,12 +89,11 @@ class TRTCKaraokeSoundEffectViewModel: NSObject {
     lazy var userSelectedSong: [String: Bool] = [:]
     
     lazy var selectedAction: ((_ v: KaraokeMusicInfo, _ callBack: @escaping cellClickCallback) -> Void) = { [weak self] model, callBack in
-        guard let `self` = self else { return }
-        guard let index = self.musicSelectedList.firstIndex(of: model) else {
-            return
-        }
+        guard let self = self else { return }
+        guard let index = self.musicSelectedList.firstIndex(of: model) else { return }
         if index == 0 {
             self.viewModel?.Karaoke.stopPlayMusic()
+            self.viewResponder?.onSwitchMusic()
             self.viewModel?.musicService?.switchMusicFromPlaylist(musicInfo: model, callback: { [weak self] code, msg in
                 guard let self = self else { return }
                 if code == 0 {

@@ -117,8 +117,8 @@ extension KaraokeMainViewController: KaraokeMainRootViewDelegate {
                 let memberCount = groupInfo.info.memberCount
                 let info = KaraokeRoomInfo(roomID: roomId, ownerId: owner, memberCount: Int(memberCount))
                 self.dependencyContainer.getKaraoke().login(sdkAppID: Int32(SDKAPPID),
-                                                            userId: TUILogin.getUserID(),
-                                                            userSig: TUILogin.getUserSig()) { [weak self] code, message in
+                                                            userId: TUILogin.getUserID() ?? "",
+                                                            userSig: TUILogin.getUserSig() ?? "") { [weak self] code, message in
                     guard let self = self else { return }
                     let vc = self.dependencyContainer.makeKaraokeViewController(roomInfo: info, role: .audience)
                     self.navigationController?.pushViewController(vc, animated: false)
@@ -139,8 +139,8 @@ extension KaraokeMainViewController: KaraokeMainRootViewDelegate {
     func createRoom() {
         dependencyContainer.delegate = self
         dependencyContainer.getKaraoke().login(sdkAppID: Int32(SDKAPPID),
-                                               userId: TUILogin.getUserID(),
-                                               userSig: TUILogin.getUserSig()) { [weak self] code, message in
+                                               userId: TUILogin.getUserID() ?? "",
+                                               userSig: TUILogin.getUserSig() ?? "") { [weak self] code, message in
             guard let self = self else { return }
             let viewController = self.dependencyContainer.makeCreateKaraokeViewController()
             if viewController is TRTCCreateKaraokeViewController {

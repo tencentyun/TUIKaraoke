@@ -192,7 +192,6 @@ public interface TRTCKaraokeRoomObserver {
      */
     void onMusicAccompanimentModeChanged(int musicId, boolean isOriginal);
 
-
     /**
      * 更新网络NTP时间回调，
      *
@@ -200,4 +199,11 @@ public interface TRTCKaraokeRoomObserver {
      * @param message 错误信息
      */
     void onUpdateNetworkTime(int code, String message);
+
+    /**
+     * 音频采集回调
+     * @param pcm        采集的音频数据
+     * @param timestamp  时间戳
+     */
+    void onCapturedAudioFrame(byte[] pcm, long timestamp);
 }

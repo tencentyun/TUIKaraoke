@@ -28,8 +28,8 @@
     <string name="trtckaraoke_tv_online_no_name">上%d号麦</string>
     <string name="trtckaraoke_tv_offline_no_name">下%d号麦</string>
 
-    <string name="trtckaraoke_tv_enter_room">%s进房</string>
-    <string name="trtckaraoke_tv_exit_room">%s退房</string>
+    <string name="trtckaraoke_tv_enter_room">进房</string>
+    <string name="trtckaraoke_tv_exit_room">退房</string>
     <string name="trtckaraoke_anchor_leave_room">离开会解散房间，确定离开吗？</string>
     <string name="trtckaraoke_request_expired">该请求已过期</string>
     <string name="trtckaraoke_agree">同意</string>
@@ -140,4 +140,8 @@
     <string name="trtckaraoke_audio_headset_check_tip">为保证演唱效果，建议佩戴耳机演唱，外放场景下建议使用伴奏模式，且勿随意调整系统音量</string>
     <string name="trtckaraoke_toast_music_download_failed">《%s》下载失败，请尝试重新点歌</string>
     <string name="trtckaraoke_lyric_empty_hint">暂无歌词</string>
+    <string name="trtckaraoke_single_score">单句 %d分</string>
+    <string name="trtckaraoke_close">关闭</string>
+    <string name="trtckaraoke_score">分</string>
+    <string name="trtckaraoke_your_final_score">你的总评分</string>
 </resources>

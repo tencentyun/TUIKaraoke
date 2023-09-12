@@ -99,4 +99,23 @@ public abstract class KaraokeMusicService {
      * @param musicInfo 歌曲信息
      */
     public abstract void completePlaying(KaraokeMusicInfo musicInfo);
+
+    /**
+     * 歌曲打分准备工作
+     *
+     * @param musicInfo 将要打分的歌曲信息
+     */
+    public abstract void prepareMusicScore(KaraokeMusicInfo musicInfo);
+
+    /**
+     * 输入人声pcm，用于歌曲打分
+     * @param pcm       人声pcm
+     * @param timeStamp 时间戳（歌曲播放进度）
+     */
+    public abstract void processMusicScore(byte[] pcm, long timeStamp);
+
+    /**
+     * 结束打分
+     */
+    public abstract void finishMusicScore();
 }

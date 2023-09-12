@@ -24,8 +24,8 @@
     <string name="trtckaraoke_tv_the_owner_not_ban_this_position">Seat %d unlocked</string>
     <string name="trtckaraoke_tv_online_no_name">took seat %d</string>
     <string name="trtckaraoke_tv_offline_no_name">left seat %d</string>
-    <string name="trtckaraoke_tv_enter_room">%s entered</string>
-    <string name="trtckaraoke_tv_exit_room">%s left the room</string>
+    <string name="trtckaraoke_tv_enter_room">entered</string>
+    <string name="trtckaraoke_tv_exit_room">left the room</string>
     <string name="trtckaraoke_anchor_leave_room">The room will close after you leave. Leave?</string>
     <string name="trtckaraoke_request_expired">The request has expired</string>
     <string name="trtckaraoke_agree">Agree</string>
@@ -129,6 +129,10 @@
     <string name="trtckaraoke_audio_headset_check_tip">In order to ensure the singing effect, it is recommended to wear headphones to sing. It is recommended to use the accompaniment mode in the external playback scene, and do not adjust the system volume at will</string>
     <string name="trtckaraoke_toast_music_download_failed">%s failed to download, please try ordering the song again</string>
     <string name="trtckaraoke_lyric_empty_hint">lyric is empty</string>
+    <string name="trtckaraoke_single_score"> %d points</string>
+    <string name="trtckaraoke_close">Close</string>
+    <string name="trtckaraoke_score">points</string>
+    <string name="trtckaraoke_your_final_score">Your final score</string>
 </resources>
 
 

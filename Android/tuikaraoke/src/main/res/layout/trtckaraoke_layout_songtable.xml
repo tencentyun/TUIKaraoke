@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,12 +9,10 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:gravity="center_vertical"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp">
+        android:gravity="center_vertical">
 
         <LinearLayout
             android:id="@+id/ll_info"
@@ -115,8 +113,7 @@
         android:id="@+id/btn_empty_choose_song"
         android:layout_width="76dp"
         android:layout_height="38dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="12dp"
+        android:layout_centerInParent="true"
         android:background="@drawable/trtckaraoke_bg_empty_choose_song"
         android:text="@string/trtckaraoke_btn_choose_song"
         android:textAllCaps="false"
@@ -127,8 +124,7 @@
         android:id="@+id/btn_start_chorus"
         android:layout_width="76dp"
         android:layout_height="38dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="20dp"
+        android:layout_centerInParent="true"
         android:background="@drawable/trtckaraoke_button_border"
         android:enabled="false"
         android:text="@string/trtckaraoke_btn_start_chorus"
@@ -141,9 +137,11 @@
         android:id="@+id/tv_music_coming"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="50dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="55dp"
         android:textSize="18sp"
+        android:textAllCaps="false"
         android:text="@string/trtckaraoke_music_coming"
-        android:visibility="gone" />
-</LinearLayout>
+        android:visibility="visible" />
+</RelativeLayout>

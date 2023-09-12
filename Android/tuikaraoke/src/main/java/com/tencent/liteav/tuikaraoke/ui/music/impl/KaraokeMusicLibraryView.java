@@ -52,10 +52,12 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout {
     private KaraokeMusicTagsAdapter    mMusicTagsAdapter;
     private RoomInfoController         mRoomInfoController;
 
-    private Context                       mContext;
-    private List<KaraokeMusicInfo>        mLibraryLists  = new ArrayList<>();
-    private List<KaraokeMusicTag>         mMusicTagList  = new ArrayList<>();
-    private KaraokeMusicService mKaraokeMusicService;
+    private Context                    mContext;
+    private List<KaraokeMusicInfo>     mLibraryLists  = new ArrayList<>();
+    private List<KaraokeMusicTag>      mMusicTagList  = new ArrayList<>();
+    private KaraokeMusicService        mKaraokeMusicService;
+
+    private int                        mCurrentMusicTagIndex = 0;
 
     private final ITUINotification mDeleteMusicNotification = new ITUINotification() {
         @Override
@@ -109,6 +111,7 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout {
                 new KaraokeMusicTagsAdapter.OnMusicTagClickListener() {
                     @Override
                     public void onMusicTagClick(KaraokeMusicTag musicTag, int position) {
+                        mCurrentMusicTagIndex = position;
                         getMusicLibraryList(musicTag.id);
                     }
                 });
@@ -176,34 +179,58 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout {
     }
 
     private void addMusicToPlaylist(final KaraokeMusicInfo info, int position) {
+        int musicTagId = mCurrentMusicTagIndex;
         info.isSelected = true;
         ViewHolder holder = (ViewHolder) mRecyclerMusic.findViewHolderForAdapterPosition(position);
         ProgressBar progressBar = holder.itemView.findViewById(R.id.progress_bar_choose_song);
         holder.updateChooseButton(info.isSelected);
         mKaraokeMusicService.addMusicToPlaylist(info, new KaraokeAddMusicCallback() {
+            private boolean checkMusicInfoFromCallback(KaraokeMusicInfo musicInfo) {
+                if (position >= mLibraryLists.size()) {
+                    return false;
+                }
+                // 切换MusicTag会导致mLibraryLists更新，需要重新获取当前position的歌曲
+                KaraokeMusicInfo realInfo = mLibraryLists.get(position);
+                if (musicTagId != mCurrentMusicTagIndex || !TextUtils.equals(musicInfo.musicId, realInfo.musicId)) {
+                    // MusicTag发生变化 或者 回调来的歌曲与当前position的歌曲不一致，就不要刷新了
+                    return false;
+                }
+                return true;
+            }
+
             @Override
             public void onStart(KaraokeMusicInfo musicInfo) {}
 
             @Override
             public void onProgress(KaraokeMusicInfo musicInfo, float progress) {
+                if (!checkMusicInfoFromCallback(musicInfo)) {
+                    return;
+                }
                 int curProgress = (int) (progress * 100);
                 curProgress = Math.max(curProgress, 0);
                 curProgress = Math.min(curProgress, 100);
-                progressBar.setProgress(curProgress);
+                if (progressBar.getProgress() < curProgress) {
+                    progressBar.setProgress(curProgress);
+                }
             }
 
             @Override
             public void onFinish(KaraokeMusicInfo musicInfo, int errorCode, String errorMessage) {
-                if (errorCode != 0 || musicInfo == null) {
+                if (!checkMusicInfoFromCallback(musicInfo)) {
+                    return;
+                }
+                KaraokeMusicInfo realInfo = mLibraryLists.get(position);
+                if (errorCode != 0) {
                     TRTCLogger.e(TAG, "downloadMusic failed errorCode = "
                             + errorCode + ",errorMessage = " + errorMessage);
-                    info.isSelected = false;
+                    realInfo.isSelected = false;
                     String tip = getResources().getString(R.string.trtckaraoke_toast_music_download_failed,
                             info.musicName);
-                    Toast.show(tip, Toast.LENGTH_SHORT);
+                    Toast.show(KaraokeMusicLibraryView.this, tip, Toast.LENGTH_SHORT);
                     holder.updateChooseButton(info.isSelected);
                     mKaraokeMusicService.deleteMusicFromPlaylist(info, null);
                 } else {
+                    realInfo.isSelected = true;
                     Map<String, Object> params = new HashMap<>();
                     params.put(KARAOKE_MUSIC_INFO_KEY, info);
                     TUICore.notifyEvent(KARAOKE_MUSIC_EVENT, KARAOKE_ADD_MUSIC_EVENT, params);

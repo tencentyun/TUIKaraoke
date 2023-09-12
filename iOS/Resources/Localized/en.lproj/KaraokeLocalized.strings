@@ -75,7 +75,7 @@
 "Demo.TRTC.Karaoke.ban" = "blocked";
 "Demo.TRTC.LiveRoom.xxinroom" = "xxx entered the room";
 "Demo.TRTC.Karaoke.xxexitroom" = "xxx left the room";
-"Demo.TRTC.Karaoke.hugxxhandsupsuccess" = "Placed xxx in the seat";
+"Demo.TRTC.Karaoke.hugxxhandsupsuccess" = "xxx in the seat";
 "Demo.TRTC.Karaoke.refusebespeaker" = "xxx declined the mic-on request";
 "Demo.TRTC.Karaoke.saysomething" = "Send a message";
 "Demo.TRTC.LiveRoom.send" = "Send";
@@ -149,6 +149,9 @@
 "Demo.TRTC.Karaoke.searchlike" = "Search for a song or artist name";
 "Demo.TRTC.LiveRoom.searchback" = "Cancel";
 "Demo.TRTC.LiveRoom.searchnoresult" = "No results";
+"Demo.TRTC.Karaoke.singleScorexx" = " xxx points";
+"Demo.TRTC.Karaoke.finalScore" = "points";
+"Demo.TRTC.Karaoke.finalScoreDesc" = "Your final score";
 
 "Demo.TRTC.Chorus.StartChorus" = "Start\nDuet";
 "Demo.TRTC.Chorus.ComingSoon" = "Coming soon...";
