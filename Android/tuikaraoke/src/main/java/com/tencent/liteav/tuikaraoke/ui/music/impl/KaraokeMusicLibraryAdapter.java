@@ -91,11 +91,11 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
                 @Override
                 public void onClick(View v) {
                     if (!mRoomInfoController.isRoomOwner()) {
-                        Toast.show(R.string.trtckaraoke_toast_room_owner_can_operate_it, Toast.LENGTH_LONG);
+                        Toast.show(v, R.string.trtckaraoke_toast_room_owner_can_operate_it, Toast.LENGTH_LONG);
                         return;
                     }
                     if (!mRoomInfoController.isAnchor()) {
-                        Toast.show(R.string.trtckaraoke_toast_anchor_can_only_operate_it, Toast.LENGTH_LONG);
+                        Toast.show(v, R.string.trtckaraoke_toast_anchor_can_only_operate_it, Toast.LENGTH_LONG);
                         return;
                     }
                     mProgressBarChoose.setEnabled(false);
@@ -109,7 +109,7 @@ public class KaraokeMusicLibraryAdapter extends RecyclerView.Adapter<KaraokeMusi
                 buffer.append(str);
             }
             mTvSinger.setText(buffer);
-            if (model.isSelected && model.isPreloaded() && mProgressBarChoose.getProgress() != 100) {
+            if (model.isSelected && mProgressBarChoose.getProgress() != 100) {
                 //首次加载时遇到已经下载过的歌曲，也要主动设置成下载完成的状态（因为无法靠下载回调来更新）
                 mProgressBarChoose.setEnabled(false);
                 mProgressBarChoose.setProgress(100);

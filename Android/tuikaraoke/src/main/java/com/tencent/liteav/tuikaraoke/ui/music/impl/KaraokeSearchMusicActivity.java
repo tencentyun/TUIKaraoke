@@ -267,7 +267,7 @@ public class KaraokeSearchMusicActivity extends AppCompatActivity {
                     Log.d(TAG, "downloadMusic failed errorCode = " + errorCode + " , errorMessage = " + errorMessage);
                     info.isSelected = false;
                     String tip = getString(R.string.trtckaraoke_toast_music_download_failed, info.musicName);
-                    Toast.show(tip, Toast.LENGTH_SHORT);
+                    Toast.show(getWindow().getDecorView(), tip, Toast.LENGTH_SHORT);
                     holder.updateChooseButton(info.isSelected);
                     mMusicServiceImpl.deleteMusicFromPlaylist(info, null);
                 } else {

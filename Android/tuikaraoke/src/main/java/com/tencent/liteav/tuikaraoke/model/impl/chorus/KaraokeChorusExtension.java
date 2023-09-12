@@ -334,9 +334,6 @@ public class KaraokeChorusExtension implements TXAudioEffectManager.TXMusicPlayO
         if (reason == ChorusStopReason.LocalStop) {
             mRequestStopPlayMusicTs = 0;
         }
-        if (mObserver != null) {
-            mObserver.onMusicPlayCompleted(mMusicID);
-        }
     }
 
     private void sendStopBgmMsg() {

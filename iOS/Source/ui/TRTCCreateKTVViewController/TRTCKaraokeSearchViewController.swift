@@ -215,7 +215,7 @@ public class TRTCKaraokeSearchViewController: UIViewController, UISearchBarDeleg
                 } else {
                     self.tableView.mj_footer?.endRefreshingWithNoMoreData()
                     if scrollToken == "" {
-                        self.view.makeToast(.searchNoResult)
+                        self.view.makeToast(.searchNoResult, position: .center)
                     }
                 }
             } else {

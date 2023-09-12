@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rl_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="30dp"
+    android:paddingRight="30dp">
+
+    <RelativeLayout
+        android:id="@+id/rl_center"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:gravity="center_vertical"
+        android:background="@drawable/trtckaraoke_bg_score_dialog"
+        android:layout_centerInParent="true">
+
+        <Button
+            android:id="@+id/tv_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="10dp"
+            android:textSize="12sp"
+            android:textAllCaps="false"
+            android:text="@string/trtckaraoke_close" />
+
+        <ImageView
+            android:id="@+id/img_song_head"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="30dp"
+            android:layout_above="@id/tv_score_title"
+            android:src="@drawable/trtckaraoke_ic_music" />
+
+        <TextView
+            android:id="@+id/tv_music_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/tv_score_title"
+            android:layout_toEndOf="@id/img_song_head"
+            android:layout_marginStart="4dp"
+            android:gravity="left"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:maxWidth="120dp"
+            android:textColor="@color/trtckaraoke_white"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tv_score_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@id/img_song_head"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="60dp"
+            android:gravity="left|center_vertical"
+            android:text="@string/trtckaraoke_your_final_score"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:textColor="#F5F5F5"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/tv_score_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@id/tv_score_unit"
+            android:layout_alignBaseline="@id/tv_score_title"
+            android:textStyle="bold"
+            android:textSize="50sp"/>
+
+        <TextView
+            android:id="@+id/tv_score_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignBaseline="@id/tv_score_value"
+            android:layout_marginEnd="30dp"
+            android:text="@string/trtckaraoke_score"
+            android:textAllCaps="false"
+            android:textColor="#E06ACD"
+            android:textSize="16sp"/>
+
+    </RelativeLayout>
+
+</RelativeLayout>

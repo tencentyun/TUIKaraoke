@@ -7,7 +7,7 @@
 //
 
 #import "KaraokeTRTCService.h"
-#import "TXLiteAVSDK_TRTC/TRTCCloud.h"
+#import "TUIKaraokeKit.h"
 #import "KaraokeChorusExtension.h"
 #import "KaraokeLogger.h"
 
@@ -17,7 +17,7 @@ static NSString *const kMixRobot = @"_robot";
 static const int TC_COMPONENT_KARAOKE = 8;
 static const int TC_TRTC_FRAMEWORK    = 1;
 
-@interface KaraokeTRTCService () <TRTCCloudDelegate, KaraokeChorusExtensionObserver>
+@interface KaraokeTRTCService () <TRTCCloudDelegate, KaraokeChorusExtensionObserver, TRTCAudioFrameDelegate>
 
 @property (nonatomic, copy) NSString *ownerId;
 @property (nonatomic, copy) NSString *userId;
@@ -313,6 +313,15 @@ static const int TC_TRTC_FRAMEWORK    = 1;
     [self.voiceCloud enterRoom:trtcParams appScene:TRTCAppSceneLIVE];
     // 设置媒体类型
     [self.voiceCloud setSystemVolumeType:TRTCSystemVolumeTypeMedia];
+    
+    TRTCAudioFrameDelegateFormat *format = [[TRTCAudioFrameDelegateFormat alloc] init];
+    format.mode = TRTCAudioFrameOperationModeReadOnly;
+    format.channels = 1;
+    format.sampleRate = 48000;
+    // 如果希望用毫秒数计算回调帧长，则将毫秒数转换成采样点数的公式为：采样点数 = 毫秒数 * 采样率 / 1000。举例：48000 采样率希望回调 20ms 帧长的数据，则采样点数应该填：960 = 20 * 48000 / 1000。
+    format.samplesPerCall = 80 * 48000 / 1000;
+    [self.voiceCloud setCapturedAudioFrameDelegateFormat:format];
+    [self.voiceCloud setAudioFrameDelegate:self];
 }
 
 - (void)createBGMTRTCInstanceWith:(TRTCParams *)trtcParams {
@@ -541,4 +550,12 @@ static const int TC_TRTC_FRAMEWORK    = 1;
         [self.observer onStatistics:statistics];
     }
 }
+
+#pragma mark - TRTCAudioFrameDelegate
+- (void)onCapturedAudioFrame:(TRTCAudioFrame *)frame {
+    if (self.chorusExtension.isChorusOn && [self canDelegateResponseMethod:@selector(onCapturedAudioFrame:)]) {
+        [self.observer onCapturedAudioFrame:frame];
+    }
+}
+
 @end

@@ -66,9 +66,12 @@ public class KaraokeMusicTagsAdapter extends RecyclerView.Adapter<KaraokeMusicTa
             mButtonMusicTag.setSelected(isSelected);
             mButtonMusicTag.setText(musicTag.name);
             mButtonMusicTag.setOnClickListener((View button) -> {
+                if (mSelectedPosition == position) {
+                    return;
+                }
                 mSelectedPosition = position;
                 notifyDataSetChanged();
-                listener.onMusicTagClick(musicTag, getBindingAdapterPosition());
+                listener.onMusicTagClick(musicTag, mSelectedPosition);
             });
         }
 

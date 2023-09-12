@@ -12,4 +12,7 @@
 @import TXLiteAVSDK_TRTC;
 @import TXAppBasic;
 
+#import <TXLiteAVSDK_TRTC/TRTCCloud.h>
+#import <TXLiteAVSDK_TRTC/TXLiveBase.h>
+
 #endif /* TUIKaraokeKit_h */

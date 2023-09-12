@@ -219,6 +219,18 @@ extension KaraokeMusicServiceImplement: V2TIMSimpleMsgListener {
 }
 
 extension KaraokeMusicServiceImplement: KaraokeMusicService {
+    public func prepareMusicScore(musicInfo: TUIKaraoke.KaraokeMusicInfo) {
+        
+    }
+    
+    public func processMusicScore(buffer: UnsafeMutablePointer<CChar>, length: Int32, timeStamp: Double) {
+        
+    }
+    
+    public func finishMusicScore() {
+        
+    }
+    
     public func addObserver(_ observer: TUIKaraoke.KaraokeMusicServiceObserver) {
         serviceObserver = observer
     }
