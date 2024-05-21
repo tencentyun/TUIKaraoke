@@ -8,6 +8,7 @@ import com.tencent.liteav.tuikaraoke.ui.gift.HttpGetRequest;
 import com.tencent.liteav.tuikaraoke.ui.gift.GiftAdapter;
 import com.tencent.liteav.tuikaraoke.ui.gift.GiftData;
 import com.tencent.liteav.tuikaraoke.ui.gift.OnGiftListQueryCallback;
+import com.tencent.qcloud.tuicore.TUIThemeManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +21,8 @@ public class DefaultGiftAdapterImp extends GiftAdapter implements HttpGetRequest
     private static final String TAG = "DefaultGiftAdapterImp";
 
     private static final int    CORE_POOL_SIZE = 5;
-    private static final String GIFT_DATA_URL  = "https://liteav.sdk.qcloud.com/app/res/picture/live/gift/gift_data.json";
+    private static final String GIFT_DATA_URL  = "https://liteav.sdk.qcloud.com/app/res/picture/live/gift/gift_data"
+            + ".json";
 
     private GiftBeanThreadPool      mGiftBeanThreadPool;
     private OnGiftListQueryCallback mOnGiftListQueryCallback;
@@ -29,7 +31,7 @@ public class DefaultGiftAdapterImp extends GiftAdapter implements HttpGetRequest
     public void queryGiftInfoList(final OnGiftListQueryCallback callback) {
         mOnGiftListQueryCallback = callback;
         ThreadPoolExecutor threadPoolExecutor = getThreadExecutor();
-        HttpGetRequest     request            = new HttpGetRequest(GIFT_DATA_URL, this);
+        HttpGetRequest request = new HttpGetRequest(GIFT_DATA_URL, this);
         threadPoolExecutor.execute(request);
     }
 
@@ -74,11 +76,12 @@ public class DefaultGiftAdapterImp extends GiftAdapter implements HttpGetRequest
         if (giftBeanList == null) {
             return null;
         }
+        boolean isChinese = "zh".equals(TUIThemeManager.getInstance().getCurrentLanguage());
         List<GiftData> giftInfoList = new ArrayList<>();
         for (GiftBean.GiftListBean bean : giftBeanList) {
             GiftData giftData = new GiftData();
             giftData.giftId = bean.getGiftId();
-            giftData.title = bean.getTitle();
+            giftData.title = isChinese ? bean.getTitle() : bean.getTitleEn();
             giftData.type = bean.getType();
             giftData.price = bean.getPrice();
             giftData.giftPicUrl = bean.getGiftImageUrl();

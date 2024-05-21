@@ -186,7 +186,7 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout {
         holder.updateChooseButton(info.isSelected);
         mKaraokeMusicService.addMusicToPlaylist(info, new KaraokeAddMusicCallback() {
             private boolean checkMusicInfoFromCallback(KaraokeMusicInfo musicInfo) {
-                if (position >= mLibraryLists.size()) {
+                if (musicInfo == null || position >= mLibraryLists.size()) {
                     return false;
                 }
                 // 切换MusicTag会导致mLibraryLists更新，需要重新获取当前position的歌曲
@@ -216,9 +216,6 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout {
 
             @Override
             public void onFinish(KaraokeMusicInfo musicInfo, int errorCode, String errorMessage) {
-                if (!checkMusicInfoFromCallback(musicInfo)) {
-                    return;
-                }
                 KaraokeMusicInfo realInfo = mLibraryLists.get(position);
                 if (errorCode != 0) {
                     TRTCLogger.e(TAG, "downloadMusic failed errorCode = "
@@ -230,6 +227,9 @@ public class KaraokeMusicLibraryView extends CoordinatorLayout {
                     holder.updateChooseButton(info.isSelected);
                     mKaraokeMusicService.deleteMusicFromPlaylist(info, null);
                 } else {
+                    if (!checkMusicInfoFromCallback(musicInfo)) {
+                        return;
+                    }
                     realInfo.isSelected = true;
                     Map<String, Object> params = new HashMap<>();
                     params.put(KARAOKE_MUSIC_INFO_KEY, info);

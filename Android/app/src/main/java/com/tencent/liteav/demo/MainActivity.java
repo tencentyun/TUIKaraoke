@@ -24,8 +24,6 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-
-
 import com.tencent.imsdk.v2.V2TIMGroupInfoResult;
 import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.basic.UserModel;

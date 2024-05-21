@@ -1,9 +1,9 @@
 package com.tencent.liteav.tuikaraoke.ui.room;
 
-import com.tencent.liteav.basic.UserModelManager;
 import com.tencent.liteav.tuikaraoke.model.impl.base.KaraokeMusicInfo;
 import com.tencent.liteav.tuikaraoke.ui.base.KaraokeRoomSeatEntity;
 import com.tencent.liteav.tuikaraoke.model.KaraokeMusicService;
+import com.tencent.qcloud.tuicore.TUILogin;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +23,7 @@ public class RoomInfoController {
     }
 
     public RoomInfoController() {
-        mSelfUserId = UserModelManager.getInstance().getUserModel().userId;
+        mSelfUserId = TUILogin.getLoginUser();
     }
 
     public String getRoomOwnerId() {

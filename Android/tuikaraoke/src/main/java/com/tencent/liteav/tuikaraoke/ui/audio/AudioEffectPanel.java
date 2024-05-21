@@ -1,10 +1,7 @@
 package com.tencent.liteav.tuikaraoke.ui.audio;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -15,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.tencent.liteav.basic.IntentUtils;
 import com.tencent.liteav.tuikaraoke.R;
 import com.tencent.liteav.tuikaraoke.model.TRTCKaraokeRoom;
 
@@ -76,15 +72,6 @@ public class AudioEffectPanel extends BottomSheetDialog {
     }
 
     private void initView() {
-        findViewById(R.id.link_music).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse("https://cloud.tencent.com/product/ame"));
-                IntentUtils.safeStartActivity(mContext, intent);
-            }
-        });
-
         mSwitchVoiceEarMonitor = findViewById(R.id.switch_ear_monitor);
         mSwitchVoiceEarMonitor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
