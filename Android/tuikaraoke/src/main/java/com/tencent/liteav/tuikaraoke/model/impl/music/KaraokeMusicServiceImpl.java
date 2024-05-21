@@ -249,9 +249,11 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         if (isOwner()) {
             musicInfo.userId = mRoomInfo.ownerId;
             mMusicSelectedList.add(musicInfo);
-            callback.onStart(musicInfo);
-            callback.onProgress(musicInfo, 100);
-            callback.onFinish(musicInfo, 0, "");
+            if (callback != null) {
+                callback.onStart(musicInfo);
+                callback.onProgress(musicInfo, 100);
+                callback.onFinish(musicInfo, 0, "");
+            }
             notiListChange();
         } else {
             //其他主播点歌,发通知给房主
@@ -267,6 +269,9 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
                 if (mMusicSelectedList != null && mMusicSelectedList.size() > 0) {
                     mMusicSelectedList.remove(musicInfo);
                 }
+                if (callback != null) {
+                    callback.onSuccess();
+                }
                 notiListChange();
             }
         }
@@ -274,7 +279,7 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
 
     @Override
     public void clearPlaylistByUserId(String userID, final TUICallback callback) {
-        if (mMusicSelectedList.size() <= 0 || userID == null) {
+        if (mMusicSelectedList.isEmpty() || userID == null) {
             return;
         }
         //房主下麦
@@ -289,6 +294,9 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
                     }
                     mMusicSelectedList.removeAll(list);
                     notiListChange();
+                }
+                if (callback != null) {
+                    callback.onSuccess();
                 }
             }
         }
@@ -309,14 +317,16 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         }
         mMusicSelectedList.remove(entity);
         mMusicSelectedList.add(1, entity);
-
+        if (callback != null) {
+            callback.onSuccess();
+        }
         notiListChange();
     }
 
 
     @Override
     public void switchMusicFromPlaylist(final KaraokeMusicInfo musicInfo, final TUICallback callback) {
-        if (mMusicSelectedList.size() <= 0 || !isOwner()) {
+        if (mMusicSelectedList.isEmpty() || !isOwner()) {
             return;
         }
         KaraokeMusicInfo entity = mMusicSelectedList.get(0); //备份
@@ -324,14 +334,17 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
         //如果房主切的是自己的歌
         if (entity.userId.equals(mRoomInfo.ownerId) && TextUtils.equals(musicInfo.performId, entity.performId)) {
             mMusicSelectedList.remove(entity);
-            notifyOnMusicListChange(mMusicSelectedList);
+            if (callback != null) {
+                callback.onSuccess();
+            }
+            notiListChange();
         }
     }
 
     @Override
     public void completePlaying(KaraokeMusicInfo musicInfo) {
         if (isOwner()) {
-            if (mMusicSelectedList.size() <= 0) {
+            if (mMusicSelectedList.isEmpty()) {
                 return;
             }
 
@@ -472,9 +485,8 @@ public class KaraokeMusicServiceImpl extends KaraokeMusicService implements TRTC
     }
 
     private void receiveListChange(KaraokeJsonData.Data data) {
-        List<KaraokeMusicInfo> list = new ArrayList<>();
         Gson gsonTemp = new Gson();
-        list = gsonTemp.fromJson(data.getContent(),
+        List<KaraokeMusicInfo> list = gsonTemp.fromJson(data.getContent(),
                 new TypeToken<List<KaraokeMusicInfo>>() {
                 }.getType());
 

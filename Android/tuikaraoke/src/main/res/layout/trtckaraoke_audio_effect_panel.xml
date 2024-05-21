@@ -28,15 +28,6 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/line_top_separator" />
 
-    <ImageView
-        android:id="@+id/link_music"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:layout_marginLeft="3dp"
-        android:src="@drawable/trtckaraoke_ic_link_music"
-        app:layout_constraintBottom_toBottomOf="@+id/music_effect"
-        app:layout_constraintLeft_toRightOf="@+id/music_effect" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_listen_test"
         android:layout_width="match_parent"

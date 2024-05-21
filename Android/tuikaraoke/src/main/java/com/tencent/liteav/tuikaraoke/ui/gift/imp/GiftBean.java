@@ -1,5 +1,7 @@
 package com.tencent.liteav.tuikaraoke.ui.gift.imp;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
@@ -27,11 +29,19 @@ public class GiftBean {
          * type : 0
          */
 
+        @SerializedName("giftId")
         private String giftId;
+        @SerializedName("giftImageUrl")
         private String giftImageUrl;
+        @SerializedName("lottieUrl")
         private String lottieUrl;
+        @SerializedName("price")
         private int    price;
+        @SerializedName("title")
         private String title;
+        @SerializedName("title_en")
+        private String titleEn;
+        @SerializedName("type")
         private int    type;
 
         public String getGiftId() {
@@ -72,6 +82,14 @@ public class GiftBean {
 
         public void setTitle(String title) {
             this.title = title;
+        }
+
+        public String getTitleEn() {
+            return titleEn;
+        }
+
+        public void setTitleEn(String titleEn) {
+            this.titleEn = titleEn;
         }
 
         public int getType() {
