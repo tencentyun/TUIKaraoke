@@ -23,7 +23,6 @@ Pod::Spec.new do |spec|
   spec.dependency 'MJExtension'
   spec.dependency 'MJRefresh'
   
-  
   spec.requires_arc = true
   spec.static_framework = true
   spec.source = { :path => './' }
@@ -32,14 +31,9 @@ Pod::Spec.new do |spec|
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64'
   }
   spec.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
- 
   spec.default_subspec = 'TRTC'
   spec.subspec 'TRTC' do |trtc|
     trtc.dependency 'TXLiteAVSDK_TRTC'
-    framework_path="../SDK/TXLiteAVSDK_TRTC.framework"
-    trtc.pod_target_xcconfig={
-        'HEADER_SEARCH_PATHS'=>["$(PODS_TARGET_SRCROOT)/../#{framework_path}/Headers"]
-    }
     trtc.source_files = 'Source/localized/**/*.{h,m,mm,swift}', 'Source/model/**/*.{h,m,mm,swift}', 'Source/Category/**/*.{h,m,mm,swift}', 'Source/ui/**/*.{h,m,mm,swift}', 'Source/TUIKaraokeKit_TRTC/*.{h,m,mm,swift}','Source/TUIGiftKit/*.{h,m,mm,swift}'
     trtc.ios.framework = ['AVFoundation', 'Accelerate']
     trtc.library = 'c++', 'resolv'
@@ -66,7 +60,7 @@ Pod::Spec.new do |spec|
     professional.ios.framework = ['AVFoundation', 'Accelerate', 'AssetsLibrary']
     professional.library = 'c++', 'resolv', 'sqlite3'
     professional.resource_bundles = {
-      'TUIKaraokeKitBundle' => ['Resources/Localized/**/*.strings','Resources/*.xcassets', 'Resources/*.gif', 'Resources/*.mp3', 'Resources/*.vtt']
+      'TUIKaraokeKitBundle' => ['Resources/Localized/**/*.strings','Resources/*.xcassets', 'Resources/*.gif']
     }
   end
 end
